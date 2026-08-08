@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — docs — README real + CI de GitHub Pages
+- **Descripción**: `README.md` pasó del boilerplate de Angular CLI a la documentación real del proyecto (stack, funcionalidades, cómo correr, configuración de contacto, estructura y convenciones). Se creó `.github/workflows/deploy.yml` para deploy automático a GitHub Pages en push a `master`: instala deps, inyecta `environment.prod.ts` desde GitHub Secrets (`WHATSAPP_NUMBER`, `WHATSAPP_DISPLAY`, `INSTAGRAM_HANDLE`, `TELEGRAM_HANDLE`) y publica `dist/catalog`.
+- **Archivos**: `README.md`, `.github/workflows/deploy.yml`
+- **Decisión clave**: El workflow replica el patrón probado del proyecto viejo (catalogApp) y respeta `no-env-leak` (los datos reales solo entran por secrets en CI; el `environment.prod.ts` local permanece gitignoreado). La salida es `dist/catalog` (Angular 15), no `dist/catalog/browser` como en Angular 19.
+
 ### 2026-08-08 — feat — Header cliente: solo marca + carrito con badge
 - **Descripción**: El header dejó de mostrar Inicio, Carrito, Admin, Ingresar y el estado de sesión: el cliente no debe saber que existen el panel admin ni el login. Ahora solo muestra la marca (lleva a la home) y un icono de carrito (SVG inline, sin librería de iconos) con badge con la cantidad de productos, navegando a `/cart`. Se eliminó el uso de `AuthService` en el componente; las rutas `/admin` y `/login` siguen accesibles por URL para el dueño.
 - **Archivos**: `src/app/shared/components/header/header.component.ts`, `header.component.html`, `header.component.scss`
