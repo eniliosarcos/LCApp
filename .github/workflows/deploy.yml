@@ -35,6 +35,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            fs.mkdirSync('src/environments', { recursive: true });
             const content = `import { Environment } from '../app/core/models/environment.model';
 
             export const environment: Environment = {

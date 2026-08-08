@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — fix — CI: crear src/environments antes de inyectar secrets
+- **Descripción**: El workflow de GitHub Pages fallaba con `ENOENT: src/environments/environment.prod.ts`. Causa raíz: el directorio no existe en el checkout del CI (ambos environments están gitignoreados y git no rastrea carpetas vacías). Se añadió `fs.mkdirSync('src/environments', { recursive: true })` antes del `writeFileSync`.
+- **Archivos**: `.github/workflows/deploy.yml`
+- **Decisión clave**: `mkdirSync` con `recursive: true` es idempotente, así que cubre tanto el checkout del CI (directorio ausente) como builds locales (directorio presente).
+
 ### 2026-08-08 — docs — README real + CI de GitHub Pages
 - **Descripción**: `README.md` pasó del boilerplate de Angular CLI a la documentación real del proyecto (stack, funcionalidades, cómo correr, configuración de contacto, estructura y convenciones). Se creó `.github/workflows/deploy.yml` para deploy automático a GitHub Pages en push a `master`: instala deps, inyecta `environment.prod.ts` desde GitHub Secrets (`WHATSAPP_NUMBER`, `WHATSAPP_DISPLAY`, `INSTAGRAM_HANDLE`, `TELEGRAM_HANDLE`) y publica `dist/catalog`.
 - **Archivos**: `README.md`, `.github/workflows/deploy.yml`
