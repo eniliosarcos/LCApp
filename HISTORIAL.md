@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — docs — Flujo de trabajo con Git (rama + PR)
+- **Descripción**: Se documentó en el README la política de ramas y PR ahora que `master` está protegida (push directo bloqueado, requiere PR con aprobación). Incluye naming de ramas (`type/descripcion`), conventional commits y pasos del flujo.
+- **Archivos**: `README.md`
+- **Decisión clave**: La protección de rama es config de GitHub (no se versiona); el README la documenta para que el flujo sea reproducible por cualquier colaborador.
+
 ### 2026-08-08 — fix — CI: inyectar también environment.ts de desarrollo
 - **Descripción**: El workflow fallaba con `MissingFileReplacementException: src/environments/environment.ts path in file replacements does not exist`. El `fileReplacements` de `angular.json` valida que existan tanto la entrada (`environment.ts`) como la salida (`environment.prod.ts`), y ninguna existe en el checkout (ambas gitignoreadas, git no rastrea directorios vacíos). Se amplió el paso de inyección para crear ambos archivos: `environment.ts` con placeholders vacíos (nunca usado en build prod) y `environment.prod.ts` con los secrets.
 - **Archivos**: `.github/workflows/deploy.yml`

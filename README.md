@@ -57,3 +57,13 @@ HISTORIAL.md    # bitácora de cambios
 - SCSS con tokens de `styles/_variables.scss` (`@use 'styles/variables' as v;`).
 - Cambios menores van a `HISTORIAL.md`; decisiones de arquitectura, a `docs/adr/`.
 - Nunca commitear `src/environments/*` con datos reales.
+
+## Flujo de trabajo con Git
+
+`master` está protegida: no se puede pushear directo ni forzar. Todo cambio pasa por una rama + Pull Request con al menos una aprobación.
+
+1. Crear rama desde `master`: `git checkout -b feat/cart-checkout` (naming: `type/descripcion`).
+2. Commits convencionales: `feat`, `fix`, `chore`, `docs`, `refactor`, `style`, `test` — un feature/fix = un commit.
+3. Push: `git push -u origin feat/cart-checkout`.
+4. Abrir PR desde GitHub y esperar aprobación.
+5. Merge con squash (o merge normal) — nunca pushear a `master` directamente.
