@@ -1,0 +1,30 @@
+<section class="home">
+  <div class="hero">
+    <div class="container">
+      <h1 class="hero-title">L'Essence de Cerise</h1>
+      <p class="hero-subtitle">Descubre nuestra colección exclusiva</p>
+      <div class="hero-badges">
+        <span>✓ Envío gratis</span>
+        <span>✓ Garantía</span>
+        <span>✓ Soporte 24/7</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">Explora nuestras categorías</h2>
+    <p class="error" *ngIf="error">No se pudo cargar el catálogo. Intenta de nuevo.</p>
+    <div class="grid" *ngIf="!error && categories.length; else loading">
+      <a class="card" *ngFor="let category of categories" [routerLink]="['/catalog', category.id]">
+        <div class="card-media" aria-hidden="true">{{ category.name.charAt(0) }}</div>
+        <div class="card-body">
+          <h3>{{ category.name }}</h3>
+          <p>{{ category.description }}</p>
+        </div>
+      </a>
+    </div>
+    <ng-template #loading>
+      <p *ngIf="!error">Cargando categorías…</p>
+    </ng-template>
+  </div>
+</section>

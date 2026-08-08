@@ -1,0 +1,26 @@
+<div class="gallery">
+  <div class="main-image" aria-hidden="true">
+    <ng-container *ngIf="hasImages; else noImage">
+      <img
+        *ngIf="(selectedImage || getPrimaryImage())?.url"
+        [src]="(selectedImage || getPrimaryImage())?.url"
+        [alt]="(selectedImage || getPrimaryImage())?.alt || 'Imagen del producto'">
+      <span *ngIf="!(selectedImage || getPrimaryImage())?.url" class="main-fallback">{{ fallback }}</span>
+    </ng-container>
+    <ng-template #noImage>
+      <span class="main-fallback">{{ fallback }}</span>
+    </ng-template>
+  </div>
+
+  <div class="thumbnails" *ngIf="images.length > 1">
+    <button
+      type="button"
+      class="thumbnail"
+      *ngFor="let image of images"
+      (click)="selectImage(image)"
+      [class.selected]="image.id === selectedImage?.id">
+      <img *ngIf="image.url" [src]="image.url" [alt]="image.alt || 'Miniatura del producto'">
+      <span *ngIf="!image.url" class="thumb-fallback">{{ fallback }}</span>
+    </button>
+  </div>
+</div>

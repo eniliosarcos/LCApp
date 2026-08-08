@@ -1,0 +1,34 @@
+@use 'styles/variables' as v;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: v.$font-body;
+  color: v.$color-text;
+  background: v.$color-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: v.$font-heading;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  max-width: v.$container-max;
+  margin: 0 auto;
+  padding-inline: v.$space-6;
+}

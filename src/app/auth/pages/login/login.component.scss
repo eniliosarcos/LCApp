@@ -1,0 +1,62 @@
+@use 'styles/variables' as v;
+
+.login {
+  max-width: 360px;
+  margin: 3rem auto;
+
+  h1 {
+    text-align: center;
+    color: v.$color-primary;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-4;
+    background: v.$color-surface;
+    border-radius: v.$radius-md;
+    padding: v.$space-6;
+    box-shadow: v.$shadow-card;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.9rem;
+    }
+
+    input {
+      padding: v.$space-2 v.$space-3;
+      border: 1px solid v.$color-border-strong;
+      border-radius: v.$radius-sm;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.6rem v.$space-4;
+      border: none;
+      border-radius: v.$radius-sm;
+      background: v.$color-primary;
+      color: v.$color-surface;
+      cursor: pointer;
+      font-size: 1rem;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .error {
+      color: v.$color-danger;
+      margin: 0;
+    }
+
+    .hint {
+      color: v.$color-text-muted;
+      font-size: 0.85rem;
+      margin: 0;
+      text-align: center;
+    }
+  }
+}

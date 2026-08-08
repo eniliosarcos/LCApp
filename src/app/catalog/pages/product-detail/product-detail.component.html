@@ -1,0 +1,74 @@
+<section class="product-detail container">
+  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+  <ng-container *ngIf="loading; else loaded">
+    <p class="status">Cargando producto…</p>
+  </ng-container>
+
+  <ng-template #loaded>
+    <ng-container *ngIf="product; else notFound">
+      <div class="card">
+        <app-product-gallery [images]="product.images"></app-product-gallery>
+
+        <div class="info">
+          <h1>{{ product.name }}</h1>
+
+          <div class="price-section" *ngIf="product.discountPrice; else regularPrice">
+            <span class="discount-price">{{ product.discountPrice | currencyFormat }}</span>
+            <span class="regular-price">{{ product.price | currencyFormat }}</span>
+            <span class="discount-badge">-{{ getDiscountPercentage() }}%</span>
+          </div>
+          <ng-template #regularPrice>
+            <div class="price-section">
+              <span class="price">{{ product.price | currencyFormat }}</span>
+            </div>
+          </ng-template>
+
+          <p class="stock" [class]="getStockStatus()">
+            <ng-container [ngSwitch]="getStockStatus()">
+              <ng-container *ngSwitchCase="'in-stock'">En stock ({{ product.stock }} unidades)</ng-container>
+              <ng-container *ngSwitchCase="'low-stock'">¡Últimas {{ product.stock }} unidades!</ng-container>
+              <ng-container *ngSwitchCase="'out-of-stock'">Agotado</ng-container>
+            </ng-container>
+          </p>
+
+          <div class="description">
+            <h2>Descripción</h2>
+            <p>{{ product.description }}</p>
+          </div>
+
+          <div class="tags" *ngIf="product.tags.length">
+            <span class="tag" *ngFor="let tag of product.tags">{{ tag }}</span>
+          </div>
+
+          <div class="add-to-cart" *ngIf="product.stock > 0; else soldOut">
+            <div class="quantity-row">
+              <label for="quantity">Cantidad:</label>
+              <input
+                id="quantity"
+                type="number"
+                name="quantity"
+                [(ngModel)]="quantity"
+                min="1"
+                [max]="product.stock">
+            </div>
+            <button type="button" (click)="addToCart()">Agregar al carrito</button>
+            <p class="feedback" *ngIf="addedToCart">¡Agregado al carrito!</p>
+          </div>
+          <ng-template #soldOut>
+            <button type="button" class="sold-out" disabled>Agotado</button>
+          </ng-template>
+
+          <p class="sku">SKU: {{ product.sku }}</p>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #notFound>
+      <div class="not-found">
+        <p>{{ loadError ? 'No se pudo cargar el producto. Intenta de nuevo.' : 'Producto no encontrado' }}</p>
+        <a routerLink="/">← Volver al inicio</a>
+      </div>
+    </ng-template>
+  </ng-template>
+</section>

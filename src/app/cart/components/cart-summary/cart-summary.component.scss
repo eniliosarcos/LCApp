@@ -1,0 +1,130 @@
+@use 'styles/variables' as v;
+
+.summary {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  box-shadow: v.$shadow-card;
+  padding: v.$space-6;
+  position: sticky;
+  top: 5rem;
+
+  h2 {
+    color: v.$color-primary;
+    margin: 0 0 v.$space-4;
+  }
+
+  .cart-code {
+    background: v.$color-bg;
+    border: 1px solid rgba(201, 169, 110, 0.3);
+    border-radius: v.$radius-sm;
+    padding: v.$space-4;
+    margin-bottom: v.$space-5;
+    text-align: center;
+
+    p {
+      margin: 0 0 0.25rem;
+      font-size: 0.9rem;
+      color: v.$color-text-muted;
+    }
+
+    strong {
+      display: block;
+      font-size: 1.5rem;
+      color: v.$color-primary;
+      font-family: v.$font-heading;
+    }
+
+    small {
+      display: block;
+      margin-top: v.$space-2;
+      font-size: 0.8rem;
+      color: v.$color-text-muted;
+    }
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-3;
+    margin-bottom: v.$space-5;
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      color: v.$color-text-muted;
+
+      .free {
+        color: #2e7d32;
+      }
+
+      &.total {
+        border-top: 1px solid v.$color-border;
+        padding-top: v.$space-3;
+        color: v.$color-text;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .contact-title {
+    text-align: center;
+    font-size: 0.9rem;
+    color: v.$color-text-muted;
+    margin: 0 0 v.$space-3;
+  }
+
+  .contact-options {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+    margin-bottom: v.$space-5;
+
+    .btn {
+      text-align: center;
+      padding: v.$space-3;
+      border-radius: v.$radius-sm;
+      font-weight: 600;
+      color: v.$color-surface;
+
+      &.whatsapp {
+        background: #25d366;
+      }
+
+      &.instagram {
+        background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      }
+
+      &.telegram {
+        background: #0088cc;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+
+  .instructions {
+    background: v.$color-bg;
+    border-radius: v.$radius-sm;
+    padding: v.$space-4;
+
+    h3 {
+      color: v.$color-primary;
+      font-size: 1rem;
+      margin: 0 0 v.$space-2;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 1.1rem;
+      font-size: 0.85rem;
+      color: v.$color-text-muted;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+  }
+}

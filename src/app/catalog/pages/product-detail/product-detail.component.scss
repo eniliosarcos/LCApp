@@ -1,0 +1,191 @@
+@use 'styles/variables' as v;
+
+.status {
+  color: v.$color-text-muted;
+}
+
+.card {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  box-shadow: v.$shadow-card;
+  padding: v.$space-6;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: v.$space-6;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  h1 {
+    color: v.$color-primary;
+    margin: 0;
+  }
+
+  .price-section {
+    display: flex;
+    align-items: center;
+    gap: v.$space-3;
+
+    .discount-price,
+    .price {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .discount-price {
+      color: v.$color-primary;
+    }
+
+    .regular-price {
+      font-size: 1.1rem;
+      color: v.$color-text-subtle;
+      text-decoration: line-through;
+    }
+
+    .price {
+      color: v.$color-gold;
+    }
+
+    .discount-badge {
+      background: v.$color-danger;
+      color: v.$color-surface;
+      padding: 0.15rem 0.6rem;
+      border-radius: v.$radius-sm;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  }
+
+  .stock {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    &.in-stock {
+      color: #2e7d32;
+    }
+
+    &.low-stock {
+      color: #b26a00;
+    }
+
+    &.out-of-stock {
+      color: v.$color-danger;
+    }
+  }
+
+  .description {
+    h2 {
+      color: v.$color-primary;
+      font-size: 1.1rem;
+      margin: 0 0 v.$space-2;
+    }
+
+    p {
+      margin: 0;
+      color: v.$color-text-muted;
+      line-height: 1.6;
+    }
+  }
+
+  .tags {
+    display: flex;
+    gap: v.$space-2;
+    flex-wrap: wrap;
+
+    .tag {
+      background: v.$color-bg;
+      color: v.$color-text-muted;
+      padding: 0.2rem 0.8rem;
+      border-radius: v.$radius-full;
+      font-size: 0.85rem;
+    }
+  }
+
+  .quantity-row {
+    display: flex;
+    align-items: center;
+    gap: v.$space-3;
+    margin-bottom: v.$space-4;
+
+    label {
+      font-weight: 600;
+      color: v.$color-text;
+    }
+
+    input {
+      width: 5rem;
+      padding: v.$space-2;
+      border: 1px solid v.$color-border-strong;
+      border-radius: v.$radius-sm;
+      font-size: 1rem;
+    }
+  }
+
+  .full-button {
+    width: 100%;
+    padding: v.$space-3 v.$space-4;
+    border: none;
+    border-radius: v.$radius-full;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .add-to-cart button {
+    @extend .full-button;
+    background: v.$color-primary;
+    color: v.$color-surface;
+
+    &:hover {
+      background: v.$color-primary-hover;
+    }
+  }
+
+  .sold-out {
+    @extend .full-button;
+    background: v.$color-text-subtle;
+    color: v.$color-surface;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .feedback {
+    color: #2e7d32;
+    font-weight: 600;
+    text-align: center;
+    margin: v.$space-3 0 0;
+  }
+
+  .sku {
+    font-size: 0.85rem;
+    color: v.$color-text-subtle;
+  }
+}
+
+.not-found {
+  text-align: center;
+  padding: v.$space-6;
+
+  p {
+    color: v.$color-text-muted;
+    font-size: 1.1rem;
+  }
+
+  a {
+    color: v.$color-gold;
+    font-weight: 600;
+
+    &:hover {
+      color: v.$color-primary;
+    }
+  }
+}

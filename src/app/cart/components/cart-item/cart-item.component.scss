@@ -1,0 +1,121 @@
+@use 'styles/variables' as v;
+
+.cart-item {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  box-shadow: v.$shadow-card;
+  padding: v.$space-4;
+  display: flex;
+  gap: v.$space-4;
+  align-items: center;
+
+  .media {
+    width: 5rem;
+    height: 5rem;
+    flex-shrink: 0;
+    border-radius: v.$radius-sm;
+    overflow: hidden;
+    background: v.$color-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .fallback {
+      font-family: v.$font-heading;
+      font-size: 1.5rem;
+      color: v.$color-gold;
+    }
+  }
+
+  .info {
+    flex: 1;
+    min-width: 0;
+
+    h3 {
+      margin: 0 0 v.$space-2;
+      color: v.$color-text;
+      font-size: 1.05rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: v.$space-4;
+
+      .quantity {
+        display: flex;
+        align-items: center;
+        border: 1px solid v.$color-border-strong;
+        border-radius: v.$radius-sm;
+        overflow: hidden;
+
+        button {
+          width: 2rem;
+          height: 2rem;
+          border: none;
+          background: v.$color-surface;
+          cursor: pointer;
+          font-size: 1rem;
+          color: v.$color-text;
+
+          &:hover {
+            background: v.$color-bg;
+          }
+        }
+
+        span {
+          min-width: 2rem;
+          text-align: center;
+          font-weight: 600;
+        }
+      }
+
+      .remove {
+        border: none;
+        background: none;
+        color: v.$color-danger;
+        cursor: pointer;
+        font-size: 0.9rem;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .price {
+    text-align: right;
+
+    .discount-price {
+      margin: 0;
+      color: v.$color-primary;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .regular-price {
+      margin: 0;
+      color: v.$color-text-subtle;
+      font-size: 0.85rem;
+      text-decoration: line-through;
+    }
+
+    .price {
+      margin: 0;
+      color: v.$color-gold;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+  }
+}

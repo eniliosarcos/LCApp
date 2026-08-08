@@ -1,0 +1,32 @@
+<section class="dashboard container">
+  <h1>Dashboard admin</h1>
+  <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
+  <div class="metrics">
+    <div class="metric">
+      <span>{{ categories.length }}</span>
+      Categorías
+    </div>
+    <div class="metric">
+      <span>{{ products.length }}</span>
+      Productos
+    </div>
+  </div>
+  <h2>Productos</h2>
+  <table class="products-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let product of products">
+        <td>{{ product.name }}</td>
+        <td>{{ categoryName(product.categoryId) }}</td>
+        <td>{{ product.price | currency }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <button type="button" class="logout" (click)="logout()">Cerrar sesión</button>
+</section>

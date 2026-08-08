@@ -1,0 +1,37 @@
+<section class="cart container">
+  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
+
+  <h1>Mi Carrito</h1>
+
+  <ng-container *ngIf="loading; else loaded">
+    <p class="status">Cargando carrito…</p>
+  </ng-container>
+
+  <ng-template #loaded>
+    <ng-container *ngIf="cart && cart.items.length > 0; else empty">
+      <div class="layout">
+        <div class="items">
+          <app-cart-item
+            *ngFor="let item of cart.items"
+            [item]="item"
+            (remove)="removeItem($event)"
+            (updateQuantity)="updateQuantity($event.productId, $event.quantity)">
+          </app-cart-item>
+        </div>
+
+        <app-cart-summary [cart]="cart"></app-cart-summary>
+      </div>
+
+      <button type="button" class="clear" (click)="clearCart()">Vaciar carrito</button>
+    </ng-container>
+
+    <ng-template #empty>
+      <div class="empty">
+        <span class="icon" aria-hidden="true">🛒</span>
+        <h2>Tu carrito está vacío</h2>
+        <p>¡Explora nuestro catálogo y encuentra algo que te guste!</p>
+        <a routerLink="/">Ver catálogo</a>
+      </div>
+    </ng-template>
+  </ng-template>
+</section>

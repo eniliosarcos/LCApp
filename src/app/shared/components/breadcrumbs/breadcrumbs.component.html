@@ -1,0 +1,12 @@
+<nav class="breadcrumbs" aria-label="Migas de pan">
+  <ng-container *ngFor="let item of items; let last = last">
+    <ng-container *ngIf="!last && item.link; else current">
+      <a [routerLink]="item.link">{{ item.label }}</a>
+      <span class="separator">/</span>
+    </ng-container>
+    <ng-template #current>
+      <span [class.current]="last">{{ item.label }}</span>
+      <span class="separator" *ngIf="!last">/</span>
+    </ng-template>
+  </ng-container>
+</nav>

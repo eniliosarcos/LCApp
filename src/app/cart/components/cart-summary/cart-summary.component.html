@@ -1,0 +1,44 @@
+<aside class="summary">
+  <h2>Resumen del pedido</h2>
+
+  <div class="cart-code">
+    <p>Tu código de carrito:</p>
+    <strong>{{ cart.code }}</strong>
+    <small>Usa este código al contactarnos</small>
+  </div>
+
+  <div class="rows">
+    <div class="row">
+      <span>Productos ({{ getTotalItems() }})</span>
+      <span>{{ getSubtotal() | currencyFormat }}</span>
+    </div>
+    <div class="row">
+      <span>Envío</span>
+      <span class="free">Gratis</span>
+    </div>
+    <div class="row total">
+      <span>Total</span>
+      <span>{{ getSubtotal() | currencyFormat }}</span>
+    </div>
+  </div>
+
+  <ng-container *ngIf="contact">
+    <p class="contact-title">Contacta para finalizar tu compra:</p>
+    <div class="contact-options">
+      <a class="btn whatsapp" [href]="getWhatsAppHref()" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn instagram" [href]="getInstagramHref()" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn telegram" [href]="getTelegramHref()" target="_blank" rel="noopener">Telegram</a>
+    </div>
+  </ng-container>
+
+  <div class="instructions">
+    <h3>¿Cómo comprar?</h3>
+    <ol>
+      <li>Agrega productos al carrito</li>
+      <li>Copia tu código de carrito</li>
+      <li>Contáctanos por redes sociales</li>
+      <li>Envíanos tu código</li>
+      <li>Confirmamos tu pedido</li>
+    </ol>
+  </div>
+</aside>

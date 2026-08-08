@@ -1,0 +1,6 @@
+[
+  { "id": "c1", "name": "Electrónica", "slug": "electronica", "description": "Gadgets y accesorios" },
+  { "id": "c2", "name": "Hogar", "slug": "hogar", "description": "Muebles y decoración" },
+  { "id": "c3", "name": "Ropa", "slug": "ropa", "description": "Indumentaria para todos" },
+  { "id": "c4", "name": "Deportes", "slug": "deportes", "description": "Equipamiento deportivo" }
+]

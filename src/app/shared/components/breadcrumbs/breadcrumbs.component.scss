@@ -1,0 +1,27 @@
+@use 'styles/variables' as v;
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: 0.9rem;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-6;
+
+  a {
+    color: v.$color-gold;
+
+    &:hover {
+      color: v.$color-primary;
+    }
+  }
+
+  .separator {
+    color: v.$color-text-subtle;
+  }
+
+  .current {
+    color: v.$color-text;
+    font-weight: 600;
+  }
+}

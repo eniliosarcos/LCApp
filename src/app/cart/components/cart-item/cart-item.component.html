@@ -1,0 +1,28 @@
+<article class="cart-item">
+  <div class="media" aria-hidden="true">
+    <img *ngIf="item.product.images[0]?.url" [src]="item.product.images[0].url" [alt]="item.product.images[0].alt || item.product.name">
+    <span *ngIf="!item.product.images[0]?.url" class="fallback">{{ fallback }}</span>
+  </div>
+
+  <div class="info">
+    <h3>{{ item.product.name }}</h3>
+    <div class="controls">
+      <div class="quantity" role="group" [attr.aria-label]="'Cantidad de ' + item.product.name">
+        <button type="button" aria-label="Disminuir cantidad" (click)="decreaseQuantity()">−</button>
+        <span>{{ item.quantity }}</span>
+        <button type="button" aria-label="Aumentar cantidad" (click)="increaseQuantity()">+</button>
+      </div>
+      <button type="button" class="remove" (click)="onRemove()">Quitar</button>
+    </div>
+  </div>
+
+  <div class="price">
+    <ng-container *ngIf="hasDiscount; else noDiscount">
+      <p class="discount-price">{{ unitPrice | currencyFormat }}</p>
+      <p class="regular-price">{{ item.product.price | currencyFormat }}</p>
+    </ng-container>
+    <ng-template #noDiscount>
+      <p class="price">{{ unitPrice | currencyFormat }}</p>
+    </ng-template>
+  </div>
+</article>

@@ -1,0 +1,16 @@
+<section class="login container">
+  <h1>Acceso de administrador</h1>
+  <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
+    <label>
+      Usuario
+      <input type="text" name="username" [(ngModel)]="username" required autocomplete="username">
+    </label>
+    <label>
+      Contraseña
+      <input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password">
+    </label>
+    <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <button type="submit" [disabled]="loading || loginForm.invalid">{{ loading ? 'Ingresando…' : 'Ingresar' }}</button>
+    <p class="hint">Demo: admin / admin123</p>
+  </form>
+</section>
