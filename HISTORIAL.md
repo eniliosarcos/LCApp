@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — fix — CI: inyectar también environment.ts de desarrollo
+- **Descripción**: El workflow fallaba con `MissingFileReplacementException: src/environments/environment.ts path in file replacements does not exist`. El `fileReplacements` de `angular.json` valida que existan tanto la entrada (`environment.ts`) como la salida (`environment.prod.ts`), y ninguna existe en el checkout (ambas gitignoreadas, git no rastrea directorios vacíos). Se amplió el paso de inyección para crear ambos archivos: `environment.ts` con placeholders vacíos (nunca usado en build prod) y `environment.prod.ts` con los secrets.
+- **Archivos**: `.github/workflows/deploy.yml`
+- **Decisión clave**: Mantiene `no-env-leak` (ningún environment se commitea; solo existen en el checkout del CI). El `environment.ts` con valores vacíos es seguro porque el build de producción usa `fileReplacements` y solo se compila el `.prod.ts`.
+
 ### 2026-08-08 — fix — CI: crear src/environments antes de inyectar secrets
 - **Descripción**: El workflow de GitHub Pages fallaba con `ENOENT: src/environments/environment.prod.ts`. Causa raíz: el directorio no existe en el checkout del CI (ambos environments están gitignoreados y git no rastrea carpetas vacías). Se añadió `fs.mkdirSync('src/environments', { recursive: true })` antes del `writeFileSync`.
 - **Archivos**: `.github/workflows/deploy.yml`
