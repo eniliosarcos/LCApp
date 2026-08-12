@@ -2,18 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { Category } from '../models/category.model';
 import { Product } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
-  private readonly categoriesUrl = 'assets/data/categories.json';
-  private readonly productsUrl = 'assets/data/products.json';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(private readonly http: HttpClient) {}
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(this.categoriesUrl).pipe(catchError(this.handleError));
+    return this.http.get<Category[]>(`${this.apiUrl}/categories`).pipe(catchError(this.handleError));
   }
 
   getCategoryById(categoryId: string): Observable<Category | undefined> {
@@ -29,7 +29,7 @@ export class CatalogService {
   }
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.productsUrl).pipe(catchError(this.handleError));
+    return this.http.get<Product[]>(`${this.apiUrl}/products`).pipe(catchError(this.handleError));
   }
 
   getProductById(productId: string): Observable<Product | undefined> {

@@ -7,5 +7,6 @@ export interface ContactConfig {
 
 export interface Environment {
   production: boolean;
+  apiUrl: string;
   contact: ContactConfig;
 }
