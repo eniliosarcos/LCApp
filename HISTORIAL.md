@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — config — Base de datos MongoDB: `lcapp` en vez de `test`
+- **Descripción**: La connection string en `backend/.env` no especificaba nombre de base → MongoDB guardaba los datos en `test` (default). Se agregó `/lcapp` antes del `?` para usar una base con nombre propio y se re-ejecutó el seed (4 categorías, 9 productos). La base `test` (con la orden de prueba `CAR-BHOE7`) se elimina desde Atlas Data Explorer.
+- **Archivos**: `backend/.env` (gitignoreado, no se commitea)
+- **Decisión clave**: Nunca dejar que Mongo use la base default `test` — el nombre de la base va en la connection string. El seed solo toca catálogo; las órdenes sobreviven a un re-seed.
+
 ### 2026-08-08 — feat — Backend Node.js + Express + MongoDB
 - **Descripción**: Se creó el backend en `backend/` (Express + Mongoose): modelos Category/Product/Order (basados en los JSON de assets y el ADR-009), rutas de catálogo (GET categories/products), órdenes completas (crear con código `CAR-XXXXX`, confirmar con descuento de stock, cancelar, stats) y script de seed que carga los datos de assets a MongoDB. Conectado a MongoDB Atlas (cluster M0 FREE) y verificado end-to-end.
 - **Archivos**: `backend/` completo (`server.js`, `seed.js`, `models/`, `routes/`, `package.json`, `package-lock.json`, `.env.example`)
