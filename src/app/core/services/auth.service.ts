@@ -1,14 +1,24 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
+
+interface LoginResponse {
+  token: string;
+  user: User;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly tokenKey = 'catalog_token';
   private readonly userKey = 'catalog_user';
-  private readonly credentials = { username: 'admin', password: 'admin123' };
+  private readonly apiUrl = environment.apiUrl;
 
   private readonly authState$ = new BehaviorSubject<User | null>(this.storedUser());
+
+  constructor(private readonly http: HttpClient) {}
 
   get authState(): Observable<User | null> {
     return this.authState$.asObservable();
@@ -22,26 +32,32 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey) !== null;
   }
 
-  login(username: string, password: string): Promise<User> {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (username === this.credentials.username && password === this.credentials.password) {
-          const user: User = { username, displayName: 'Administrador', role: 'admin' };
-          localStorage.setItem(this.tokenKey, 'mock-token');
-          localStorage.setItem(this.userKey, JSON.stringify(user));
-          this.authState$.next(user);
-          resolve(user);
-        } else {
-          reject(new Error('Credenciales inválidas'));
-        }
-      }, 400);
-    });
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
+  }
+
+  login(username: string, password: string): Observable<User> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { username, password }).pipe(
+      tap(response => {
+        localStorage.setItem(this.tokenKey, response.token);
+        localStorage.setItem(this.userKey, JSON.stringify(response.user));
+        this.authState$.next(response.user);
+      }),
+      map(response => response.user),
+      catchError(this.handleError)
+    );
   }
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.authState$.next(null);
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    const message =
+      error.status === 401 ? 'Usuario o contraseña incorrectos.' : 'No se pudo iniciar sesión. Intenta de nuevo.';
+    return throwError(() => new Error(message));
   }
 
   private storedUser(): User | null {

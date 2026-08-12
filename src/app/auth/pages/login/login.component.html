@@ -11,6 +11,5 @@
     </label>
     <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
     <button type="submit" [disabled]="loading || loginForm.invalid">{{ loading ? 'Ingresando…' : 'Ingresar' }}</button>
-    <p class="hint">Demo: admin / admin123</p>
   </form>
 </section>

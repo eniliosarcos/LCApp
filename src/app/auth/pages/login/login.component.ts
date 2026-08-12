@@ -20,9 +20,11 @@ export class LoginComponent {
     this.errorMessage = '';
     this.authService
       .login(this.username, this.password)
-      .then(() => this.router.navigateByUrl(this.returnUrl))
-      .catch(() => (this.errorMessage = 'Usuario o contraseña incorrectos.'))
-      .finally(() => (this.loading = false));
+      .subscribe({
+        next: () => this.router.navigateByUrl(this.returnUrl),
+        error: (err: Error) => (this.errorMessage = err.message),
+        complete: () => (this.loading = false)
+      });
   }
 
   private get returnUrl(): string {

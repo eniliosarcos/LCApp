@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const authenticate = require('../middleware/auth');
 
 // Genera código CAR-XXXXX
 function generateCode() {
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/orders — Listar órdenes (admin)
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const { status } = req.query;
     const filter = {};
@@ -52,7 +53,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/orders/stats — Resumen de ventas (admin)
-router.get('/stats', async (req, res) => {
+router.get('/stats', authenticate, async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments();
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
@@ -75,7 +76,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // GET /api/orders/:code — Buscar por código
-router.get('/:code', async (req, res) => {
+router.get('/:code', authenticate, async (req, res) => {
   try {
     const order = await Order.findOne({ code: req.params.code });
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
@@ -86,7 +87,7 @@ router.get('/:code', async (req, res) => {
 });
 
 // PATCH /api/orders/:id/confirm — Confirmar orden → descuenta stock
-router.patch('/:id/confirm', async (req, res) => {
+router.patch('/:id/confirm', authenticate, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
@@ -120,7 +121,7 @@ router.patch('/:id/confirm', async (req, res) => {
 });
 
 // PATCH /api/orders/:id/cancel — Cancelar orden
-router.patch('/:id/cancel', async (req, res) => {
+router.patch('/:id/cancel', authenticate, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
