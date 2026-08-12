@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     const { categoryId } = req.query;
     const filter = { isActive: true };
     if (categoryId) filter.categoryId = categoryId;
-    const products = await Product.find(filter).populate('categoryId', 'name slug');
+    const products = await Product.find(filter);
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('categoryId', 'name slug');
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Producto no encontrado' });
     res.json(product);
   } catch (err) {

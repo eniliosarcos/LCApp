@@ -21,7 +21,18 @@ const productSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 }, {
   timestamps: true,
-  toJSON: { virtuals: true, versionKey: false, transform: (doc, ret) => { ret.id = ret._id; delete ret._id; } },
+  toJSON: {
+    virtuals: true,
+    versionKey: false,
+    transform: (doc, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      ret.images = (ret.images || []).map((img, index) => ({
+        ...img,
+        id: `${ret.id}-img-${index + 1}`,
+      }));
+    },
+  },
 });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — feat — Catálogo consume la API del backend
+- **Descripción**: `CatalogService` dejó de leer `assets/data/*.json` y ahora consume la API (`environment.apiUrl` + `/categories`, `/products`). Se agregó `apiUrl` al modelo `Environment` y al CI (inyectado por secret `API_URL` en prod; local apunta a `localhost:3000` para desarrollo con el backend o Mockoon). El backend ajustó su shape para cumplir el contrato del frontend: `categoryId` como string (se quitó el populate) y `id` generado por imagen en el `toJSON`. CORS del backend ahora configurable por env var `CORS_ORIGIN` (por defecto `*`).
+- **Archivos**: `src/app/core/services/catalog.service.ts`, `src/app/core/models/environment.model.ts`, `.github/workflows/deploy.yml`, `backend/models/Product.js`, `backend/routes/products.js`, `backend/server.js`, `backend/.env.example`
+- **Decisión clave**: Dev y prod se separan vía `environment`: local usa `http://localhost:3000/api` (backend real o Mockoon en el mismo puerto); prod usa la URL de Render inyectada por el CI. El contrato de datos lo define el frontend (shape de los JSON que ya existían).
+
 ### 2026-08-08 — config — Base de datos MongoDB: `lcapp` en vez de `test`
 - **Descripción**: La connection string en `backend/.env` no especificaba nombre de base → MongoDB guardaba los datos en `test` (default). Se agregó `/lcapp` antes del `?` para usar una base con nombre propio y se re-ejecutó el seed (4 categorías, 9 productos). La base `test` (con la orden de prueba `CAR-BHOE7`) se elimina desde Atlas Data Explorer.
 - **Archivos**: `backend/.env` (gitignoreado, no se commitea)

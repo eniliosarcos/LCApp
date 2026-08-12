@@ -41,6 +41,7 @@ jobs:
 
             export const environment: Environment = {
               production: false,
+              apiUrl: 'http://localhost:3000/api',
               contact: {
                 whatsapp: '',
                 whatsappDisplay: '',
@@ -55,6 +56,7 @@ jobs:
 
             export const environment: Environment = {
               production: true,
+              apiUrl: '${{ secrets.API_URL }}',
               contact: {
                 whatsapp: '${{ secrets.WHATSAPP_NUMBER }}',
                 whatsappDisplay: '${{ secrets.WHATSAPP_DISPLAY }}',
