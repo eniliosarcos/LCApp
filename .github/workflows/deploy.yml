@@ -68,6 +68,9 @@ jobs:
       - name: Build
         run: npx ng build --configuration production --base-href /LCApp/
 
+      - name: Copy index.html to 404.html
+        run: cp dist/catalog/index.html dist/catalog/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

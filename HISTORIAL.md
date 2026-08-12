@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — fix — CI: servir SPA en GitHub Pages con 404.html
+- **Descripción**: Navegar directamente a `/LCApp/admin` (o cualquier subruta) daba 404 en GitHub Pages porque el servidor estático busca un archivo físico `admin/index.html` que no existe. Se agregó un paso al workflow que copia `index.html` → `404.html`. GitHub Pages sirve `404.html` ante cualquier ruta inexistente → Angular arranca y resuelve la ruta del SPA. URLs limpias, sin hash routing.
+- **Archivos**: `.github/workflows/deploy.yml`
+- **Decisión clave**: Opción A (404.html trick) sobre HashLocationStrategy para no cambiar el código de la app ni ensuciar las URLs.
+
 ### 2026-08-08 — docs — Flujo de trabajo con Git (rama + PR)
 - **Descripción**: Se documentó en el README la política de ramas y PR ahora que `master` está protegida (push directo bloqueado, requiere PR con aprobación). Incluye naming de ramas (`type/descripcion`), conventional commits y pasos del flujo.
 - **Archivos**: `README.md`
