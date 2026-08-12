@@ -87,6 +87,10 @@
       border-radius: v.$radius-sm;
       font-weight: 600;
       color: v.$color-surface;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
 
       &.whatsapp {
         background: #25d366;
@@ -103,6 +107,31 @@
       &:hover {
         opacity: 0.9;
       }
+    }
+  }
+
+  .status {
+    text-align: center;
+    font-size: 0.9rem;
+    border-radius: v.$radius-sm;
+    padding: v.$space-3;
+    margin-bottom: v.$space-5;
+
+    &.loading {
+      color: v.$color-text-muted;
+      background: v.$color-bg;
+    }
+
+    &.success {
+      color: #2e7d32;
+      background: rgba(46, 125, 50, 0.1);
+      border: 1px solid rgba(46, 125, 50, 0.3);
+    }
+
+    &.error {
+      color: #c62828;
+      background: rgba(198, 40, 40, 0.1);
+      border: 1px solid rgba(198, 40, 40, 0.3);
     }
   }
 

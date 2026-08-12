@@ -2,8 +2,8 @@
   <h2>Resumen del pedido</h2>
 
   <div class="cart-code">
-    <p>Tu código de carrito:</p>
-    <strong>{{ cart.code }}</strong>
+    <p>Tu código de pedido:</p>
+    <strong>{{ getOrderCode() }}</strong>
     <small>Usa este código al contactarnos</small>
   </div>
 
@@ -24,21 +24,25 @@
 
   <ng-container *ngIf="contact">
     <p class="contact-title">Contacta para finalizar tu compra:</p>
-    <div class="contact-options">
-      <a class="btn whatsapp" [href]="getWhatsAppHref()" target="_blank" rel="noopener">WhatsApp</a>
-      <a class="btn instagram" [href]="getInstagramHref()" target="_blank" rel="noopener">Instagram</a>
-      <a class="btn telegram" [href]="getTelegramHref()" target="_blank" rel="noopener">Telegram</a>
+
+    <div class="contact-options" *ngIf="!contacting">
+      <button type="button" class="btn whatsapp" (click)="openContact('whatsapp')">WhatsApp</button>
+      <button type="button" class="btn instagram" (click)="openContact('instagram')">Instagram</button>
+      <button type="button" class="btn telegram" (click)="openContact('telegram')">Telegram</button>
     </div>
+
+    <p class="status loading" *ngIf="contacting">Registrando tu pedido…</p>
+    <p class="status success" *ngIf="registered">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
+    <p class="status error" *ngIf="errorMessage">{{ errorMessage }}</p>
   </ng-container>
 
   <div class="instructions">
     <h3>¿Cómo comprar?</h3>
     <ol>
       <li>Agrega productos al carrito</li>
-      <li>Copia tu código de carrito</li>
       <li>Contáctanos por redes sociales</li>
-      <li>Envíanos tu código</li>
-      <li>Confirmamos tu pedido</li>
+      <li>Se registrará tu pedido automáticamente</li>
+      <li>Confirmamos tu pedido por el chat</li>
     </ol>
   </div>
 </aside>
