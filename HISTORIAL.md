@@ -21,6 +21,21 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-08 — config — Base de datos MongoDB: `lcapp` en vez de `test`
+- **Descripción**: La connection string en `backend/.env` no especificaba nombre de base → MongoDB guardaba los datos en `test` (default). Se agregó `/lcapp` antes del `?` para usar una base con nombre propio y se re-ejecutó el seed (4 categorías, 9 productos). La base `test` (con la orden de prueba `CAR-BHOE7`) se elimina desde Atlas Data Explorer.
+- **Archivos**: `backend/.env` (gitignoreado, no se commitea)
+- **Decisión clave**: Nunca dejar que Mongo use la base default `test` — el nombre de la base va en la connection string. El seed solo toca catálogo; las órdenes sobreviven a un re-seed.
+
+### 2026-08-08 — feat — Backend Node.js + Express + MongoDB
+- **Descripción**: Se creó el backend en `backend/` (Express + Mongoose): modelos Category/Product/Order (basados en los JSON de assets y el ADR-009), rutas de catálogo (GET categories/products), órdenes completas (crear con código `CAR-XXXXX`, confirmar con descuento de stock, cancelar, stats) y script de seed que carga los datos de assets a MongoDB. Conectado a MongoDB Atlas (cluster M0 FREE) y verificado end-to-end.
+- **Archivos**: `backend/` completo (`server.js`, `seed.js`, `models/`, `routes/`, `package.json`, `package-lock.json`, `.env.example`)
+- **Decisión clave**: Los modelos devuelven `id` (no `_id` de Mongo) vía `toJSON.transform` para mantener el contrato del frontend. `backend/.env` está en `.gitignore` (no-env-leak). `.gitignore` ahora ignora `node_modules/` en cualquier nivel (antes solo `/node_modules` raíz).
+
+### 2026-08-08 — docs — ADR-005: backend Node.js + Express + MongoDB
+- **Descripción**: Se heredó del proyecto anterior (catalogApp) el ADR-005 que decide Node.js + Express + MongoDB como backend futuro. El backend vivirá en `LCApp/backend/` dentro del mismo repo. Se adaptó al formato local de ADR y al contexto actual de LCApp.
+- **Archivos**: `docs/adr/005-backend-nodejs-mongodb.md`
+- **Decisión clave**: No se reabre el debate de stack — se hereda la decisión ya tomada (Node+Express+Mongo) y se registra el costo de migración del auth mock a JWT real.
+
 ### 2026-08-08 — fix — CI: servir SPA en GitHub Pages con 404.html
 - **Descripción**: Navegar directamente a `/LCApp/admin` (o cualquier subruta) daba 404 en GitHub Pages porque el servidor estático busca un archivo físico `admin/index.html` que no existe. Se agregó un paso al workflow que copia `index.html` → `404.html`. GitHub Pages sirve `404.html` ante cualquier ruta inexistente → Angular arranca y resuelve la ruta del SPA. URLs limpias, sin hash routing.
 - **Archivos**: `.github/workflows/deploy.yml`
