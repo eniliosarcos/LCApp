@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — chore — Script npm run hash para cambiar la clave admin
+- **Descripción**: Script `npm run hash -- "clave"` que genera un hash bcrypt para `ADMIN_PASSWORD_HASH`, validando longitud mínima de 8 caracteres. Facilita el cambio futuro de la clave del admin sin depender de generar el hash a mano.
+- **Archivos**: `backend/hash-password.js` (nuevo), `backend/package.json`
+- **Decisión clave**: La clave del admin no vive en el código sino en env (`ADMIN_PASSWORD_HASH`); cada ejecución de bcrypt produce un hash distinto y válido del mismo password.
+
 ### 2026-08-12 — feat — Admin: login JWT y gestión de órdenes
 - **Descripción**: El panel admin ahora se protege con JWT real (`POST /api/auth/login`). Se añadió middleware `authenticate` en las rutas admin de órdenes (GET /, GET /stats, GET /:code, PATCH confirm/cancel); el POST de creación de orden sigue público para el carrito. El frontend deja el mock: `AuthService` consume la API, un interceptor inyecta `Authorization: Bearer` y el dashboard muestra métricas de órdenes, listado con estado, y acciones confirmar/cancelar.
 - **Archivos**: `backend/routes/auth.js` (nuevo), `backend/middleware/auth.js` (nuevo), `backend/routes/orders.js`, `backend/server.js`, `backend/.env.example`, `backend/package.json`; `src/app/core/interceptors/auth.interceptor.ts` (nuevo), `src/app/core/services/auth.service.ts`, `src/app/core/services/order.service.ts`, `src/app/core/models/order.model.ts`, `src/app/core/models/user.model.ts`, `src/app/app.module.ts`, `src/app/auth/pages/login/*`, `src/app/admin/pages/dashboard/*`
