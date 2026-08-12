@@ -22,3 +22,11 @@ export interface CreateOrderRequest {
   customerPhone?: string;
   items: OrderItem[];
 }
+
+export interface OrderStats {
+  totalOrders: number;
+  pendingOrders: number;
+  confirmedOrders: number;
+  cancelledOrders: number;
+  totalRevenue: number;
+}
