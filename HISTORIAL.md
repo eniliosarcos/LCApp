@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — feat — Carrito registra pedido en el backend al contactar
+- **Descripción**: Al tocar WhatsApp/Instagram/Telegram en el resumen del carrito, el pedido se registra en el backend (`POST /api/orders`) con un estado loading; al confirmarse, se guarda el código real del backend en el carrito y se abre el canal con ese código. Anti-duplicados: si el carrito ya registró una orden, reutiliza el código sin re-enviar. `customerName` pasó a ser opcional (default `Cliente web`) porque el registro es anónimo hasta la conversación.
+- **Archivos**: `backend/routes/orders.js`, `src/app/core/models/order.model.ts`, `src/app/core/models/cart.model.ts`, `src/app/core/services/order.service.ts`, `src/app/core/services/cart.service.ts`, `src/app/cart/components/cart-summary/*`
+- **Decisión clave**: El registro es anónimo (no se pide nombre/teléfono); la confirmación y los datos del cliente se resuelven por la conversación, y el admin aplica el estado (aprobado/rechazado) desde su panel.
+
 ### 2026-08-12 — feat — Catálogo consume la API del backend
 - **Descripción**: `CatalogService` dejó de leer `assets/data/*.json` y ahora consume la API (`environment.apiUrl` + `/categories`, `/products`). Se agregó `apiUrl` al modelo `Environment` y al CI (inyectado por secret `API_URL` en prod; local apunta a `localhost:3000` para desarrollo con el backend o Mockoon). El backend ajustó su shape para cumplir el contrato del frontend: `categoryId` como string (se quitó el populate) y `id` generado por imagen en el `toJSON`. CORS del backend ahora configurable por env var `CORS_ORIGIN` (por defecto `*`).
 - **Archivos**: `src/app/core/services/catalog.service.ts`, `src/app/core/models/environment.model.ts`, `.github/workflows/deploy.yml`, `backend/models/Product.js`, `backend/routes/products.js`, `backend/server.js`, `backend/.env.example`

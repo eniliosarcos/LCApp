@@ -67,6 +67,16 @@ export class CartService {
     return this.cart$.getValue().code;
   }
 
+  registerOrder(code: string): void {
+    const cart = this.cart$.getValue();
+    cart.orderCode = code;
+    this.emit(cart);
+  }
+
+  hasRegisteredOrder(): boolean {
+    return !!this.cart$.getValue().orderCode;
+  }
+
   private itemPrice(item: CartItem): number {
     return item.product.discountPrice ?? item.product.price;
   }

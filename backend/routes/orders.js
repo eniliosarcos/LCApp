@@ -16,8 +16,8 @@ router.post('/', async (req, res) => {
   try {
     const { customerName, customerPhone, items } = req.body;
 
-    if (!customerName || !items || items.length === 0) {
-      return res.status(400).json({ error: 'Faltan datos: customerName e items son requeridos' });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'Faltan datos: items son requeridos' });
     }
 
     // Calcular total
@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
 
     const order = await Order.create({
       code: generateCode(),
-      customerName,
+      customerName: customerName || 'Cliente web',
       customerPhone,
       items,
       total,

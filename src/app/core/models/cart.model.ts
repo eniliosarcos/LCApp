@@ -15,5 +15,6 @@ export interface Cart {
   id: string;
   items: CartItem[];
   code: string;
+  orderCode?: string;
   createdAt: string;
 }
