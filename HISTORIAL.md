@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — fix — Login falla cuando localStorage está lleno (QuotaExceededError)
+- **Descripción**: El login contra el backend respondía 200 pero el frontend mostraba "No se pudo iniciar sesión. Intenta de nuevo." Causa raíz: el `tap()` que persistía el token en `localStorage` lanzaba `QuotaExceededError` (storage lleno), la excepción caía en `catchError` y se mostraba el mensaje genérico aunque el POST hubiera sido exitoso. Se hizo `AuthService` resiliente: la sesión vive en memoria (`BehaviorSubject`) y `localStorage` es persistencia best-effort dentro de `try/catch`; `isAuthenticated()`/`getToken()` usan memoria primero y storage como fallback.
+- **Archivos**: `src/app/core/services/auth.service.ts`
+- **Decisión clave**: El estado de sesión nunca debe depender de que `localStorage` funcione; si la escritura falla la sesión sigue activa en memoria (se pierde al recargar) en vez de bloquear el login.
+
 ### 2026-08-12 — chore — Script npm run hash para cambiar la clave admin
 - **Descripción**: Script `npm run hash -- "clave"` que genera un hash bcrypt para `ADMIN_PASSWORD_HASH`, validando longitud mínima de 8 caracteres. Facilita el cambio futuro de la clave del admin sin depender de generar el hash a mano.
 - **Archivos**: `backend/hash-password.js` (nuevo), `backend/package.json`

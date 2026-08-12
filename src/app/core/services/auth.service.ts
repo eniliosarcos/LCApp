@@ -17,6 +17,7 @@ export class AuthService {
   private readonly apiUrl = environment.apiUrl;
 
   private readonly authState$ = new BehaviorSubject<User | null>(this.storedUser());
+  private readonly session = new BehaviorSubject<{ token: string; user: User } | null>(null);
 
   constructor(private readonly http: HttpClient) {}
 
@@ -29,18 +30,18 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return localStorage.getItem(this.tokenKey) !== null;
+    return this.session.getValue() !== null || this.safeGetToken() !== null;
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return this.session.getValue()?.token ?? this.safeGetToken();
   }
 
   login(username: string, password: string): Observable<User> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { username, password }).pipe(
       tap(response => {
-        localStorage.setItem(this.tokenKey, response.token);
-        localStorage.setItem(this.userKey, JSON.stringify(response.user));
+        this.session.next({ token: response.token, user: response.user });
+        this.persistSession(response);
         this.authState$.next(response.user);
       }),
       map(response => response.user),
@@ -49,9 +50,35 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+    this.session.next(null);
     this.authState$.next(null);
+    this.clearStorage();
+  }
+
+  private persistSession(response: LoginResponse): void {
+    try {
+      localStorage.setItem(this.tokenKey, response.token);
+      localStorage.setItem(this.userKey, JSON.stringify(response.user));
+    } catch {
+      // Storage lleno o bloqueado: la sesión queda en memoria, no persiste al recargar.
+    }
+  }
+
+  private clearStorage(): void {
+    try {
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.userKey);
+    } catch {
+      // Storage lleno o bloqueado: no se puede limpiar.
+    }
+  }
+
+  private safeGetToken(): string | null {
+    try {
+      return localStorage.getItem(this.tokenKey);
+    } catch {
+      return null;
+    }
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -61,11 +88,11 @@ export class AuthService {
   }
 
   private storedUser(): User | null {
-    const raw = localStorage.getItem(this.userKey);
-    if (!raw) {
-      return null;
-    }
     try {
+      const raw = localStorage.getItem(this.userKey);
+      if (!raw) {
+        return null;
+      }
       return JSON.parse(raw);
     } catch {
       return null;
