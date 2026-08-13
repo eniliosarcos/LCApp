@@ -1,0 +1,146 @@
+# Arquitectura — L'Essence de Cerise (LCApp)
+
+Este documento es el mapa del sistema completo: qué piezas existen, cómo se conectan, cómo fluye un pedido y dónde vive cada regla. Para el quickstart, ver `README.md`; para la bitácora de cambios, `HISTORIAL.md`; para decisiones puntuales, `docs/adr/`.
+
+## Vista general
+
+Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas por separado.
+
+```
+┌─────────────────────────────┐        ┌──────────────────────────┐
+│  Frontend (GitHub Pages)    │  HTTPS │  Backend (Render)        │
+│  Angular 15 SPA /LCApp      │ ─────► │  Express API :3000       │
+│                             │  /api  │  /api/health             │
+│  home, catalog, cart,       │        │  /api/categories         │
+│  login, admin               │        │  /api/products           │
+└─────────────────────────────┘        │  /api/orders             │
+        │                               │  /api/auth/login         │
+        │  contacto por red social      └────────────┬─────────────┘
+        ▼                                            │ mongoose
+┌─────────────────────────────┐                      ▼
+│  WhatsApp / Instagram /     │        ┌──────────────────────────┐
+│  Telegram (canal humano)    │        │  MongoDB Atlas (M0 free) │
+└─────────────────────────────┘        │  DB: lcapp              │
+                                       │  collections: categories,│
+                                       │  products, orders        │
+                                       └──────────────────────────┘
+```
+
+### Cómo corre un request (dev)
+
+1. `ng serve` (4200) sirve la SPA; `npm run dev` (3000) sirve la API.
+2. Los servicios usan `environment.apiUrl` → `http://localhost:3000/api`.
+3. En prod, `environment.prod.ts` apunta a Render y es inyectado por el CI.
+
+## Flujo de compra (end-to-end)
+
+```
+1. Cliente navega:  home → categoría → producto
+2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart)
+3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
+4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
+     a. OrderService.postOrder()  →  POST /api/orders  (público)
+     b. Backend genera código CAR-XXXXX, guarda la orden como 'pending'
+     c. El frontend guarda el código real y abre el canal con mensaje prefabricado
+5. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
+6. Admin entra a /admin (login JWT):
+     - Lista órdenes (GET /api/orders) y ve stats (GET /api/orders/stats)
+     - Confirma:  PATCH /api/orders/:id/confirm  → valida stock y descuenta
+     - Cancela:   PATCH /api/orders/:id/cancel   (solo si está 'pending')
+```
+
+Regla de estados de una orden: `pending → confirmed | cancelled`. Confirmar/cancelar solo es válido desde `pending`.
+
+## Frontera de datos
+
+Toda la entrada/salida de datos vive en `src/app/core/services/` — los componentes nunca llaman `HttpClient` directamente.
+
+| Servicio | Rol |
+|---|---|
+| `CatalogService` | Catálogo: categorías y productos desde la API (Observables). |
+| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`). |
+| `OrderService` | Pedidos: crear orden desde el carrito + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
+| `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
+| `ContactService` | Abstracción del contacto (redes). Implementación: `MockContactService` (lee de `environment.contact` + localStorage). Registro por provider en `AppModule`. |
+
+### Sesión y storage (decisión importante)
+
+`AuthService` mantiene la sesión **en memoria** (BehaviorSubject `session`) y usa `localStorage` como persistencia **best-effort** dentro de `try/catch`. Razón: si `localStorage` está lleno o bloqueado (`QuotaExceededError`), el login fallaba con mensaje genérico aunque el backend respondiera 200. Hoy, un storage roto no bloquea el login; solo hace que la sesión no sobreviva a un refresh.
+
+Reglas derivadas:
+- `isAuthenticated()` y `getToken()` consultan memoria primero, storage como fallback.
+- `AuthInterceptor` inyecta `Authorization: Bearer <token>` solo a requests cuyo URL empieza con `environment.apiUrl`.
+- `AuthGuard` protege la ruta `/admin`; redirige a `/login?returnUrl=...`.
+
+## Backend (Express + Mongoose)
+
+```
+backend/
+  server.js            # express, cors, json, health, monta rutas, conecta Mongo
+  routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
+  routes/categories.js # GET /
+  routes/products.js   # GET /
+  routes/orders.js     # POST / (público) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
+  middleware/auth.js   # verify Authorization: Bearer JWT
+  models/              # Category, Product, Order
+  seed.js              # carga src/assets/data/*.json → MongoDB
+  hash-password.js     # npm run hash -- "clave" → hash bcrypt
+```
+
+### CORS
+
+`CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa el origen de Pages.
+
+### Auth (admin)
+
+- Credenciales vía env, **sin modelo de usuarios en Mongo**: `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (bcrypt) + `JWT_SECRET`.
+- `JWT_EXPIRES_IN` opcional, default `12h`.
+- El POST de creación de orden es **público** (el carrito no tiene token); solo las operaciones de gestión son admin.
+
+## Variables de entorno y secrets
+
+### Frontend (`src/environments/`)
+
+| Variable | Dev | Prod |
+|---|---|---|
+| `apiUrl` | `http://localhost:3000/api` | inyectada por CI (secret `API_URL`) |
+| `contact.{whatsapp,instagram,telegram}` | vacíos | inyectados por CI (secrets `WHATSAPP_*`, `INSTAGRAM_*`, `TELEGRAM_*`) |
+
+`environment.ts` y `environment.prod.ts` están gitignoreados; en el repo viven como placeholders. El CI (`deploy.yml`) los regenera con `fs.writeFileSync` antes del build.
+
+### Backend (`backend/.env`)
+
+| Variable | Uso |
+|---|---|
+| `PORT` | Puerto (default 3000) |
+| `MONGODB_URI` | Connection string de Atlas (DB `lcapp`, nunca `test`) |
+| `CORS_ORIGIN` | Orígenes permitidos (default `*`) |
+| `ADMIN_USER` | Usuario admin |
+| `ADMIN_PASSWORD_HASH` | Hash bcrypt de la clave (generar con `npm run hash`) |
+| `JWT_SECRET` | Clave para firmar tokens |
+| `JWT_EXPIRES_IN` | Opcional, default `12h` |
+
+**Regla de oro**: nada real en el repo. Front → GitHub Secrets + CI; backend → env vars de Render. `backend/.env` y `src/environments/*` jamás se commitean con datos reales.
+
+## Despliegue
+
+| Pieza | Plataforma | Actualización |
+|---|---|---|
+| Frontend | GitHub Pages (`/LCApp`) | Push a `master` → `deploy.yml` inyecta envs, `ng build --configuration production --base-href /LCApp/`, copia `index.html` a `404.html` (fallback SPA) y deploy. |
+| Backend | Render | Build automático desde el repo; env vars en el panel. |
+| Datos | MongoDB Atlas | `npm run seed` manual. |
+
+Nota SPA: GitHub Pages no reescribe rutas; por eso `404.html` es copia de `index.html`. Navegar directo a `/LCApp/admin` da 404 HTTP pero la app arranca y resuelve la ruta — es esperado, no un bug.
+
+## Decisiones y referencias
+
+- `docs/adr/001` — flujo de compra por código de carrito vía contacto.
+- `docs/adr/002` — frontera de datos uniforme con Observables + provider por abstracción.
+- `docs/adr/005` — backend Node.js + Express + MongoDB.
+- `HISTORIAL.md` — bitácora de cambios del proyecto.
+
+## Temas conocidos / pendientes
+
+- `ContactService` sigue siendo mock (abstracto + `MockContactService`); cuando exista un canal real (p.ej. formulario), se reemplaza el provider en `AppModule`.
+- `assets/data/*.json` aún alimenta el seed; el frontend consume la API (los JSON ya no se leen en runtime).
+- Si `localStorage` del origen se llena, la sesión admin no persiste entre recargas (ver "Sesión y storage").

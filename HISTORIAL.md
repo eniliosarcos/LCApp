@@ -21,6 +21,16 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — config — Skill docs-sync + regla de documentación en AGENTS.md
+- **Descripción**: Para que la documentación no vuelva a desactualizarse, se creó el skill `skills/docs-sync/SKILL.md` (mismo formato que `no-env-leak`) con una tabla de decisión que mapea cada tipo de cambio con el doc que debe actualizarse, y una regla obligatoria en `AGENTS.md` que obliga a sincronizar `README.md`/`docs/ARCHITECTURE.md` antes de dar por terminada la tarea. Se agregó el check de docs al pre-flight checklist.
+- **Archivos**: `skills/docs-sync/SKILL.md` (nuevo), `AGENTS.md`
+- **Decisión clave**: La doc se mantiene con dos niveles (README = quickstart, ARCHITECTURE = mapa) y se actualiza solo cuando el cambio toca estructura — no en cada micro-fix. La regla vive en AGENTS.md y el skill la ejecuta, igual que el patrón `change-history`.
+
+### 2026-08-12 — docs — Mapa del mundo: README actualizado y ARCHITECTURE.md
+- **Descripción**: El README quedó anclado en la etapa "frontend-only con JSONs" y desorientaba al entrar al repo. Se actualizó al estado real (stack Angular + Node/Express + MongoDB, estructura con `backend/`, cómo correr los dos procesos, despliegue Pages/Render/Atlas, tabla de endpoints y secrets por entorno). Se creó `docs/ARCHITECTURE.md` como mapa del sistema completo: diagrama de piezas, flujo de compra end-to-end (carrito → código CAR-XXXXX → contacto → orden → confirmación con descuento de stock), frontera de datos (core/services), decisión de sesión en memoria + storage best-effort, y variables de entorno sin valores reales.
+- **Archivos**: `README.md`, `docs/ARCHITECTURE.md` (nuevo)
+- **Decisión clave**: La documentación de onboarding va en dos niveles — README = puerta de entrada (quickstart), ARCHITECTURE.md = mapa profundo (cómo funciona el todo). Sin secretos en los docs; solo nombres de variables.
+
 ### 2026-08-12 — fix — Login falla cuando localStorage está lleno (QuotaExceededError)
 - **Descripción**: El login contra el backend respondía 200 pero el frontend mostraba "No se pudo iniciar sesión. Intenta de nuevo." Causa raíz: el `tap()` que persistía el token en `localStorage` lanzaba `QuotaExceededError` (storage lleno), la excepción caía en `catchError` y se mostraba el mensaje genérico aunque el POST hubiera sido exitoso. Se hizo `AuthService` resiliente: la sesión vive en memoria (`BehaviorSubject`) y `localStorage` es persistencia best-effort dentro de `try/catch`; `isAuthenticated()`/`getToken()` usan memoria primero y storage como fallback.
 - **Archivos**: `src/app/core/services/auth.service.ts`
