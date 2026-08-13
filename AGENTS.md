@@ -7,6 +7,14 @@
 - Usar el formato documentado en `HISTORIAL.md` (Fecha, Tipo, Descripción, Archivos, Decisión clave).
 - El skill `change-history` implementa esta regla; cargarlo al comenzar cualquier cambio.
 
+## Documentación (obligatorio)
+
+- Si el cambio toca estructura (endpoints, rutas/módulos, frontera de datos, infraestructura, env vars), la documentación debe quedar sincronizada ANTES de darse por terminada la tarea.
+- `README.md` se actualiza cuando cambia el quickstart, el stack o el despliegue.
+- `docs/ARCHITECTURE.md` se actualiza cuando cambia la estructura del sistema (flujos, endpoints, frontera de datos, infra).
+- Nunca incluir secretos ni valores reales en docs: solo nombres de variables.
+- El skill `docs-sync` implementa esta regla; cargarlo al tocar estructura.
+
 ## Commit policy (crítica)
 
 - NUNCA commitear sin aprobación explícita del usuario — preguntar "¿Commiteamos?".
@@ -24,6 +32,7 @@
 - [ ] Leer modelos/servicios relevantes antes de tocar código.
 - [ ] `ng build` pasa sin errores.
 - [ ] `HISTORIAL.md` actualizado.
+- [ ] `README.md` / `docs/ARCHITECTURE.md` sincronizados si el cambio toca estructura (ver `docs-sync`).
 - [ ] ADR en `docs/adr/` si hubo una decisión de arquitectura.
 - [ ] Decisiones importantes guardadas en Engram.
 
