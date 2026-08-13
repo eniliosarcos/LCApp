@@ -6,7 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SharedModule } from './shared/shared.module';
 import { ContactService } from './core/services/contact.service';
-import { MockContactService } from './core/services/mock-contact.service';
+import { HttpContactService } from './core/services/http-contact.service';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 @NgModule({
@@ -20,7 +20,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
     SharedModule
   ],
   providers: [
-    { provide: ContactService, useClass: MockContactService },
+    { provide: ContactService, useClass: HttpContactService },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]

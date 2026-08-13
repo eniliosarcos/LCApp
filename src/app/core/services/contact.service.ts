@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ContactConfig } from '../models/environment.model';
+import { ContactConfig } from '../models/contact.model';
 
 @Injectable()
 export abstract class ContactService {

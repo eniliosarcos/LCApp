@@ -61,7 +61,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 | `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`). |
 | `OrderService` | Pedidos: crear orden desde el carrito + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
-| `ContactService` | Abstracción del contacto (redes). Implementación: `MockContactService` (lee de `environment.contact` + localStorage). Registro por provider en `AppModule`. |
+| `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
 
 ### Sesión y storage (decisión importante)
 
@@ -81,9 +81,10 @@ backend/
   routes/categories.js # GET /
   routes/products.js   # GET /
   routes/orders.js     # POST / (público) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
+  routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
   middleware/auth.js   # verify Authorization: Bearer JWT
-  models/              # Category, Product, Order
-  seed.js              # carga src/assets/data/*.json → MongoDB
+  models/              # Category, Product, Order, Config
+  seed.js              # carga src/assets/data/*.json → MongoDB + Config de contacto
   hash-password.js     # npm run hash -- "clave" → hash bcrypt
 ```
 
@@ -104,7 +105,8 @@ backend/
 | Variable | Dev | Prod |
 |---|---|---|
 | `apiUrl` | `http://localhost:3000/api` | inyectada por CI (secret `API_URL`) |
-| `contact.{whatsapp,instagram,telegram}` | vacíos | inyectados por CI (secrets `WHATSAPP_*`, `INSTAGRAM_*`, `TELEGRAM_*`) |
+
+El contacto **no** vive en environments: se configura desde el admin y persiste en Mongo (`Config`, `GET/PUT /api/config`).
 
 `environment.ts` y `environment.prod.ts` están gitignoreados; en el repo viven como placeholders. El CI (`deploy.yml`) los regenera con `fs.writeFileSync` antes del build.
 
@@ -137,10 +139,11 @@ Nota SPA: GitHub Pages no reescribe rutas; por eso `404.html` es copia de `index
 - `docs/adr/001` — flujo de compra por código de carrito vía contacto.
 - `docs/adr/002` — frontera de datos uniforme con Observables + provider por abstracción.
 - `docs/adr/005` — backend Node.js + Express + MongoDB.
+- `docs/adr/006` — contacto configurable desde el admin (API, no mock).
 - `HISTORIAL.md` — bitácora de cambios del proyecto.
 
 ## Temas conocidos / pendientes
 
-- `ContactService` sigue siendo mock (abstracto + `MockContactService`); cuando exista un canal real (p.ej. formulario), se reemplaza el provider en `AppModule`.
+- `ContactService` ya consume la API (`HttpContactService`); el contacto se configura en `/admin/contact`. Pendiente: validación de formato de los campos al guardar.
 - `assets/data/*.json` aún alimenta el seed; el frontend consume la API (los JSON ya no se leen en runtime).
 - Si `localStorage` del origen se llena, la sesión admin no persiste entre recargas (ver "Sesión y storage").

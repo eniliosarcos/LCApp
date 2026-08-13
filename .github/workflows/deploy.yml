@@ -42,12 +42,6 @@ jobs:
             export const environment: Environment = {
               production: false,
               apiUrl: 'http://localhost:3000/api',
-              contact: {
-                whatsapp: '',
-                whatsappDisplay: '',
-                instagram: '',
-                telegram: '',
-              },
             };
             `;
             fs.writeFileSync('src/environments/environment.ts', devContent);
@@ -57,12 +51,6 @@ jobs:
             export const environment: Environment = {
               production: true,
               apiUrl: '${{ secrets.API_URL }}',
-              contact: {
-                whatsapp: '${{ secrets.WHATSAPP_NUMBER }}',
-                whatsappDisplay: '${{ secrets.WHATSAPP_DISPLAY }}',
-                instagram: '${{ secrets.INSTAGRAM_HANDLE }}',
-                telegram: '${{ secrets.TELEGRAM_HANDLE }}',
-              },
             };
             `;
             fs.writeFileSync('src/environments/environment.prod.ts', prodContent);
