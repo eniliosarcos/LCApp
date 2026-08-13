@@ -1,0 +1,141 @@
+@use 'styles/variables' as v;
+
+.admin-shell {
+  min-height: 100%;
+}
+
+.sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: v.$space-3;
+  right: -2.75rem;
+  z-index: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-md;
+  background: v.$color-surface;
+  color: v.$color-primary;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 220px;
+  background: v.$color-footer-bg;
+  color: v.$color-footer-text;
+  display: flex;
+  flex-direction: column;
+  z-index: 55;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: v.$space-2;
+  padding: v.$space-5 v.$space-5 v.$space-4;
+
+  .brand-mark {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: v.$color-surface;
+    line-height: 1;
+  }
+
+  .brand-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: v.$color-pink-light;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
+  padding: v.$space-2;
+
+  a {
+    padding: v.$space-3 v.$space-4;
+    border-radius: v.$radius-sm;
+    color: v.$color-footer-text;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: rgba(232, 160, 191, 0.15);
+      color: v.$color-surface;
+    }
+
+    &.active {
+      background: v.$color-gold;
+      color: v.$color-surface;
+    }
+  }
+}
+
+.logout {
+  margin: v.$space-3;
+  padding: v.$space-3 v.$space-4;
+  border: 1px solid rgba(232, 160, 191, 0.5);
+  border-radius: v.$radius-sm;
+  background: transparent;
+  color: v.$color-footer-text;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: v.$color-danger;
+    border-color: v.$color-danger;
+    color: v.$color-surface;
+  }
+}
+
+.admin-content {
+  margin-left: 220px;
+  padding: v.$space-6;
+}
+
+@media (max-width: 768px) {
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 43, 31, 0.5);
+    z-index: 54;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: v.$shadow-card-hover;
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  .admin-content {
+    margin-left: 0;
+    padding: v.$space-6 v.$space-4;
+  }
+}

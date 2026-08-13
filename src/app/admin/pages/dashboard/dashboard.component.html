@@ -1,4 +1,4 @@
-<section class="dashboard container">
+<section class="dashboard">
   <h1>Dashboard admin</h1>
   <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
 
@@ -26,77 +26,77 @@
   <p class="error" *ngIf="actionError">{{ actionError }}</p>
   <p class="loading" *ngIf="loading">Cargando órdenes…</p>
 
-  <table class="orders-table" *ngIf="orders.length > 0; else noOrders">
-    <thead>
-      <tr>
-        <th>Código</th>
-        <th>Cliente</th>
-        <th>Productos</th>
-        <th>Total</th>
-        <th>Estado</th>
-        <th>Fecha</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let order of orders; trackBy: orderTrackBy">
-        <td><strong>{{ order.code }}</strong></td>
-        <td>{{ order.customerName }}</td>
-        <td>
-          <ul class="items-list">
-            <li *ngFor="let item of order.items; trackBy: itemTrackBy">
-              {{ item.quantity }} × {{ item.productName }}
-            </li>
-          </ul>
-        </td>
-        <td>{{ order.total | currency }}</td>
-        <td>
-          <span class="status" [ngClass]="order.status">{{ order.status }}</span>
-        </td>
-        <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-        <td>
-          <button
-            *ngIf="order.status === 'pending'"
-            type="button"
-            class="action confirm"
-            (click)="confirmOrder(order)"
-            [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
-          <button
-            *ngIf="order.status === 'pending'"
-            type="button"
-            class="action cancel"
-            (click)="cancelOrder(order)"
-            [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-scroll" *ngIf="orders.length > 0; else noOrders">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Cliente</th>
+          <th>Productos</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders; trackBy: orderTrackBy">
+          <td><strong>{{ order.code }}</strong></td>
+          <td>{{ order.customerName }}</td>
+          <td>
+            <ul class="items-list">
+              <li *ngFor="let item of order.items; trackBy: itemTrackBy">
+                {{ item.quantity }} × {{ item.productName }}
+              </li>
+            </ul>
+          </td>
+          <td>{{ order.total | currency }}</td>
+          <td>
+            <span class="status" [ngClass]="order.status">{{ order.status }}</span>
+          </td>
+          <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <button
+              *ngIf="order.status === 'pending'"
+              type="button"
+              class="action confirm"
+              (click)="confirmOrder(order)"
+              [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
+            <button
+              *ngIf="order.status === 'pending'"
+              type="button"
+              class="action cancel"
+              (click)="cancelOrder(order)"
+              [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <ng-template #noOrders>
     <p class="empty">Aún no hay órdenes registradas.</p>
   </ng-template>
 
   <div class="catalog-section">
     <h2>Productos</h2>
-    <table class="products-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Precio</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let product of products; trackBy: productTrackBy">
-          <td>{{ product.name }}</td>
-          <td>{{ categoryName(product.categoryId) }}</td>
-          <td>{{ product.price | currency }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of products; trackBy: productTrackBy">
+            <td>{{ product.name }}</td>
+            <td>{{ categoryName(product.categoryId) }}</td>
+            <td>{{ product.price | currency }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-
-  <nav class="admin-nav" aria-label="Secciones de administración">
-    <a routerLink="/admin/contact" class="nav-link">Configuración de contacto</a>
-    <button type="button" class="logout" (click)="logout()">Cerrar sesión</button>
-  </nav>
 </section>
+

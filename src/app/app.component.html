@@ -1,8 +1,10 @@
-<app-header></app-header>
+<ng-container *ngIf="!isAdminRoute">
+  <app-header></app-header>
+</ng-container>
 <main>
   <router-outlet></router-outlet>
 </main>
-<footer class="footer">
+<footer class="footer" *ngIf="!isAdminRoute">
   <div class="container footer-grid">
     <div class="footer-brand">
       <span class="brand-name">L'Essence de Cerise</span>

@@ -44,9 +44,11 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
      c. El frontend guarda el código real y abre el canal con mensaje prefabricado
 5. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
 6. Admin entra a /admin (login JWT):
+     - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas
      - Lista órdenes (GET /api/orders) y ve stats (GET /api/orders/stats)
      - Confirma:  PATCH /api/orders/:id/confirm  → valida stock y descuenta
      - Cancela:   PATCH /api/orders/:id/cancel   (solo si está 'pending')
+     - Edita contacto: /admin/contact (PUT /api/config)
 ```
 
 Regla de estados de una orden: `pending → confirmed | cancelled`. Confirmar/cancelar solo es válido desde `pending`.
