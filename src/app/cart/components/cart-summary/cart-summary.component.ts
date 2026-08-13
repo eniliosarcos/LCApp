@@ -1,4 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Subject, timer } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Cart } from '../../../core/models/cart.model';
 import { ContactConfig } from '../../../core/models/contact.model';
 import { CreateOrderRequest } from '../../../core/models/order.model';
@@ -8,19 +10,23 @@ import { OrderService } from '../../../core/services/order.service';
 
 type ContactChannel = 'whatsapp' | 'instagram' | 'telegram';
 
+const REDIRECT_DELAY_MS = 2000;
+
 @Component({
   selector: 'app-cart-summary',
   templateUrl: './cart-summary.component.html',
   styleUrls: ['./cart-summary.component.scss']
 })
-export class CartSummaryComponent implements OnInit {
+export class CartSummaryComponent implements OnInit, OnDestroy {
   @Input() cart!: Cart;
 
   contact: ContactConfig | null = null;
   contacting = false;
+  redirecting = false;
   registered = false;
   errorMessage = '';
 
+  private readonly destroy$ = new Subject<void>();
   private contactChannel: ContactChannel = 'whatsapp';
 
   constructor(
@@ -34,6 +40,11 @@ export class CartSummaryComponent implements OnInit {
       this.contact = config;
     });
     this.registered = this.cartService.hasRegisteredOrder();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getTotalItems(): number {
@@ -51,16 +62,28 @@ export class CartSummaryComponent implements OnInit {
     return this.cart.orderCode ?? this.cart.code;
   }
 
+  get channelName(): string {
+    switch (this.contactChannel) {
+      case 'whatsapp':
+        return 'WhatsApp';
+      case 'instagram':
+        return 'Instagram';
+      case 'telegram':
+        return 'Telegram';
+    }
+  }
+
   openContact(channel: ContactChannel): void {
-    if (this.contacting) {
+    if (this.contacting || this.redirecting) {
       return;
     }
 
     this.contactChannel = channel;
     this.errorMessage = '';
+    this.redirecting = true;
 
     if (this.cartService.hasRegisteredOrder()) {
-      this.openChannel();
+      this.delayAndOpen();
       return;
     }
 
@@ -70,10 +93,11 @@ export class CartSummaryComponent implements OnInit {
         this.cartService.registerOrder(order.code);
         this.registered = true;
         this.contacting = false;
-        this.openChannel();
+        this.delayAndOpen();
       },
       error: () => {
         this.contacting = false;
+        this.redirecting = false;
         this.errorMessage = 'No se pudo registrar tu pedido. Verifica tu conexión e inténtalo de nuevo.';
       }
     });
@@ -111,10 +135,25 @@ export class CartSummaryComponent implements OnInit {
     };
   }
 
+  private delayAndOpen(): void {
+    timer(REDIRECT_DELAY_MS)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.openChannel();
+        this.redirecting = false;
+      });
+  }
+
   private openChannel(): void {
     const href = this.getChannelHref(this.contactChannel);
     if (href && href !== '#') {
-      window.open(href, '_blank', 'noopener');
+      const anchor = document.createElement('a');
+      anchor.href = href;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
     }
   }
 

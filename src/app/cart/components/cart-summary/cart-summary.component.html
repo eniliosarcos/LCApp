@@ -25,16 +25,27 @@
   <ng-container *ngIf="contact">
     <p class="contact-title">Contacta para finalizar tu compra:</p>
 
-    <div class="contact-options" *ngIf="!contacting">
+    <div class="contact-options" *ngIf="!contacting && !redirecting">
       <button type="button" class="btn whatsapp" (click)="openContact('whatsapp')">WhatsApp</button>
       <button type="button" class="btn instagram" (click)="openContact('instagram')">Instagram</button>
       <button type="button" class="btn telegram" (click)="openContact('telegram')">Telegram</button>
     </div>
 
-    <p class="status loading" *ngIf="contacting">Registrando tu pedido…</p>
-    <p class="status success" *ngIf="registered">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
-    <p class="status error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p class="status loading" *ngIf="contacting && !redirecting">Registrando tu pedido…</p>
+    <p class="status success" *ngIf="registered && !redirecting">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
+    <p class="status error" *ngIf="errorMessage && !redirecting">{{ errorMessage }}</p>
   </ng-container>
+
+  <app-modal
+    [open]="redirecting"
+    title="Redirigiendo…"
+    [showClose]="false"
+    [dismissible]="false">
+    <div class="redirect-notice">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Serás redirigido a {{ channelName }} para finalizar tu compra…</p>
+    </div>
+  </app-modal>
 
   <div class="instructions">
     <h3>¿Cómo comprar?</h3>

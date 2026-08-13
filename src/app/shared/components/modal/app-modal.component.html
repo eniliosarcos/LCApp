@@ -1,0 +1,18 @@
+<div class="modal-overlay" *ngIf="open" (click)="onBackdropClick()">
+  <div
+    class="modal-panel"
+    #dialogPanel
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="title ? 'modal-title' : null"
+    tabindex="-1"
+    (click)="$event.stopPropagation()">
+    <header class="modal-header" *ngIf="title || showClose">
+      <h2 id="modal-title" *ngIf="title">{{ title }}</h2>
+      <button type="button" class="modal-close" *ngIf="showClose" (click)="close.emit()" aria-label="Cerrar">×</button>
+    </header>
+    <div class="modal-body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,77 @@
+@use 'styles/variables' as v;
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 43, 31, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: v.$space-4;
+  z-index: 1000;
+  animation: fade-in 0.2s ease-out;
+}
+
+.modal-panel {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  box-shadow: v.$shadow-card-hover;
+  max-width: 420px;
+  width: 100%;
+  padding: v.$space-6;
+  animation: scale-in 0.2s ease-out;
+  outline: none;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-4;
+  margin-bottom: v.$space-4;
+
+  h2 {
+    margin: 0;
+    color: v.$color-primary;
+    font-size: 1.2rem;
+    font-family: v.$font-heading;
+  }
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: v.$color-text-muted;
+  padding: v.$space-1;
+
+  &:hover {
+    color: v.$color-primary;
+  }
+}
+
+.modal-body {
+  color: v.$color-text;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
