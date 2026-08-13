@@ -30,3 +30,11 @@ export interface OrderStats {
   cancelledOrders: number;
   totalRevenue: number;
 }
+
+export type OrderStatus = 'pending' | 'confirmed' | 'cancelled';
+
+export interface OrderStatusResponse {
+  code: string;
+  status: OrderStatus;
+  confirmedAt?: string;
+}

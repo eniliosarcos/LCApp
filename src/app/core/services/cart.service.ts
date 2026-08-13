@@ -73,6 +73,14 @@ export class CartService {
     this.emit(cart);
   }
 
+  clearOrderCode(): void {
+    const cart = this.cart$.getValue();
+    if (cart.orderCode) {
+      cart.orderCode = undefined;
+      this.emit(cart);
+    }
+  }
+
   hasRegisteredOrder(): boolean {
     return !!this.cart$.getValue().orderCode;
   }

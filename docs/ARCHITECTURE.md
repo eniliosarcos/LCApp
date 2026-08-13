@@ -39,11 +39,16 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
 2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart)
 3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
 4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
-     a. OrderService.postOrder()  →  POST /api/orders  (público)
+     a. Si no hay orden registrada: OrderService.postOrder()  →  POST /api/orders  (público)
      b. Backend genera código CAR-XXXXX, guarda la orden como 'pending'
      c. El frontend guarda el código real y abre el canal con mensaje prefabricado
-5. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
-6. Admin entra a /admin (login JWT):
+5. Al volver al carrito con una orden registrada, CartSummaryComponent consulta
+   el estado real:  OrderService.getOrderStatus()  →  GET /api/orders/:code/status  (público)
+     - 'confirmed'  → modal de éxito, clearCart() (vacía todo) y redirect a home
+     - 'cancelled' o 404 → clearOrderCode() (conserva items) + aviso; botones de contacto activos
+     - error de red → mantiene el estado actual sin romper la UI
+6. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
+7. Admin entra a /admin (login JWT):
      - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas
      - Lista órdenes (GET /api/orders) y ve stats (GET /api/orders/stats)
      - Confirma:  PATCH /api/orders/:id/confirm  → valida stock y descuenta
@@ -61,7 +66,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 |---|---|
 | `CatalogService` | Catálogo: categorías y productos desde la API (Observables). |
 | `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`). |
-| `OrderService` | Pedidos: crear orden desde el carrito + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
+| `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`) + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
 | `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
 
@@ -82,7 +87,7 @@ backend/
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET /
   routes/products.js   # GET /
-  routes/orders.js     # POST / (público) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
+  routes/orders.js     # POST / (público), GET /:code/status (público) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
   middleware/auth.js   # verify Authorization: Bearer JWT
   models/              # Category, Product, Order, Config

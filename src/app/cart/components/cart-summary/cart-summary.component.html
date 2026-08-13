@@ -25,14 +25,17 @@
   <ng-container *ngIf="contact">
     <p class="contact-title">Contacta para finalizar tu compra:</p>
 
-    <div class="contact-options" *ngIf="!contacting && !redirecting">
+    <p class="status loading" *ngIf="checkingOrder">Verificando tu pedido…</p>
+
+    <div class="contact-options" *ngIf="!contacting && !redirecting && !checkingOrder">
       <button type="button" class="btn whatsapp" (click)="openContact('whatsapp')">WhatsApp</button>
       <button type="button" class="btn instagram" (click)="openContact('instagram')">Instagram</button>
       <button type="button" class="btn telegram" (click)="openContact('telegram')">Telegram</button>
     </div>
 
     <p class="status loading" *ngIf="contacting && !redirecting">Registrando tu pedido…</p>
-    <p class="status success" *ngIf="registered && !redirecting">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
+    <p class="status success" *ngIf="registered && !redirecting && !checkingOrder">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
+    <p class="status notice" *ngIf="orderNotice">{{ orderNotice }}</p>
     <p class="status error" *ngIf="errorMessage && !redirecting">{{ errorMessage }}</p>
   </ng-container>
 
@@ -44,6 +47,17 @@
     <div class="redirect-notice">
       <div class="spinner" aria-hidden="true"></div>
       <p>Serás redirigido a {{ channelName }} para finalizar tu compra…</p>
+    </div>
+  </app-modal>
+
+  <app-modal
+    [open]="orderConfirmed"
+    title="¡Gracias por tu compra!"
+    [showClose]="false"
+    [dismissible]="false">
+    <div class="success-notice">
+      <p>Su compra fue todo un éxito. Muchas gracias.</p>
+      <button type="button" class="btn home" (click)="goHome()">Volver al inicio</button>
     </div>
   </app-modal>
 

@@ -1,9 +1,10 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Cart } from '../../../core/models/cart.model';
 import { ContactConfig } from '../../../core/models/contact.model';
-import { CreateOrderRequest } from '../../../core/models/order.model';
+import { CreateOrderRequest, OrderStatus } from '../../../core/models/order.model';
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { OrderService } from '../../../core/services/order.service';
@@ -11,6 +12,7 @@ import { OrderService } from '../../../core/services/order.service';
 type ContactChannel = 'whatsapp' | 'instagram' | 'telegram';
 
 const REDIRECT_DELAY_MS = 2000;
+const SUCCESS_REDIRECT_MS = 4000;
 
 @Component({
   selector: 'app-cart-summary',
@@ -24,12 +26,16 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
   contacting = false;
   redirecting = false;
   registered = false;
+  checkingOrder = false;
+  orderConfirmed = false;
+  orderNotice = '';
   errorMessage = '';
 
   private readonly destroy$ = new Subject<void>();
   private contactChannel: ContactChannel = 'whatsapp';
 
   constructor(
+    private readonly router: Router,
     private readonly contactService: ContactService,
     private readonly orderService: OrderService,
     private readonly cartService: CartService
@@ -40,6 +46,9 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
       this.contact = config;
     });
     this.registered = this.cartService.hasRegisteredOrder();
+    if (this.registered) {
+      this.verifyOrder();
+    }
   }
 
   ngOnDestroy(): void {
@@ -103,6 +112,11 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
     });
   }
 
+  goHome(): void {
+    this.cartService.clearCart();
+    this.router.navigate(['/']);
+  }
+
   getWhatsAppHref(): string {
     if (!this.contact?.whatsapp) {
       return '#';
@@ -122,6 +136,49 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
       return '#';
     }
     return `https://t.me/${this.contact.telegram.replace('@', '')}`;
+  }
+
+  private verifyOrder(): void {
+    const code = this.cart.orderCode;
+    if (!code) {
+      return;
+    }
+
+    this.checkingOrder = true;
+    this.orderService.getOrderStatus(code).subscribe({
+      next: status => {
+        this.checkingOrder = false;
+        this.applyOrderStatus(status.status);
+      },
+      error: err => {
+        this.checkingOrder = false;
+        if (err?.status === 404) {
+          this.resetRegistration('Ya no encontramos tu pedido registrado.');
+        }
+      }
+    });
+  }
+
+  private applyOrderStatus(status: OrderStatus): void {
+    switch (status) {
+      case 'confirmed':
+        this.orderConfirmed = true;
+        timer(SUCCESS_REDIRECT_MS)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(() => this.goHome());
+        break;
+      case 'cancelled':
+        this.resetRegistration('Tu pedido fue cancelado. Si deseas, vuelve a contactarnos.');
+        break;
+      default:
+        break;
+    }
+  }
+
+  private resetRegistration(notice: string): void {
+    this.cartService.clearOrderCode();
+    this.registered = false;
+    this.orderNotice = notice;
   }
 
   private buildRequest(): CreateOrderRequest {

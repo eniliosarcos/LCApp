@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateOrderRequest, Order, OrderStats } from '../models/order.model';
+import { CreateOrderRequest, Order, OrderStats, OrderStatusResponse } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -17,6 +17,10 @@ export class OrderService {
 
   getOrders(): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(catchError(this.handleError));
+  }
+
+  getOrderStatus(code: string): Observable<OrderStatusResponse> {
+    return this.http.get<OrderStatusResponse>(`${this.apiUrl}/orders/${code}/status`).pipe(catchError(this.handleError));
   }
 
   getStats(): Observable<OrderStats> {
@@ -36,7 +40,9 @@ export class OrderService {
       typeof error.error === 'object' && error.error?.error
         ? error.error.error
         : 'No se pudieron cargar los datos. Intenta de nuevo.';
+    const wrapped = new Error(message) as Error & { status?: number };
+    wrapped.status = error.status;
     console.error('Error del servicio de órdenes:', error);
-    return throwError(() => new Error(message));
+    return throwError(() => wrapped);
   }
 }

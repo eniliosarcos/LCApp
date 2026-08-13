@@ -75,6 +75,17 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
+// GET /api/orders/:code/status — Estado de la orden por código (público)
+router.get('/:code/status', async (req, res) => {
+  try {
+    const order = await Order.findOne({ code: req.params.code }, { code: 1, status: 1, confirmedAt: 1 });
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    res.json({ code: order.code, status: order.status, confirmedAt: order.confirmedAt });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/orders/:code — Buscar por código
 router.get('/:code', authenticate, async (req, res) => {
   try {

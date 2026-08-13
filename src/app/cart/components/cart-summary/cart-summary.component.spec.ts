@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { Cart } from '../../../core/models/cart.model';
 import { ContactConfig } from '../../../core/models/contact.model';
-import { Order, CreateOrderRequest } from '../../../core/models/order.model';
+import { Order, CreateOrderRequest, OrderStatusResponse } from '../../../core/models/order.model';
 import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';
@@ -37,7 +38,24 @@ const cartStub: Cart = {
   id: 'c1',
   items: [{ productId: 'p1', product, quantity: 2 }],
   code: 'CAR-ABC12',
+  orderCode: 'CAR-ABC12',
   createdAt: '2026-01-01T00:00:00.000Z'
+};
+
+const confirmedStatus: OrderStatusResponse = {
+  code: 'CAR-ABC12',
+  status: 'confirmed',
+  confirmedAt: '2026-01-02T00:00:00.000Z'
+};
+
+const cancelledStatus: OrderStatusResponse = {
+  code: 'CAR-ABC12',
+  status: 'cancelled'
+};
+
+const pendingStatus: OrderStatusResponse = {
+  code: 'CAR-ABC12',
+  status: 'pending'
 };
 
 describe('CartSummaryComponent', () => {
@@ -45,26 +63,38 @@ describe('CartSummaryComponent', () => {
   let component: CartSummaryComponent;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
   let cartServiceSpy: jasmine.SpyObj<CartService>;
+  let routerSpy: jasmine.SpyObj<Router>;
   let anchorClickSpy: jasmine.Spy;
 
+  function createComponent(): void {
+    fixture = TestBed.createComponent(CartSummaryComponent);
+    component = fixture.componentInstance;
+    component.cart = { ...cartStub };
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder']);
-    cartServiceSpy = jasmine.createSpyObj('CartService', ['hasRegisteredOrder', 'registerOrder']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder', 'getOrderStatus']);
+    cartServiceSpy = jasmine.createSpyObj('CartService', [
+      'hasRegisteredOrder',
+      'registerOrder',
+      'clearOrderCode',
+      'clearCart'
+    ]);
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       declarations: [CartSummaryComponent, AppModalComponent, CurrencyFormatPipe],
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: CartService, useValue: cartServiceSpy },
-        { provide: ContactService, useValue: { getContact: () => of(contactStub) } }
+        { provide: ContactService, useValue: { getContact: () => of(contactStub) } },
+        { provide: Router, useValue: routerSpy }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CartSummaryComponent);
-    component = fixture.componentInstance;
-    component.cart = { ...cartStub };
     anchorClickSpy = spyOn(HTMLAnchorElement.prototype, 'click').and.callThrough();
-    fixture.detectChanges();
+    createComponent();
   });
 
   afterEach(() => {
@@ -153,5 +183,88 @@ describe('CartSummaryComponent', () => {
     tick(2000);
     fixture.detectChanges();
     expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+  }));
+
+  it('consulta el estado al volver y muestra el pedido registrado si sigue pending', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+
+    createComponent();
+    expect(component.checkingOrder).toBeTrue();
+    expect(component.orderConfirmed).toBeFalse();
+
+    status$.next(pendingStatus);
+    status$.complete();
+    fixture.detectChanges();
+
+    expect(component.checkingOrder).toBeFalse();
+    expect(component.registered).toBeTrue();
+    expect(component.orderConfirmed).toBeFalse();
+    expect(component.orderNotice).toBe('');
+  }));
+
+  it('vacía el carrito y redirige al inicio cuando la orden fue confirmada', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+
+    createComponent();
+    status$.next(confirmedStatus);
+    status$.complete();
+    fixture.detectChanges();
+
+    expect(component.orderConfirmed).toBeTrue();
+    expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+
+    tick(4000);
+    fixture.detectChanges();
+
+    expect(cartServiceSpy.clearCart).toHaveBeenCalledTimes(1);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+  }));
+
+  it('limpia solo el código y muestra aviso cuando la orden fue cancelada', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(cancelledStatus));
+
+    createComponent();
+    fixture.detectChanges();
+
+    expect(cartServiceSpy.clearOrderCode).toHaveBeenCalledTimes(1);
+    expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
+    expect(component.registered).toBeFalse();
+    expect(component.orderNotice).toContain('Tu pedido fue cancelado');
+  }));
+
+  it('limpia solo el código y muestra aviso si la orden no existe (404)', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+
+    createComponent();
+    status$.error(Object.assign(new Error('Orden no encontrada'), { status: 404 }));
+
+    expect(cartServiceSpy.clearOrderCode).toHaveBeenCalledTimes(1);
+    expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
+    expect(component.registered).toBeFalse();
+    expect(component.orderNotice).toContain('Ya no encontramos tu pedido');
+  }));
+
+  it('mantiene el estado registrado sin aviso si el estado no se puede verificar (error de red)', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+
+    createComponent();
+    status$.error(new Error('network down'));
+    fixture.detectChanges();
+
+    expect(cartServiceSpy.clearOrderCode).not.toHaveBeenCalled();
+    expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
+    expect(component.registered).toBeTrue();
+    expect(component.orderConfirmed).toBeFalse();
+    expect(component.orderNotice).toBe('');
   }));
 });
