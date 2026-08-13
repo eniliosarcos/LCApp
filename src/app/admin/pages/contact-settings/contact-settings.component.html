@@ -1,0 +1,28 @@
+<section class="contact-settings container">
+  <h1>Configuración de contacto</h1>
+  <p class="loading" *ngIf="loading">Cargando configuración…</p>
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <form *ngIf="!loading" (ngSubmit)="onSubmit()" #settingsForm="ngForm" class="settings-form">
+    <label>
+      WhatsApp (solo dígitos, ej. 521234567890)
+      <input type="text" name="whatsapp" [(ngModel)]="form.whatsapp" required>
+    </label>
+    <label>
+      WhatsApp (texto visible, ej. +52 123 456 7890)
+      <input type="text" name="whatsappDisplay" [(ngModel)]="form.whatsappDisplay" required>
+    </label>
+    <label>
+      Instagram (ej. @tu_usuario)
+      <input type="text" name="instagram" [(ngModel)]="form.instagram" required>
+    </label>
+    <label>
+      Telegram (ej. @tu_usuario)
+      <input type="text" name="telegram" [(ngModel)]="form.telegram" required>
+    </label>
+
+    <p class="success" *ngIf="saved">Configuración guardada. Los cambios ya se reflejan en el sitio.</p>
+
+    <button type="submit" [disabled]="saving || settingsForm.invalid">{{ saving ? 'Guardando…' : 'Guardar cambios' }}</button>
+  </form>
+</section>

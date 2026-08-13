@@ -120,6 +120,29 @@
   margin: v.$space-4 0;
 }
 
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: v.$space-3;
+  margin-top: v.$space-6;
+}
+
+.nav-link {
+  padding: 0.6rem v.$space-4;
+  border: 1px solid v.$color-primary;
+  border-radius: v.$radius-sm;
+  color: v.$color-primary;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$color-primary;
+    color: v.$color-surface;
+  }
+}
+
 .logout {
   padding: 0.6rem v.$space-4;
   border: none;

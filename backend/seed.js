@@ -2,6 +2,9 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Category = require('./models/Category');
 const Product = require('./models/Product');
+const Config = require('./models/Config');
+
+const { DEFAULT_CONTACT } = Config;
 
 const categoriesData = [
   { name: 'Electrónica', slug: 'electronica', description: 'Gadgets y accesorios' },
@@ -51,6 +54,9 @@ async function seed() {
 
   const savedProducts = await Product.insertMany(productsWithCategory);
   console.log(`${savedProducts.length} productos creados`);
+
+  await Config.findOneAndUpdate({ key: 'site' }, DEFAULT_CONTACT, { new: true, upsert: true });
+  console.log('Configuración de contacto creada');
 
   await mongoose.disconnect();
   console.log('Desconectado. Seed completado.');

@@ -90,13 +90,13 @@ src/app/
   catalog/      # listado y detalle de producto
   cart/         # carrito, cart-item, cart-summary (registra orden al contactar)
   auth/         # login
-  admin/        # dashboard (protegido por AuthGuard + JWT)
+  admin/        # dashboard + configuración de contacto (protegido por AuthGuard + JWT)
 backend/
   server.js     # Express, CORS, rutas, conexión a Mongo
-  routes/       # auth, categories, products, orders
-  models/       # Category, Product, Order (Mongoose)
+  routes/       # auth, categories, products, orders, config
+  models/       # Category, Product, Order, Config (Mongoose)
   middleware/   # auth.js (verify JWT)
-  seed.js       # carga catálogo a MongoDB
+  seed.js       # carga catálogo + config de contacto a MongoDB
   hash-password.js  # genera hash bcrypt para el admin
 docs/adr/       # decisiones de arquitectura
 HISTORIAL.md    # bitácora de cambios
@@ -111,9 +111,11 @@ docs/ARCHITECTURE.md  # mapa del sistema completo
 | GET | `/api/categories` | público |
 | GET | `/api/products` | público |
 | POST | `/api/orders` | público (registro de pedido desde el carrito) |
+| GET | `/api/config` | público (datos de contacto) |
 | POST | `/api/auth/login` | público (devuelve JWT) |
 | GET | `/api/orders`, `/api/orders/stats`, `/api/orders/:code` | admin (JWT) |
 | PATCH | `/api/orders/:id/confirm`, `/api/orders/:id/cancel` | admin (JWT) |
+| PUT | `/api/config` | admin (JWT, actualiza contacto) |
 
 ## Convenciones
 

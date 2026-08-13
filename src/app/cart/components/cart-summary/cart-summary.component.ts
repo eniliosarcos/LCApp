@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Cart } from '../../../core/models/cart.model';
-import { ContactConfig } from '../../../core/models/environment.model';
+import { ContactConfig } from '../../../core/models/contact.model';
 import { CreateOrderRequest } from '../../../core/models/order.model';
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';

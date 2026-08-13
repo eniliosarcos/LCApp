@@ -1,0 +1,55 @@
+@use 'styles/variables' as v;
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+  max-width: 480px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+    font-weight: 600;
+    color: v.$color-text;
+  }
+
+  input {
+    padding: v.$space-3;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    font-size: 1rem;
+    background: v.$color-surface;
+  }
+
+  button {
+    align-self: flex-start;
+    padding: v.$space-3 v.$space-6;
+    border: none;
+    border-radius: v.$radius-sm;
+    background: v.$color-primary;
+    color: v.$color-surface;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.loading,
+.success,
+.error {
+  margin: v.$space-3 0;
+}
+
+.success {
+  color: #155724;
+}
+
+.error {
+  color: v.$color-danger;
+}
