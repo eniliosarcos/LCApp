@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — docs — Mapa del mundo: README actualizado y ARCHITECTURE.md
+- **Descripción**: El README quedó anclado en la etapa "frontend-only con JSONs" y desorientaba al entrar al repo. Se actualizó al estado real (stack Angular + Node/Express + MongoDB, estructura con `backend/`, cómo correr los dos procesos, despliegue Pages/Render/Atlas, tabla de endpoints y secrets por entorno). Se creó `docs/ARCHITECTURE.md` como mapa del sistema completo: diagrama de piezas, flujo de compra end-to-end (carrito → código CAR-XXXXX → contacto → orden → confirmación con descuento de stock), frontera de datos (core/services), decisión de sesión en memoria + storage best-effort, y variables de entorno sin valores reales.
+- **Archivos**: `README.md`, `docs/ARCHITECTURE.md` (nuevo)
+- **Decisión clave**: La documentación de onboarding va en dos niveles — README = puerta de entrada (quickstart), ARCHITECTURE.md = mapa profundo (cómo funciona el todo). Sin secretos en los docs; solo nombres de variables.
+
 ### 2026-08-12 — fix — Login falla cuando localStorage está lleno (QuotaExceededError)
 - **Descripción**: El login contra el backend respondía 200 pero el frontend mostraba "No se pudo iniciar sesión. Intenta de nuevo." Causa raíz: el `tap()` que persistía el token en `localStorage` lanzaba `QuotaExceededError` (storage lleno), la excepción caía en `catchError` y se mostraba el mensaje genérico aunque el POST hubiera sido exitoso. Se hizo `AuthService` resiliente: la sesión vive en memoria (`BehaviorSubject`) y `localStorage` es persistencia best-effort dentro de `try/catch`; `isAuthenticated()`/`getToken()` usan memoria primero y storage como fallback.
 - **Archivos**: `src/app/core/services/auth.service.ts`
