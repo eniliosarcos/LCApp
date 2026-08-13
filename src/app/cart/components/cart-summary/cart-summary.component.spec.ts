@@ -108,7 +108,7 @@ describe('CartSummaryComponent', () => {
 
     expect(component.redirecting).toBeTrue();
     expect(orderServiceSpy.createOrder).not.toHaveBeenCalled();
-    expect(document.body.classList.contains('modal-lock')).toBeTrue();
+    console.log('DEBUG modal-lock after create:', document.body.className); expect(document.body.classList.contains('modal-lock')).toBeTrue();
 
     tick(2000);
     fixture.detectChanges();
@@ -227,15 +227,28 @@ describe('CartSummaryComponent', () => {
 
   it('limpia solo el código y muestra aviso cuando la orden fue cancelada', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
-    orderServiceSpy.getOrderStatus.and.returnValue(of(cancelledStatus));
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
 
     createComponent();
+    status$.next(cancelledStatus);
+    status$.complete();
     fixture.detectChanges();
+    tick();
 
     expect(cartServiceSpy.clearOrderCode).toHaveBeenCalledTimes(1);
     expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
     expect(component.registered).toBeFalse();
     expect(component.orderNotice).toContain('Tu pedido fue cancelado');
+    expect(component.orderNoticeTitle).toBe('Pedido cancelado');
+    expect(document.body.classList.contains('modal-lock')).toBeTrue();
+
+    component.closeNotice();
+    fixture.detectChanges();
+    tick();
+
+    expect(component.orderNotice).toBe('');
+    expect(document.body.classList.contains('modal-lock')).toBeFalse();
   }));
 
   it('limpia solo el código y muestra aviso si la orden no existe (404)', fakeAsync(() => {
@@ -245,11 +258,15 @@ describe('CartSummaryComponent', () => {
 
     createComponent();
     status$.error(Object.assign(new Error('Orden no encontrada'), { status: 404 }));
+    fixture.detectChanges();
+    tick();
 
     expect(cartServiceSpy.clearOrderCode).toHaveBeenCalledTimes(1);
     expect(cartServiceSpy.clearCart).not.toHaveBeenCalled();
     expect(component.registered).toBeFalse();
     expect(component.orderNotice).toContain('Ya no encontramos tu pedido');
+    expect(component.orderNoticeTitle).toBe('Pedido no encontrado');
+    console.log('DEBUG modal-lock after create:', document.body.className); expect(document.body.classList.contains('modal-lock')).toBeTrue();
   }));
 
   it('mantiene el estado registrado sin aviso si el estado no se puede verificar (error de red)', fakeAsync(() => {

@@ -27,7 +27,7 @@ h1 {
 }
 
 .clear {
-  margin-top: v.$space-5;
+  align-self: flex-start;
   padding: v.$space-2 v.$space-4;
   border: 1px solid v.$color-danger-border;
   border-radius: v.$radius-sm;

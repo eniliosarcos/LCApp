@@ -133,12 +133,6 @@
       background: rgba(198, 40, 40, 0.1);
       border: 1px solid rgba(198, 40, 40, 0.3);
     }
-
-    &.notice {
-      color: v.$color-text-muted;
-      background: v.$color-bg;
-      border: 1px solid v.$color-border;
-    }
   }
 
   .instructions {
@@ -182,29 +176,38 @@
     }
   }
 
-  .success-notice {
+  .success-notice,
+  .notice {
     text-align: center;
 
     p {
       margin: 0 0 v.$space-5;
-      color: #2e7d32;
       font-weight: 600;
     }
+  }
 
-    .btn {
-      padding: v.$space-3 v.$space-6;
-      border-radius: v.$radius-sm;
-      border: none;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: v.$color-surface;
-      background: v.$color-primary;
+  .success-notice p {
+    color: #2e7d32;
+  }
 
-      &:hover {
-        background: v.$color-primary-hover;
-      }
+  .notice p {
+    color: v.$color-text;
+  }
+
+  .success-notice .btn,
+  .notice .btn {
+    padding: v.$space-3 v.$space-6;
+    border-radius: v.$radius-sm;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: v.$color-surface;
+    background: v.$color-primary;
+
+    &:hover {
+      background: v.$color-primary-hover;
     }
   }
 }

@@ -29,6 +29,7 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
   checkingOrder = false;
   orderConfirmed = false;
   orderNotice = '';
+  orderNoticeTitle = '';
   errorMessage = '';
 
   private readonly destroy$ = new Subject<void>();
@@ -153,7 +154,7 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
       error: err => {
         this.checkingOrder = false;
         if (err?.status === 404) {
-          this.resetRegistration('Ya no encontramos tu pedido registrado.');
+          this.resetRegistration('Ya no encontramos tu pedido registrado.', 'Pedido no encontrado');
         }
       }
     });
@@ -168,17 +169,23 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
           .subscribe(() => this.goHome());
         break;
       case 'cancelled':
-        this.resetRegistration('Tu pedido fue cancelado. Si deseas, vuelve a contactarnos.');
+        this.resetRegistration('Tu pedido fue cancelado. Si deseas, vuelve a contactarnos.', 'Pedido cancelado');
         break;
       default:
         break;
     }
   }
 
-  private resetRegistration(notice: string): void {
+  closeNotice(): void {
+    this.orderNotice = '';
+    this.orderNoticeTitle = '';
+  }
+
+  private resetRegistration(notice: string, title: string): void {
     this.cartService.clearOrderCode();
     this.registered = false;
     this.orderNotice = notice;
+    this.orderNoticeTitle = title;
   }
 
   private buildRequest(): CreateOrderRequest {

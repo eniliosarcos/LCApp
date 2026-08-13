@@ -35,9 +35,18 @@
 
     <p class="status loading" *ngIf="contacting && !redirecting">Registrando tu pedido…</p>
     <p class="status success" *ngIf="registered && !redirecting && !checkingOrder">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
-    <p class="status notice" *ngIf="orderNotice">{{ orderNotice }}</p>
     <p class="status error" *ngIf="errorMessage && !redirecting">{{ errorMessage }}</p>
   </ng-container>
+
+  <app-modal
+    [open]="orderNotice !== ''"
+    [title]="orderNoticeTitle"
+    (close)="closeNotice()">
+    <div class="notice">
+      <p>{{ orderNotice }}</p>
+      <button type="button" class="btn notice" (click)="closeNotice()">Entendido</button>
+    </div>
+  </app-modal>
 
   <app-modal
     [open]="redirecting"
