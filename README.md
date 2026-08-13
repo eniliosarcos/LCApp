@@ -8,7 +8,7 @@ Catálogo público de una tienda artesanal con carrito persistente y compra por 
 |---|---|---|
 | Frontend | **Angular 15** (NgModules clásicos, lazy loading, SCSS con tokens, RxJS + `HttpClient`) | `src/` |
 | Backend | **Node.js + Express + Mongoose** | `backend/` |
-| Base de datos | **MongoDB Atlas** (cluster M0 free, DB `lcapp`) | nube |
+| Base de datos | **MongoDB Atlas** (cluster M0 free; prod DB `lcapp`, local DB `lcapp-dev`) | nube |
 | Despliegue | **GitHub Pages** (front) + **Render** (API) | CI en `.github/workflows/deploy.yml` |
 
 ## Funcionalidades
@@ -30,6 +30,8 @@ npm install
 cp .env.example .env   # completar MONGODB_URI, ADMIN_USER, ADMIN_PASSWORD_HASH, JWT_SECRET
 npm run dev            # http://localhost:3000/api
 ```
+
+> Para desarrollo local, `MONGODB_URI` debe apuntar a una base separada (`lcapp-dev`). Así `npm run seed` y las pruebas no tocan la base de producción (`lcapp`).
 
 Scripts disponibles:
 

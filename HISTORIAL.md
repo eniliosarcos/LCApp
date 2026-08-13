@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-12 — config — Dev local aislado de producción con DB `lcapp-dev` en Atlas
+- **Descripción**: Para probar localmente sin ensuciar los datos reales, el `backend/.env` local ahora apunta su `MONGODB_URI` a la base `lcapp-dev` (mismo cluster M0 de Atlas, base separada de la de producción `lcapp`). Se corrió `yarn seed` una vez (4 categorías, 9 productos) y se verificó que el backend local sirve `GET /api/health`, `/api/categories` y `/api/products` desde esa base. Producción (Render + Atlas `lcapp`) no se toca porque lee sus propias env vars.
+- **Archivos**: `backend/.env` (solo local, gitignoreado), `README.md`, `docs/ARCHITECTURE.md`
+- **Decisión clave**: Aislamiento de dev con costo cero: en lugar de instalar MongoDB local o Docker (no disponible en la máquina) o un json-server (que no puede replicar la lógica de negocio del backend: JWT, descuento de stock, stats), se usa una segunda base en el mismo cluster gratuito de Atlas. json-server quedó descartado porque el frontend depende de lógica de negocio del backend, no de CRUD plano.
+
 ### 2026-08-12 — config — Skill docs-sync + regla de documentación en AGENTS.md
 - **Descripción**: Para que la documentación no vuelva a desactualizarse, se creó el skill `skills/docs-sync/SKILL.md` (mismo formato que `no-env-leak`) con una tabla de decisión que mapea cada tipo de cambio con el doc que debe actualizarse, y una regla obligatoria en `AGENTS.md` que obliga a sincronizar `README.md`/`docs/ARCHITECTURE.md` antes de dar por terminada la tarea. Se agregó el check de docs al pre-flight checklist.
 - **Archivos**: `skills/docs-sync/SKILL.md` (nuevo), `AGENTS.md`

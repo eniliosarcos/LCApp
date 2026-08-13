@@ -113,7 +113,7 @@ backend/
 | Variable | Uso |
 |---|---|
 | `PORT` | Puerto (default 3000) |
-| `MONGODB_URI` | Connection string de Atlas (DB `lcapp`, nunca `test`) |
+| `MONGODB_URI` | Connection string de Atlas; prod usa DB `lcapp`, local usa `lcapp-dev` (nunca `test`) |
 | `CORS_ORIGIN` | Orígenes permitidos (default `*`) |
 | `ADMIN_USER` | Usuario admin |
 | `ADMIN_PASSWORD_HASH` | Hash bcrypt de la clave (generar con `npm run hash`) |
