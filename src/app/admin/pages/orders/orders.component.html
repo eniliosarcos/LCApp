@@ -1,0 +1,96 @@
+<section class="orders">
+  <h1>Órdenes</h1>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <p class="error" *ngIf="actionError">{{ actionError }}</p>
+  <p class="loading" *ngIf="loading">Cargando órdenes…</p>
+
+  <div class="toolbar">
+    <label class="filter-label" for="status-filter">Estado:</label>
+    <select
+      id="status-filter"
+      class="filter"
+      [ngModel]="statusFilter"
+      (ngModelChange)="onFilterChange($event)"
+      [attr.aria-label]="'Filtrar órdenes por estado'">
+      <option value="all">Todas</option>
+      <option value="pending">Pendientes</option>
+      <option value="confirmed">Confirmadas</option>
+      <option value="cancelled">Canceladas</option>
+    </select>
+  </div>
+
+  <div class="table-scroll" *ngIf="!loading && orders.length > 0; else noOrders">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Cliente</th>
+          <th>Productos</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders; trackBy: orderTrackBy">
+          <td><strong>{{ order.code }}</strong></td>
+          <td>{{ order.customerName }}</td>
+          <td>
+            <ul class="items-list">
+              <li *ngFor="let item of order.items; trackBy: itemTrackBy">
+                {{ item.quantity }} × {{ item.productName }}
+              </li>
+            </ul>
+          </td>
+          <td>{{ order.total | currency }}</td>
+          <td>
+            <span class="status" [ngClass]="order.status">{{ order.status }}</span>
+          </td>
+          <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <button
+              *ngIf="order.status === 'pending'"
+              type="button"
+              class="action confirm"
+              (click)="confirmOrder(order)"
+              [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
+            <button
+              *ngIf="order.status === 'pending'"
+              type="button"
+              class="action cancel"
+              (click)="cancelOrder(order)"
+              [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #noOrders>
+    <p class="empty" *ngIf="!loading">Aún no hay órdenes{{ statusFilter !== 'all' ? ' con ese estado' : '' }}.</p>
+  </ng-template>
+
+  <nav class="pagination" *ngIf="!loading && totalPages > 1" aria-label="Paginación de órdenes">
+    <button
+      type="button"
+      class="page-btn"
+      (click)="previousPage()"
+      [disabled]="page <= 1"
+      [attr.aria-label]="'Página anterior'">‹</button>
+    <button
+      *ngFor="let pageNumber of pageNumbers"
+      type="button"
+      class="page-btn"
+      [class.active]="pageNumber === page"
+      [disabled]="pageNumber === '…'"
+      (click)="goToPage(pageNumber)">{{ pageNumber }}</button>
+    <button
+      type="button"
+      class="page-btn"
+      (click)="nextPage()"
+      [disabled]="page >= totalPages"
+      [attr.aria-label]="'Página siguiente'">›</button>
+    <span class="range" aria-live="polite">{{ rangeLabel }}</span>
+  </nav>
+</section>

@@ -31,6 +31,14 @@ export interface OrderStats {
   totalRevenue: number;
 }
 
+export interface OrderPage {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export type OrderStatus = 'pending' | 'confirmed' | 'cancelled';
 
 export interface OrderStatusResponse {

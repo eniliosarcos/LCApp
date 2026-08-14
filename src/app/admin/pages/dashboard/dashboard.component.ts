@@ -1,44 +1,50 @@
-import { Component, OnInit } from '@angular/core';
-import { Category } from '../../../core/models/category.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Order, OrderStats } from '../../../core/models/order.model';
-import { Product } from '../../../core/models/product.model';
-import { CatalogService } from '../../../core/services/catalog.service';
 import { OrderService } from '../../../core/services/order.service';
+
+const RECENT_PENDING_LIMIT = 5;
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
-  categories: Category[] = [];
-  products: Product[] = [];
-  orders: Order[] = [];
   stats: OrderStats | null = null;
+  recentOrders: Order[] = [];
   loading = true;
   error = false;
-  errorMessage = '';
   actionError = '';
 
   constructor(
-    private readonly catalogService: CatalogService,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.catalogService.getCategories().subscribe({
-      next: categories => (this.categories = categories),
-      error: () => (this.error = true)
+    this.orderService.getStats().subscribe({
+      next: stats => {
+        this.stats = stats;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.error = true;
+        this.cdr.markForCheck();
+      }
     });
-    this.catalogService.getProducts().subscribe({
-      next: products => (this.products = products),
-      error: () => (this.error = true)
+    this.orderService.getOrders(1, RECENT_PENDING_LIMIT, 'pending').subscribe({
+      next: result => {
+        this.recentOrders = result.orders;
+        this.loading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.error = true;
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
-    this.loadOrders();
-  }
-
-  categoryName(categoryId: string): string {
-    return this.categories.find(category => category.id === categoryId)?.name ?? '-';
   }
 
   orderTrackBy(_index: number, order: Order): string {
@@ -49,19 +55,20 @@ export class DashboardComponent implements OnInit {
     return item.productId;
   }
 
-  productTrackBy(_index: number, product: Product): string {
-    return product.id;
-  }
-
   confirmOrder(order: Order): void {
     this.actionError = '';
     this.orderService.confirmOrder(order.id).subscribe({
       next: updated => {
         order.status = updated.status;
         order.confirmedAt = updated.confirmedAt;
-        this.loadOrders();
+        this.loadRecent();
+        this.refreshStats();
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => (this.actionError = err.message)
+      error: (err: Error) => {
+        this.actionError = err.message;
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -70,24 +77,40 @@ export class DashboardComponent implements OnInit {
     this.orderService.cancelOrder(order.id).subscribe({
       next: updated => {
         order.status = updated.status;
-        this.loadOrders();
+        this.loadRecent();
+        this.refreshStats();
+        this.cdr.markForCheck();
       },
-      error: (err: Error) => (this.actionError = err.message)
+      error: (err: Error) => {
+        this.actionError = err.message;
+        this.cdr.markForCheck();
+      }
     });
   }
 
-  private loadOrders(): void {
-    this.loading = true;
-    this.orderService.getStats().subscribe({
-      next: stats => (this.stats = stats)
-    });
-    this.orderService.getOrders().subscribe({
-      next: orders => (this.orders = orders),
-      error: (err: Error) => {
-        this.errorMessage = err.message;
-        this.loading = false;
+  private loadRecent(): void {
+    this.orderService.getOrders(1, RECENT_PENDING_LIMIT, 'pending').subscribe({
+      next: result => {
+        this.recentOrders = result.orders;
+        this.cdr.markForCheck();
       },
-      complete: () => (this.loading = false)
+      error: () => {
+        this.error = true;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private refreshStats(): void {
+    this.orderService.getStats().subscribe({
+      next: stats => {
+        this.stats = stats;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.error = true;
+        this.cdr.markForCheck();
+      }
     });
   }
 }

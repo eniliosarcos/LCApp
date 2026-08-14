@@ -1,9 +1,9 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateOrderRequest, Order, OrderItem, OrderStats, OrderStatusResponse } from '../models/order.model';
+import { CreateOrderRequest, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -15,8 +15,12 @@ export class OrderService {
     return this.http.post<Order>(`${this.apiUrl}/orders`, request).pipe(catchError(this.handleError));
   }
 
-  getOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(catchError(this.handleError));
+  getOrders(page = 1, limit = 10, status?: string): Observable<OrderPage> {
+    let params = new HttpParams().set('page', String(page)).set('limit', String(limit));
+    if (status) {
+      params = params.set('status', status);
+    }
+    return this.http.get<OrderPage>(`${this.apiUrl}/orders`, { params }).pipe(catchError(this.handleError));
   }
 
   getOrderStatus(code: string): Observable<OrderStatusResponse> {

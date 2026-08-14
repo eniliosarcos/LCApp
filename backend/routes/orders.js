@@ -56,15 +56,30 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/orders — Listar órdenes (admin)
+// GET /api/orders — Listar órdenes paginadas (admin)
 router.get('/', authenticate, async (req, res) => {
   try {
     await expireStalePendingOrders();
     const { status } = req.query;
     const filter = {};
     if (status) filter.status = status;
-    const orders = await Order.find(filter).sort({ createdAt: -1 });
-    res.json(orders);
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      orders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

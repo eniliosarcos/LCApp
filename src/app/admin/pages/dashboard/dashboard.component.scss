@@ -1,4 +1,5 @@
 @use 'styles/variables' as v;
+@use '../../styles/tables' as t;
 
 .metrics {
   display: flex;
@@ -23,110 +24,29 @@
   }
 }
 
-.products-table,
-.orders-table {
-  width: 100%;
-  min-width: 640px;
-  border-collapse: collapse;
-  background: v.$color-surface;
-  border-radius: v.$radius-md;
-  overflow: hidden;
-  box-shadow: v.$shadow-card;
-  margin-bottom: v.$space-6;
-
-  th,
-  td {
-    text-align: left;
-    padding: v.$space-3 v.$space-4;
-    border-bottom: 1px solid v.$color-border;
-    vertical-align: top;
-  }
-
-  td:last-child {
-    color: v.$color-gold;
-    font-weight: 700;
-  }
-
-  th {
-    background: v.$color-surface-muted;
-  }
-}
-
-.orders-table {
-  td:last-child {
-    color: v.$color-text;
-  }
-}
-
-.items-list {
-  margin: 0;
-  padding-left: v.$space-4;
-
-  li {
-    margin: v.$space-1 0;
-  }
-}
-
-.status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: v.$radius-full;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: capitalize;
-
-  &.pending {
-    background: #fff3cd;
-    color: #856404;
-  }
-
-  &.confirmed {
-    background: #d4edda;
-    color: #155724;
-  }
-
-  &.cancelled {
-    background: #f8d7da;
-    color: #721c24;
-  }
-}
-
-.action {
-  margin-right: v.$space-2;
-  padding: 0.4rem v.$space-3;
-  border: none;
-  border-radius: v.$radius-sm;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &.confirm {
-    background: v.$color-primary;
-    color: v.$color-surface;
-  }
-
-  &.cancel {
-    background: transparent;
-    color: v.$color-danger;
-    border: 1px solid v.$color-danger;
-  }
-}
-
-.catalog-section {
+.recent {
   margin-top: v.$space-6;
-}
 
-.table-scroll {
-  overflow-x: auto;
-  border-radius: v.$radius-md;
-}
+  .recent-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: v.$space-2;
+    margin-bottom: v.$space-4;
 
-.loading,
-.empty {
-  color: v.$color-text-muted;
-  margin: v.$space-4 0;
-}
+    h2 {
+      margin: 0;
+    }
 
-.error {
-  color: v.$color-danger;
+    .view-all {
+      color: v.$color-primary;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
 }

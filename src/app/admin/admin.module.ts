@@ -5,9 +5,11 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { AdminLayoutComponent } from './layout/admin-layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ContactSettingsComponent } from './pages/contact-settings/contact-settings.component';
+import { OrdersComponent } from './pages/orders/orders.component';
+import { ProductsComponent } from './pages/products/products.component';
 
 @NgModule({
-  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent],
+  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent],
   imports: [CommonModule, FormsModule, AdminRoutingModule]
 })
 export class AdminModule {}

@@ -1,0 +1,30 @@
+<section class="products">
+  <h1>Productos</h1>
+
+  <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
+  <p class="loading" *ngIf="loading">Cargando productos…</p>
+
+  <div class="table-scroll" *ngIf="!loading && products.length > 0; else noProducts">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products; trackBy: productTrackBy">
+          <td>{{ product.name }}</td>
+          <td>{{ categoryName(product.categoryId) }}</td>
+          <td>{{ product.price | currency }}</td>
+          <td>{{ product.stock }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #noProducts>
+    <p class="empty" *ngIf="!loading">No hay productos publicados.</p>
+  </ng-template>
+</section>
