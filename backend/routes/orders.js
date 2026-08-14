@@ -137,6 +137,80 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
+// GET /api/orders/summary?range=day|week|month — Resumen de ventas por período calendario (admin)
+router.get('/summary', authenticate, async (req, res) => {
+  try {
+    await expireStalePendingOrders();
+    const range = ['day', 'week', 'month'].includes(req.query.range) ? req.query.range : 'week';
+    const now = new Date();
+
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7));
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const from = range === 'day' ? startOfDay : range === 'week' ? startOfWeek : startOfMonth;
+
+    const [sales, cancelled, pending, totalOrders, totals, topProducts, byCategory] = await Promise.all([
+      Order.countDocuments({ status: 'confirmed', createdAt: { $gte: from } }),
+      Order.countDocuments({ status: 'cancelled', createdAt: { $gte: from } }),
+      Order.countDocuments({ status: 'pending', createdAt: { $gte: from } }),
+      Order.countDocuments({ createdAt: { $gte: from } }),
+      Order.aggregate([
+        { $match: { status: 'confirmed', createdAt: { $gte: from } } },
+        { $unwind: '$items' },
+        { $group: {
+            _id: null,
+            revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+            units: { $sum: '$items.quantity' },
+          } },
+      ]),
+      Order.aggregate([
+        { $match: { status: 'confirmed', createdAt: { $gte: from } } },
+        { $unwind: '$items' },
+        { $group: {
+            _id: { productId: '$items.productId', productName: '$items.productName' },
+            units: { $sum: '$items.quantity' },
+            revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          } },
+        { $sort: { units: -1, revenue: -1 } },
+        { $limit: 20 },
+        { $project: { _id: 0, productId: '$_id.productId', productName: '$_id.productName', units: 1, revenue: 1 } },
+      ]),
+      Order.aggregate([
+        { $match: { status: 'confirmed', createdAt: { $gte: from } } },
+        { $unwind: '$items' },
+        { $lookup: { from: 'products', localField: 'items.productId', foreignField: '_id', as: 'product' } },
+        { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+        { $lookup: { from: 'categories', localField: 'product.categoryId', foreignField: '_id', as: 'category' } },
+        { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+        { $group: {
+            _id: { $ifNull: ['$category.name', 'Sin categoría'] },
+            units: { $sum: '$items.quantity' },
+            revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          } },
+        { $project: { _id: 0, categoryName: '$_id', units: 1, revenue: 1 } },
+        { $sort: { revenue: -1 } },
+      ]),
+    ]);
+
+    res.json({
+      range,
+      from: from.toISOString(),
+      to: now.toISOString(),
+      sales,
+      cancelled,
+      pending,
+      totalOrders,
+      revenue: totals[0]?.revenue || 0,
+      units: totals[0]?.units || 0,
+      topProducts,
+      byCategory,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/orders/:code/status — Estado de la orden por código (público)
 router.get('/:code/status', async (req, res) => {
   try {

@@ -7,6 +7,7 @@ import { OrdersComponent } from './pages/orders/orders.component';
 import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
+import { SalesComponent } from './pages/sales/sales.component';
 
 const routes: Routes = [
   {
@@ -14,6 +15,7 @@ const routes: Routes = [
     component: AdminLayoutComponent,
     children: [
       { path: '', component: DashboardComponent },
+      { path: 'ventas', component: SalesComponent },
       { path: 'orders', component: OrdersComponent },
       { path: 'orders/detail/:code', component: OrderDetailComponent },
       { path: 'products', component: ProductsComponent },

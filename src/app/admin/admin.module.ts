@@ -10,9 +10,10 @@ import { OrdersComponent } from './pages/orders/orders.component';
 import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
+import { SalesComponent } from './pages/sales/sales.component';
 
 @NgModule({
-  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, CategoriesComponent, OrderDetailComponent],
+  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, CategoriesComponent, OrderDetailComponent, SalesComponent],
   imports: [CommonModule, FormsModule, SharedModule, AdminRoutingModule]
 })
 export class AdminModule {}

@@ -1,28 +1,5 @@
 @use 'styles/variables' as v;
 
-.metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: v.$space-4;
-  margin: v.$space-6 0;
-
-  .metric {
-    flex: 1 1 140px;
-    background: v.$color-surface;
-    border-radius: v.$radius-md;
-    padding: v.$space-5 v.$space-6;
-    box-shadow: v.$shadow-card;
-    text-align: center;
-
-    span {
-      display: block;
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: v.$color-primary;
-    }
-  }
-}
-
 .recent {
   margin-top: v.$space-6;
 

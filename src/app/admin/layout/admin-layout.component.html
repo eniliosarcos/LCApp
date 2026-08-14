@@ -39,6 +39,10 @@
         [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeSidebar()">Dashboard</a>
       <a
+        routerLink="/admin/ventas"
+        routerLinkActive="active"
+        (click)="closeSidebar()">Ventas</a>
+      <a
         routerLink="/admin/orders"
         routerLinkActive="active"
         (click)="closeSidebar()">Órdenes</a>

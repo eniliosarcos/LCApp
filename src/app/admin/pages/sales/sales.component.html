@@ -1,0 +1,113 @@
+<section class="sales">
+  <h1>Resumen de ventas</h1>
+  <p class="error" *ngIf="error">No se pudieron cargar los datos del resumen.</p>
+
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando resumen de ventas…"></app-loading-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading && summary">
+    <div class="range-switch" role="group" aria-label="Período del resumen">
+      <button
+        *ngFor="let option of rangeOptions"
+        type="button"
+        class="range-switch__btn"
+        [class.active]="range === option.value"
+        (click)="selectRange(option.value)"
+        [attr.aria-pressed]="range === option.value">{{ option.label }}</button>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <span>{{ summary.sales }}</span>
+        Ventas
+      </div>
+      <div class="metric">
+        <span>{{ summary.revenue | currency }}</span>
+        Ingresos
+      </div>
+      <div class="metric">
+        <span>{{ summary.units }}</span>
+        Unidades vendidas
+      </div>
+      <div class="metric">
+        <span>{{ avgTicket | currency }}</span>
+        Ticket promedio
+      </div>
+      <div class="metric">
+        <span>{{ summary.cancelled }}</span>
+        Canceladas
+      </div>
+      <div class="metric">
+        <span>{{ cancellationRate | percent }}</span>
+        Tasa de cancelación
+      </div>
+      <div class="metric">
+        <span>{{ summary.pending }}</span>
+        Pendientes en el período
+      </div>
+    </div>
+
+    <div class="table-block">
+      <h2>Productos más vendidos</h2>
+      <div class="table-scroll" *ngIf="sortedTopProducts.length > 0; else noProducts">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>
+                <button
+                  type="button"
+                  class="sortable"
+                  [class.active]="productSort === 'units'"
+                  (click)="toggleProductSort('units')">Unidades</button>
+              </th>
+              <th>
+                <button
+                  type="button"
+                  class="sortable"
+                  [class.active]="productSort === 'revenue'"
+                  (click)="toggleProductSort('revenue')">Ingreso</button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of sortedTopProducts; trackBy: topProductTrackBy">
+              <td>{{ product.productName }}</td>
+              <td>{{ product.units }}</td>
+              <td>{{ product.revenue | currency }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noProducts>
+        <p class="empty">No hay ventas en el período.</p>
+      </ng-template>
+    </div>
+
+    <div class="table-block">
+      <h2>Por categoría</h2>
+      <div class="table-scroll" *ngIf="summary.byCategory.length > 0; else noCategories">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Unidades</th>
+              <th>Ingreso</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let category of summary.byCategory; trackBy: categoryTrackBy">
+              <td>{{ category.categoryName }}</td>
+              <td>{{ category.units }}</td>
+              <td>{{ category.revenue | currency }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noCategories>
+        <p class="empty">No hay ventas en el período.</p>
+      </ng-template>
+    </div>
+  </ng-container>
+</section>

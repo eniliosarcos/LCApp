@@ -46,3 +46,32 @@ export interface OrderStatusResponse {
   status: OrderStatus;
   confirmedAt?: string;
 }
+
+export type SummaryRange = 'day' | 'week' | 'month';
+
+export interface TopProduct {
+  productId: string;
+  productName: string;
+  units: number;
+  revenue: number;
+}
+
+export interface CategorySummary {
+  categoryName: string;
+  units: number;
+  revenue: number;
+}
+
+export interface OrderSummary {
+  range: SummaryRange;
+  from: string;
+  to: string;
+  sales: number;
+  cancelled: number;
+  pending: number;
+  totalOrders: number;
+  revenue: number;
+  units: number;
+  topProducts: TopProduct[];
+  byCategory: CategorySummary[];
+}
