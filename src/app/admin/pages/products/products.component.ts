@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Category } from '../../../core/models/category.model';
-import { Product, ProductPayload } from '../../../core/models/product.model';
+import { LOW_STOCK_THRESHOLD, Product, ProductPayload } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
+
+type StockFilter = 'all' | 'out' | 'low';
 
 interface ProductForm {
   name: string;
@@ -41,6 +43,7 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
   loading = true;
   error = false;
+  stockFilter: StockFilter = 'all';
 
   formOpen = false;
   formSaving = false;
@@ -85,6 +88,44 @@ export class ProductsComponent implements OnInit {
 
   categoryName(categoryId: string): string {
     return this.categories.find(category => category.id === categoryId)?.name ?? '-';
+  }
+
+  stockStatus(product: Product): 'out' | 'low' | null {
+    if (!product.isActive) {
+      return null;
+    }
+    if (product.stock === 0) {
+      return 'out';
+    }
+    if (product.stock <= LOW_STOCK_THRESHOLD) {
+      return 'low';
+    }
+    return null;
+  }
+
+  get outOfStockCount(): number {
+    return this.products.filter(product => this.stockStatus(product) === 'out').length;
+  }
+
+  get lowStockCount(): number {
+    return this.products.filter(product => this.stockStatus(product) === 'low').length;
+  }
+
+  get visibleProducts(): Product[] {
+    if (this.stockFilter === 'all') {
+      return this.products;
+    }
+    return this.products.filter(product => this.stockStatus(product) === this.stockFilter);
+  }
+
+  toggleStockFilter(filter: Exclude<StockFilter, 'all'>): void {
+    this.stockFilter = this.stockFilter === filter ? 'all' : filter;
+    this.cdr.markForCheck();
+  }
+
+  resetStockFilter(): void {
+    this.stockFilter = 'all';
+    this.cdr.markForCheck();
   }
 
   productTrackBy(_index: number, product: Product): string {

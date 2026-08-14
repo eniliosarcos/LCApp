@@ -86,6 +86,128 @@ describe('ProductsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('No hay productos registrados.');
   });
 
+  it('clasifica el estado de stock solo de productos activos', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    createComponent();
+
+    expect(component.stockStatus(product('p1', 'A', 'c1', { stock: 0 }))).toBe('out');
+    expect(component.stockStatus(product('p2', 'B', 'c1', { stock: 1 }))).toBe('low');
+    expect(component.stockStatus(product('p3', 'C', 'c1', { stock: 10 }))).toBe('low');
+    expect(component.stockStatus(product('p4', 'D', 'c1', { stock: 11 }))).toBeNull();
+    expect(component.stockStatus(product('p5', 'E', 'c1', { stock: 0, isActive: false }))).toBeNull();
+  });
+
+  it('cuenta productos agotados y con stock bajo solo entre activos', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Agotado', 'c1', { stock: 0 }),
+      product('p2', 'Bajo', 'c1', { stock: 3 }),
+      product('p3', 'Sano', 'c1', { stock: 11 }),
+      product('p4', 'Inactivo', 'c1', { stock: 0, isActive: false })
+    ]));
+    createComponent();
+
+    expect(component.outOfStockCount).toBe(1);
+    expect(component.lowStockCount).toBe(1);
+  });
+
+  it('filtra la tabla por agotados o stock bajo y resetea', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Agotado', 'c1', { stock: 0 }),
+      product('p2', 'Bajo', 'c1', { stock: 3 }),
+      product('p3', 'Sano', 'c1', { stock: 11 })
+    ]));
+    createComponent();
+
+    component.toggleStockFilter('out');
+    expect(component.visibleProducts.map(p => p.name)).toEqual(['Agotado']);
+
+    component.toggleStockFilter('low');
+    expect(component.visibleProducts.map(p => p.name)).toEqual(['Bajo']);
+
+    component.resetStockFilter();
+    expect(component.visibleProducts.length).toBe(3);
+  });
+
+  it('resalta filas agotadas y con stock bajo y muestra el resumen', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Agotado', 'c1', { stock: 0 }),
+      product('p2', 'Bajo', 'c1', { stock: 3 }),
+      product('p3', 'Sano', 'c1', { stock: 11 })
+    ]));
+    createComponent();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Agotados (1)');
+    expect(text).toContain('Stock bajo (1)');
+
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(rows[0].classList.contains('row-out')).toBeTrue();
+    expect(rows[1].classList.contains('row-low')).toBeTrue();
+    expect(rows[2].classList.contains('row-low')).toBeFalse();
+    expect(rows[0].querySelector('td').classList.contains('product-name--emphasis')).toBeTrue();
+    expect(rows[1].querySelector('td').classList.contains('product-name--emphasis')).toBeTrue();
+  });
+
+  it('marca el nombre en rojo solo para productos agotados', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Agotado', 'c1', { stock: 0 }),
+      product('p2', 'Bajo', 'c1', { stock: 3 })
+    ]));
+    createComponent();
+
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    const outName = rows[0].querySelector('td');
+    const lowName = rows[1].querySelector('td');
+
+    expect(outName.classList.contains('product-name--out')).toBeTrue();
+    expect(lowName.classList.contains('product-name--out')).toBeFalse();
+
+    const outStock = rows[0].querySelectorAll('td')[3];
+    const lowStock = rows[1].querySelectorAll('td')[3];
+    expect(outStock.classList.contains('stock-number--out')).toBeTrue();
+    expect(lowStock.classList.contains('stock-number--out')).toBeFalse();
+  });
+
+  it('al hacer click en un chip filtra la tabla y "Ver todas" resetea', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Agotado', 'c1', { stock: 0 }),
+      product('p2', 'Bajo', 'c1', { stock: 3 }),
+      product('p3', 'Sano', 'c1', { stock: 11 })
+    ]));
+    createComponent();
+
+    fixture.nativeElement.querySelector('.stock-chip--out').click();
+    fixture.detectChanges();
+
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain('Agotado');
+
+    const reset = fixture.nativeElement.querySelector('.stock-chip--reset');
+    expect(reset).not.toBeNull();
+    reset.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('tbody tr').length).toBe(3);
+  });
+
+  it('muestra mensaje según el filtro cuando no hay coincidencias', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', 'Sano', 'c1', { stock: 11 })]));
+    createComponent();
+
+    component.toggleStockFilter('out');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No hay productos agotados.');
+  });
+
   it('muestra el error si falla la carga', () => {
     catalogServiceSpy.getCategories.and.returnValue(throwError(() => new Error('boom')));
     catalogServiceSpy.getAllProducts.and.returnValue(of([]));

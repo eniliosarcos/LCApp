@@ -9,7 +9,34 @@
     <app-loading-spinner label="Cargando productos…"></app-loading-spinner>
   </div>
 
-  <div class="table-scroll" *ngIf="!loading && products.length > 0; else noProducts">
+  <div class="stock-summary" *ngIf="!loading && products.length > 0" role="group" aria-label="Resumen de stock">
+    <span class="stock-summary__label">Stock:</span>
+    <button
+      type="button"
+      class="stock-chip stock-chip--out"
+      [class.active]="stockFilter === 'out'"
+      (click)="toggleStockFilter('out')"
+      [attr.aria-pressed]="stockFilter === 'out'">
+      Agotados ({{ outOfStockCount }})
+    </button>
+    <button
+      type="button"
+      class="stock-chip stock-chip--low"
+      [class.active]="stockFilter === 'low'"
+      (click)="toggleStockFilter('low')"
+      [attr.aria-pressed]="stockFilter === 'low'">
+      Stock bajo ({{ lowStockCount }})
+    </button>
+    <button
+      *ngIf="stockFilter !== 'all'"
+      type="button"
+      class="stock-chip stock-chip--reset"
+      (click)="resetStockFilter()">
+      Ver todas
+    </button>
+  </div>
+
+  <div class="table-scroll" *ngIf="!loading && visibleProducts.length > 0; else noProducts">
     <table class="products-table">
       <thead>
         <tr>
@@ -22,11 +49,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let product of products; trackBy: productTrackBy">
-          <td>{{ product.name }}</td>
+        <tr
+          *ngFor="let product of visibleProducts; trackBy: productTrackBy"
+          [class.row-out]="stockStatus(product) === 'out'"
+          [class.row-low]="stockStatus(product) === 'low'">
+          <td
+            [class.product-name--emphasis]="stockStatus(product) !== null"
+            [class.product-name--out]="stockStatus(product) === 'out'">{{ product.name }}</td>
           <td>{{ categoryName(product.categoryId) }}</td>
           <td>{{ product.price | currency }}</td>
-          <td>{{ product.stock }}</td>
+          <td [class.stock-number--out]="stockStatus(product) === 'out'">{{ product.stock }}</td>
           <td>
             <span class="status-badge" [class.inactive]="!product.isActive">
               {{ product.isActive ? 'Activo' : 'Inactivo' }}
@@ -43,7 +75,13 @@
     </table>
   </div>
   <ng-template #noProducts>
-    <p class="empty" *ngIf="!loading">No hay productos registrados.</p>
+    <p class="empty" *ngIf="!loading">
+      {{ stockFilter === 'out'
+          ? 'No hay productos agotados.'
+          : stockFilter === 'low'
+            ? 'No hay productos con stock bajo.'
+            : 'No hay productos registrados.' }}
+    </p>
   </ng-template>
 </section>
 

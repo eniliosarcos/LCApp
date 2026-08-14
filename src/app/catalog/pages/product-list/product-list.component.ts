@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BreadcrumbItem } from '../../../core/models/breadcrumb.model';
 import { Category } from '../../../core/models/category.model';
-import { Product } from '../../../core/models/product.model';
+import { LOW_STOCK_THRESHOLD, Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
@@ -76,7 +76,7 @@ export class ProductListComponent implements OnInit {
   }
 
   getStockStatus(product: Product): 'in-stock' | 'low-stock' | 'out-of-stock' {
-    if (product.stock > 10) {
+    if (product.stock > LOW_STOCK_THRESHOLD) {
       return 'in-stock';
     }
     if (product.stock > 0) {

@@ -63,7 +63,7 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
       - Dashboard: métricas (GET /api/orders/stats) + últimas 5 pendientes (GET /api/orders?page=1&limit=5&status=pending)
       - Órdenes: lista paginada con filtro por estado y buscador por código (GET /api/orders?page=&limit=&status=&q=) + confirmar/cancelar; cada fila es clicable y el código es un enlace → /admin/orders/detail/:code
       - Detalle de orden (OrderDetailComponent, GET /api/orders/:code admin): breadcrumb "Órdenes › CÓDIGO" + botón "‹ Volver a Órdenes", datos de cliente, items con subtotal por línea, total, fechas y confirmar/cancelar si está 'pending'
-      - Productos: lista con estado (activos e inactivos), alta/edición en modal y activar/desactivar (GET /api/products?all=true + POST/PUT /api/products con JWT)
+      - Productos: lista con estado (activos e inactivos), alta/edición en modal y activar/desactivar (GET /api/products?all=true + POST/PUT /api/products con JWT). Resaltado de stock sin badges: filas teñidas (rojo `stock === 0`, ámbar `stock <= 10`) y nombre en cursiva; los agotados muestran nombre y número de stock en rojo. Barra de chips "Agotados (N)" / "Stock bajo (N)" que al hacer click **filtran** la tabla (solo productos activos; click de nuevo o "Ver todas" resetea). Umbral único `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (lo usan catálogo y admin)
       - Categorías: lista + alta/edición en modal (GET /api/categories + POST/PUT /api/categories con JWT)
       - Confirmar/Cancelar (dashboard, órdenes y detalle) pasa primero por `AppConfirmDialogComponent`
         (diálogo de reconfirmación compartido en `SharedModule`); el servicio se llama recién al aceptar
@@ -142,7 +142,7 @@ backend/
 - `GET /api/products?all=true`: devuelve también inactivos solo si el token es válido (`authenticateOptional`); sin token se mantiene el comportamiento público (solo `isActive: true`).
 - `POST/PUT /api/categories` (JWT): análogos (nombre obligatorio, slug autogenerado/único, descripción e imageUrl opcionales).
 - **No hay `DELETE`**: alta/baja vía `isActive` (productos y sus `categoryId` referencian órdenes; se evitan huérfanos).
-- Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la URL única a `images[{ url, alt, isPrimary, order }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`.
+- Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la URL única a `images[{ url, alt, isPrimary, order }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`. El umbral de "stock bajo" es una constante compartida del dominio: `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (catálogo: badge/clasificación de `getStockStatus`; admin: resaltado de filas y chips de filtro).
 
 ### TTL perezoso de órdenes pendientes
 
