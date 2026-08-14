@@ -1,0 +1,124 @@
+@use 'styles/variables' as v;
+@use '../../styles/tables' as t;
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2;
+  font-size: 0.9rem;
+  color: v.$color-text-muted;
+  margin-bottom: v.$space-5;
+
+  a {
+    color: v.$color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .current {
+    color: v.$color-text;
+    font-weight: 600;
+  }
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: v.$space-3;
+  margin-bottom: v.$space-6;
+
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+
+    .code {
+      color: v.$color-primary;
+    }
+
+    .status {
+      margin-left: v.$space-3;
+      vertical-align: middle;
+    }
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: v.$space-1;
+    padding: v.$space-2 v.$space-4;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    background: v.$color-surface;
+    color: v.$color-text;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    &:hover {
+      border-color: v.$color-primary;
+      color: v.$color-primary;
+    }
+  }
+}
+
+.card {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  box-shadow: v.$shadow-card;
+  padding: v.$space-5 v.$space-6;
+  margin-bottom: v.$space-5;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: v.$space-4;
+  margin: 0;
+
+  div {
+    dt {
+      font-size: 0.8rem;
+      color: v.$color-text-muted;
+      margin-bottom: v.$space-1;
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+}
+
+.items {
+  h2 {
+    margin: 0 0 v.$space-3;
+    font-size: 1.1rem;
+  }
+}
+
+.total-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  span {
+    font-weight: 600;
+  }
+
+  strong {
+    font-size: 1.4rem;
+    color: v.$color-primary;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: v.$space-3;
+  margin-top: v.$space-2;
+}

@@ -1,7 +1,8 @@
 @use 'styles/variables' as v;
 
 .products-table,
-.orders-table {
+.orders-table,
+.items-table {
   width: 100%;
   min-width: 640px;
   border-collapse: collapse;

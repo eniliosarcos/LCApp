@@ -15,16 +15,23 @@ export class OrderService {
     return this.http.post<Order>(`${this.apiUrl}/orders`, request).pipe(catchError(this.handleError));
   }
 
-  getOrders(page = 1, limit = 10, status?: string): Observable<OrderPage> {
+  getOrders(page = 1, limit = 10, status?: string, q?: string): Observable<OrderPage> {
     let params = new HttpParams().set('page', String(page)).set('limit', String(limit));
     if (status) {
       params = params.set('status', status);
+    }
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
     }
     return this.http.get<OrderPage>(`${this.apiUrl}/orders`, { params }).pipe(catchError(this.handleError));
   }
 
   getOrderStatus(code: string): Observable<OrderStatusResponse> {
     return this.http.get<OrderStatusResponse>(`${this.apiUrl}/orders/${code}/status`).pipe(catchError(this.handleError));
+  }
+
+  getOrderByCode(code: string): Observable<Order> {
+    return this.http.get<Order>(`${this.apiUrl}/orders/${code}`).pipe(catchError(this.handleError));
   }
 
   updateOrderItems(code: string, items: OrderItem[]): Observable<Order> {

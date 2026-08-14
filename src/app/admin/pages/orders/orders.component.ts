@@ -1,8 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Order, OrderPage, OrderStatus } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 
 const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-orders',
@@ -13,6 +17,7 @@ const PAGE_SIZE = 10;
 export class OrdersComponent implements OnInit {
   orders: Order[] = [];
   statusFilter: 'all' | OrderStatus = 'all';
+  searchTerm = '';
   page = 1;
   total = 0;
   totalPages = 0;
@@ -20,13 +25,21 @@ export class OrdersComponent implements OnInit {
   errorMessage = '';
   actionError = '';
   readonly pageSize = PAGE_SIZE;
+  private readonly search$ = new Subject<string>();
 
   constructor(
     private readonly orderService: OrderService,
+    private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.search$
+      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged())
+      .subscribe(() => {
+        this.page = 1;
+        this.loadOrders();
+      });
     this.loadOrders();
   }
 
@@ -38,10 +51,23 @@ export class OrdersComponent implements OnInit {
     return item.productId;
   }
 
+  goToDetail(order: Order): void {
+    this.router.navigate(['/admin/orders/detail', order.code]);
+  }
+
   onFilterChange(status: 'all' | OrderStatus): void {
     this.statusFilter = status;
     this.page = 1;
     this.loadOrders();
+  }
+
+  onSearchInput(value: string): void {
+    this.searchTerm = value;
+    this.search$.next(value);
+  }
+
+  get searchActive(): boolean {
+    return this.searchTerm.trim().length > 0;
   }
 
   goToPage(page: number | string): void {
@@ -115,7 +141,8 @@ export class OrdersComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
     const status = this.statusFilter === 'all' ? undefined : this.statusFilter;
-    this.orderService.getOrders(this.page, this.pageSize, status).subscribe({
+    const q = this.searchTerm.trim() || undefined;
+    this.orderService.getOrders(this.page, this.pageSize, status, q).subscribe({
       next: (result: OrderPage) => {
         const lastPage = Math.max(1, result.totalPages);
         if (result.orders.length === 0 && result.total > 0 && this.page > lastPage) {

@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of, throwError } from 'rxjs';
 import { Order, OrderPage } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
@@ -24,10 +26,13 @@ const page = (orders: Order[], pageNumber = 1, total = orders.length): OrderPage
   totalPages: Math.ceil(total / 10)
 });
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 describe('OrdersComponent', () => {
   let fixture: ComponentFixture<OrdersComponent>;
   let component: OrdersComponent;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
+  let navigateSpy: jasmine.Spy;
 
   function createComponent(): void {
     fixture = TestBed.createComponent(OrdersComponent);
@@ -40,16 +45,18 @@ describe('OrdersComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [OrdersComponent, CurrencyFormatPipe],
-      imports: [FormsModule],
+      imports: [FormsModule, RouterTestingModule],
       providers: [{ provide: OrderService, useValue: orderServiceSpy }]
     }).compileComponents();
+
+    navigateSpy = spyOn(TestBed.inject(Router), 'navigate');
   });
 
   it('carga la primera página con todos los estados y muestra las órdenes', () => {
     orderServiceSpy.getOrders.and.returnValue(of(page([order('o1', 'CAR-AAA11', 'pending')])));
     createComponent();
 
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, undefined);
     const rows = fixture.nativeElement.querySelectorAll('tbody tr');
     expect(rows.length).toBe(1);
     expect(rows[0].textContent).toContain('CAR-AAA11');
@@ -62,7 +69,7 @@ describe('OrdersComponent', () => {
     component.goToPage(2);
     component.onFilterChange('pending');
 
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, 'pending');
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, 'pending', undefined);
     expect(component.page).toBe(1);
   });
 
@@ -71,7 +78,7 @@ describe('OrdersComponent', () => {
     createComponent();
 
     component.nextPage();
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(2, 10, undefined);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(2, 10, undefined, undefined);
 
     component.goToPage(1);
     expect(component.page).toBe(1);
@@ -90,7 +97,7 @@ describe('OrdersComponent', () => {
     component.confirmOrder(pendingOrder);
 
     expect(orderServiceSpy.confirmOrder).toHaveBeenCalledWith('o1');
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, undefined);
   });
 
   it('cancela una orden pendiente y recarga la página', () => {
@@ -102,7 +109,7 @@ describe('OrdersComponent', () => {
     component.cancelOrder(pendingOrder);
 
     expect(orderServiceSpy.cancelOrder).toHaveBeenCalledWith('o1');
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, undefined);
   });
 
   it('muestra el error de carga si el endpoint falla', () => {
@@ -138,6 +145,96 @@ describe('OrdersComponent', () => {
     expect(component.rangeLabel).toBe('11–20 de 23');
   });
 
+  it('navega al detalle al hacer click en una fila', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([order('o1', 'CAR-AAA11', 'pending')])));
+    createComponent();
+
+    const row = fixture.nativeElement.querySelector('tbody tr');
+    row.dispatchEvent(new Event('click'));
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/orders/detail', 'CAR-AAA11']);
+  });
+
+  it('expone el código como enlace accesible al detalle', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([order('o1', 'CAR-AAA11', 'pending')])));
+    createComponent();
+
+    const link = fixture.nativeElement.querySelector('td .order-link');
+    expect(link).not.toBeNull();
+    expect(link.href).toContain('/admin/orders/detail/CAR-AAA11');
+  });
+
+  it('no navega al pulsar las acciones de la fila', () => {
+    const pendingOrder = order('o1', 'CAR-AAA11', 'pending');
+    orderServiceSpy.getOrders.and.returnValue(of(page([pendingOrder])));
+    orderServiceSpy.confirmOrder.and.returnValue(of({ ...pendingOrder, status: 'confirmed' }));
+    createComponent();
+
+    const confirmBtn = fixture.nativeElement.querySelector('.action.confirm');
+    confirmBtn.dispatchEvent(new Event('click'));
+
+    expect(orderServiceSpy.confirmOrder).toHaveBeenCalledWith('o1');
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('busca por código tras el debounce y resetea a la página 1', fakeAsync(() => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+    component.page = 3;
+
+    component.onSearchInput('CAR-ABC');
+    tick(SEARCH_DEBOUNCE_MS);
+
+    expect(component.page).toBe(1);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, 'CAR-ABC');
+  }));
+
+  it('no dispara la búsqueda antes del debounce', fakeAsync(() => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
+    component.onSearchInput('CAR');
+    tick(200);
+
+    expect(orderServiceSpy.getOrders).not.toHaveBeenCalledWith(1, 10, undefined, 'CAR');
+
+    tick(100);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, 'CAR');
+  }));
+
+  it('al borrar la búsqueda recarga todas las órdenes', fakeAsync(() => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
+    component.onSearchInput('CAR');
+    tick(SEARCH_DEBOUNCE_MS);
+    component.onSearchInput('');
+    tick(SEARCH_DEBOUNCE_MS);
+
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, undefined);
+  }));
+
+  it('busca escribiendo en el input real (recibe el valor, no un evento)', fakeAsync(() => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-input') as HTMLInputElement;
+    input.value = 'CAR-XYZ';
+    input.dispatchEvent(new Event('input'));
+    tick(SEARCH_DEBOUNCE_MS);
+
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, 'CAR-XYZ');
+  }));
+
+  it('expone un input de búsqueda accesible', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-input');
+    expect(input).not.toBeNull();
+    expect(input.getAttribute('aria-label')).toContain('Buscar');
+  });
+
   it('retrocede a la última página válida si la actual queda vacía tras una acción', () => {
     const pendingOrder = order('o1', 'CAR-AAA11', 'pending');
     const tenOrders = Array.from({ length: 10 }, (_v, i) => order(`o${i + 2}`, `CAR-BB${String(i + 1).padStart(2, '0')}`, 'pending'));
@@ -156,7 +253,7 @@ describe('OrdersComponent', () => {
     component.confirmOrder(pendingOrder);
 
     expect(component.page).toBe(1);
-    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined);
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 10, undefined, undefined);
     expect(component.orders.length).toBe(10);
   });
 });

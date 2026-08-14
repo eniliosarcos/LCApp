@@ -6,6 +6,14 @@
   <p class="loading" *ngIf="loading">Cargando órdenes…</p>
 
   <div class="toolbar">
+    <input
+      type="search"
+      id="order-search"
+      class="filter search-input"
+      placeholder="Buscar por código (ej: CAR-…)…"
+      [ngModel]="searchTerm"
+      (ngModelChange)="onSearchInput($event)"
+      [attr.aria-label]="'Buscar órdenes por código'">
     <label class="filter-label" for="status-filter">Estado:</label>
     <select
       id="status-filter"
@@ -34,8 +42,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of orders; trackBy: orderTrackBy">
-          <td><strong>{{ order.code }}</strong></td>
+        <tr
+          *ngFor="let order of orders; trackBy: orderTrackBy"
+          class="clickable"
+          (click)="goToDetail(order)">
+          <td>
+            <a
+              class="order-link"
+              [routerLink]="['/admin/orders/detail', order.code]"
+              (click)="$event.stopPropagation()">{{ order.code }}</a>
+          </td>
           <td>{{ order.customerName }}</td>
           <td>
             <ul class="items-list">
@@ -54,13 +70,13 @@
               *ngIf="order.status === 'pending'"
               type="button"
               class="action confirm"
-              (click)="confirmOrder(order)"
+              (click)="confirmOrder(order); $event.stopPropagation()"
               [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
             <button
               *ngIf="order.status === 'pending'"
               type="button"
               class="action cancel"
-              (click)="cancelOrder(order)"
+              (click)="cancelOrder(order); $event.stopPropagation()"
               [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
           </td>
         </tr>
@@ -68,7 +84,9 @@
     </table>
   </div>
   <ng-template #noOrders>
-    <p class="empty" *ngIf="!loading">Aún no hay órdenes{{ statusFilter !== 'all' ? ' con ese estado' : '' }}.</p>
+    <p class="empty" *ngIf="!loading">
+      Aún no hay órdenes{{ statusFilter !== 'all' ? ' con ese estado' : '' }}{{ searchActive ? (statusFilter !== 'all' ? ' y' : '') + ' con ese código' : '' }}.
+    </p>
   </ng-template>
 
   <nav class="pagination" *ngIf="!loading && totalPages > 1" aria-label="Paginación de órdenes">

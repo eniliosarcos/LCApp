@@ -1,0 +1,93 @@
+<section class="order-detail">
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    <a routerLink="/admin/orders">Órdenes</a>
+    <span class="sep" aria-hidden="true">›</span>
+    <span class="current" aria-current="page">{{ order ? order.code : 'Detalle' }}</span>
+  </nav>
+
+  <div class="detail-header">
+    <a
+      routerLink="/admin/orders"
+      class="back-btn"
+      [attr.aria-label]="'Volver a la lista de órdenes'">
+      <span aria-hidden="true">‹</span> Volver a Órdenes
+    </a>
+    <h1>
+      Detalle de la orden <span class="code">{{ orderCode }}</span>
+      <span class="status" *ngIf="order" [ngClass]="order.status">{{ order.status }}</span>
+    </h1>
+  </div>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <p class="error" *ngIf="actionError">{{ actionError }}</p>
+  <p class="loading" *ngIf="loading">Cargando orden…</p>
+
+  <ng-container *ngIf="order && !loading">
+    <div class="card info">
+      <dl class="info-grid">
+        <div>
+          <dt>Código</dt>
+          <dd>{{ order.code }}</dd>
+        </div>
+        <div>
+          <dt>Cliente</dt>
+          <dd>{{ order.customerName }}</dd>
+        </div>
+        <div>
+          <dt>Teléfono</dt>
+          <dd>{{ order.customerPhone || '-' }}</dd>
+        </div>
+        <div>
+          <dt>Creada</dt>
+          <dd>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Confirmada</dt>
+          <dd>{{ order.confirmedAt ? (order.confirmedAt | date:'dd/MM/yyyy HH:mm') : '-' }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="card items">
+      <h2>Productos</h2>
+      <div class="table-scroll">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Precio</th>
+              <th>Cantidad</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of order.items; trackBy: itemTrackBy">
+              <td>{{ item.productName }}</td>
+              <td>{{ item.price | currency }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ itemSubtotal(item) | currency }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card total-card">
+      <span>Total</span>
+      <strong>{{ order.total | currency }}</strong>
+    </div>
+
+    <div class="actions" *ngIf="order.status === 'pending'">
+      <button
+        type="button"
+        class="action confirm"
+        (click)="confirmOrder()"
+        [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar orden</button>
+      <button
+        type="button"
+        class="action cancel"
+        (click)="cancelOrder()"
+        [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar orden</button>
+    </div>
+  </ng-container>
+</section>

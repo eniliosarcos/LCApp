@@ -12,6 +12,11 @@ function generateCode() {
   return code;
 }
 
+// Escapa caracteres de regex para usarlos literalmente en una búsqueda
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const TTL_DEFAULT_HOURS = 48;
 
 // TTL lazy: horas de vida de una orden pending antes de considerarse abandonada (env ORDER_TTL_HOURS)
@@ -60,9 +65,10 @@ router.post('/', async (req, res) => {
 router.get('/', authenticate, async (req, res) => {
   try {
     await expireStalePendingOrders();
-    const { status } = req.query;
+    const { status, q } = req.query;
     const filter = {};
     if (status) filter.status = status;
+    if (q && q.trim()) filter.code = { $regex: escapeRegExp(q.trim()), $options: 'i' };
 
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
