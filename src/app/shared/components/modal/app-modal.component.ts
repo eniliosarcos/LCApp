@@ -19,6 +19,7 @@ import {
 export class AppModalComponent implements OnChanges, OnDestroy {
   @Input() open = false;
   @Input() title = '';
+  @Input() size: 'sm' | 'md' = 'sm';
   @Input() showClose = true;
   @Input() dismissible = true;
   @Output() close = new EventEmitter<void>();

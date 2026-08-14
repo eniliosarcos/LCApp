@@ -1,0 +1,59 @@
+<section class="categories">
+  <div class="page-header">
+    <h1>Categorías</h1>
+    <button type="button" class="btn-primary" (click)="openCreate()">Nueva categoría</button>
+  </div>
+
+  <p class="error" *ngIf="error">No se pudieron cargar las categorías.</p>
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando categorías…"></app-loading-spinner>
+  </div>
+
+  <div class="table-scroll" *ngIf="!loading && categories.length > 0; else noCategories">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let category of categories; trackBy: categoryTrackBy">
+          <td>{{ category.name }}</td>
+          <td>{{ category.description || '-' }}</td>
+          <td class="actions">
+            <button type="button" class="btn-link" (click)="openEdit(category)">Editar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #noCategories>
+    <p class="empty" *ngIf="!loading">No hay categorías registradas.</p>
+  </ng-template>
+</section>
+
+<app-modal [open]="formOpen" [title]="formTitle" (close)="closeForm()">
+  <form class="entity-form" (ngSubmit)="onSubmit()" #categoryForm="ngForm">
+    <label>
+      Nombre *
+      <input type="text" name="name" [(ngModel)]="form.name" required>
+    </label>
+    <label>
+      Descripción
+      <input type="text" name="description" [(ngModel)]="form.description">
+    </label>
+    <label>
+      URL de imagen
+      <input type="text" name="imageUrl" [(ngModel)]="form.imageUrl" placeholder="https://…">
+    </label>
+
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+      <button type="submit" [disabled]="formSaving || categoryForm.invalid">{{ formSaving ? 'Guardando…' : 'Guardar' }}</button>
+    </div>
+  </form>
+</app-modal>

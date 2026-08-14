@@ -58,7 +58,8 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
       - Dashboard: métricas (GET /api/orders/stats) + últimas 5 pendientes (GET /api/orders?page=1&limit=5&status=pending)
       - Órdenes: lista paginada con filtro por estado y buscador por código (GET /api/orders?page=&limit=&status=&q=) + confirmar/cancelar; cada fila es clicable y el código es un enlace → /admin/orders/detail/:code
       - Detalle de orden (OrderDetailComponent, GET /api/orders/:code admin): breadcrumb "Órdenes › CÓDIGO" + botón "‹ Volver a Órdenes", datos de cliente, items con subtotal por línea, total, fechas y confirmar/cancelar si está 'pending'
-      - Productos: lista read-only (GET /api/products)
+      - Productos: lista con estado (activos e inactivos), alta/edición en modal y activar/desactivar (GET /api/products?all=true + POST/PUT /api/products con JWT)
+      - Categorías: lista + alta/edición en modal (GET /api/categories + POST/PUT /api/categories con JWT)
      - Confirma:  PATCH /api/orders/:id/confirm  → valida stock y descuenta
      - Cancela:   PATCH /api/orders/:id/cancel   (solo si está 'pending')
      - Edita contacto: /admin/contact (PUT /api/config)
@@ -72,7 +73,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 
 | Servicio | Rol |
 |---|---|
-| `CatalogService` | Catálogo: categorías y productos desde la API (Observables). |
+| `CatalogService` | Catálogo: categorías y productos desde la API (Observables). Público: `getCategories`, `getProducts`, `getProductById`, `getProductBySlug`, `getProductsByCategory`. Admin (JWT vía `AuthInterceptor`): `getAllProducts` (`?all=true` incluye inactivos), `createProduct`, `updateProduct`, `createCategory`, `updateCategory`. `handleError` expone el mensaje del servidor (p. ej. "El SKU ya existe"). |
 | `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `restoreCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
 | `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders(page?, limit?, status?, q?)` → `OrderPage`, `getOrderByCode(code)` → detalle por código, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
@@ -103,11 +104,12 @@ Reglas derivadas:
 backend/
   server.js            # express, cors, json, health, monta rutas, conecta Mongo
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
-  routes/categories.js # GET /
-  routes/products.js   # GET /
+  routes/categories.js # GET / (público) + POST / y PUT /:id (admin JWT)
+  routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT)
   routes/orders.js     # POST / (público), GET /:code/status (público), PATCH /:code/items (público, solo pending) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /:code, PATCH :id/confirm, :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
-  middleware/auth.js   # verify Authorization: Bearer JWT
+  middleware/auth.js   # verify Authorization: Bearer JWT (authenticate + authenticateOptional)
+  utils/slugify.js     # slugify (sin acentos) + uniqueSlug (garantiza unicidad con sufijo -2, -3…)
   models/              # Category, Product, Order, Config
   seed.js              # carga src/assets/data/*.json → MongoDB + Config de contacto
   hash-password.js     # npm run hash -- "clave" → hash bcrypt
@@ -122,6 +124,14 @@ backend/
 - Credenciales vía env, **sin modelo de usuarios en Mongo**: `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (bcrypt) + `JWT_SECRET`.
 - `JWT_EXPIRES_IN` opcional, default `12h`.
 - El POST de creación de orden y el PATCH de items (`/orders/:code/items`) son **públicos** (el carrito no tiene token); solo las operaciones de gestión son admin. El PATCH solo muta órdenes `pending`.
+
+### Catálogo admin (productos y categorías)
+
+- `POST /api/products` y `PUT /api/products/:id` (JWT): validan nombre, categoría existente, `price > 0`, `discountPrice < price`, `stock` entero ≥ 0 y SKU único (400 con mensaje claro). El **slug lo genera el backend** (`slugify` sin acentos + `uniqueSlug` que agrega `-2`, `-3`… si colisiona); el frontend nunca lo envía. `PUT` es parcial (estilo `config.js`): al cambiar `name` se regenera el slug.
+- `GET /api/products?all=true`: devuelve también inactivos solo si el token es válido (`authenticateOptional`); sin token se mantiene el comportamiento público (solo `isActive: true`).
+- `POST/PUT /api/categories` (JWT): análogos (nombre obligatorio, slug autogenerado/único, descripción e imageUrl opcionales).
+- **No hay `DELETE`**: alta/baja vía `isActive` (productos y sus `categoryId` referencian órdenes; se evitan huérfanos).
+- Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la URL única a `images[{ url, alt, isPrimary, order }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`.
 
 ### TTL perezoso de órdenes pendientes
 

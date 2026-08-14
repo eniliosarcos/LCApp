@@ -1,6 +1,7 @@
 <div class="modal-overlay" *ngIf="open" (click)="onBackdropClick()">
   <div
     class="modal-panel"
+    [class.md]="size === 'md'"
     #dialogPanel
     role="dialog"
     aria-modal="true"

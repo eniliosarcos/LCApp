@@ -7,6 +7,7 @@ import { AppModalComponent } from './app-modal.component';
     <app-modal
       [open]="open"
       [title]="title"
+      [size]="size"
       [showClose]="showClose"
       [dismissible]="dismissible"
       (close)="onClose()">
@@ -17,6 +18,7 @@ import { AppModalComponent } from './app-modal.component';
 class HostComponent {
   open = false;
   title = 'Título';
+  size: 'sm' | 'md' = 'sm';
   showClose = true;
   dismissible = true;
   onClose = jasmine.createSpy('onClose');
@@ -59,6 +61,12 @@ describe('AppModalComponent', () => {
   it('muestra el título cuando se provee', () => {
     openModal();
     expect(fixture.nativeElement.querySelector('h2').textContent).toContain('Título');
+  });
+
+  it('aplica la clase md cuando size es md', () => {
+    host.size = 'md';
+    openModal();
+    expect(fixture.nativeElement.querySelector('.modal-panel').classList.contains('md')).toBeTrue();
   });
 
   it('emite close al hacer clic en el botón de cerrar', () => {

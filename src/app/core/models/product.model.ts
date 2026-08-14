@@ -21,3 +21,23 @@ export interface Product {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface ProductImagePayload {
+  url: string;
+  alt?: string;
+  isPrimary?: boolean;
+  order?: number;
+}
+
+export interface ProductPayload {
+  name: string;
+  categoryId: string;
+  price: number;
+  discountPrice?: number;
+  stock?: number;
+  sku?: string;
+  description?: string;
+  tags?: string[];
+  images?: ProductImagePayload[];
+  isActive?: boolean;
+}

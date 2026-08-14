@@ -8,10 +8,11 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ContactSettingsComponent } from './pages/contact-settings/contact-settings.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { ProductsComponent } from './pages/products/products.component';
+import { CategoriesComponent } from './pages/categories/categories.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
 
 @NgModule({
-  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, OrderDetailComponent],
+  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, CategoriesComponent, OrderDetailComponent],
   imports: [CommonModule, FormsModule, SharedModule, AdminRoutingModule]
 })
 export class AdminModule {}

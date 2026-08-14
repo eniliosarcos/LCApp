@@ -21,6 +21,10 @@
   padding: v.$space-6;
   animation: scale-in 0.2s ease-out;
   outline: none;
+
+  &.md {
+    max-width: 620px;
+  }
 }
 
 .modal-header {

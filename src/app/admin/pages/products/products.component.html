@@ -1,5 +1,8 @@
 <section class="products">
-  <h1>Productos</h1>
+  <div class="page-header">
+    <h1>Productos</h1>
+    <button type="button" class="btn-primary" (click)="openCreate()">Nuevo producto</button>
+  </div>
 
   <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
   <div class="loading-region" *ngIf="loading">
@@ -14,6 +17,8 @@
           <th>Categoría</th>
           <th>Precio</th>
           <th>Stock</th>
+          <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -22,11 +27,87 @@
           <td>{{ categoryName(product.categoryId) }}</td>
           <td>{{ product.price | currency }}</td>
           <td>{{ product.stock }}</td>
+          <td>
+            <span class="status-badge" [class.inactive]="!product.isActive">
+              {{ product.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button type="button" class="btn-link" (click)="openEdit(product)">Editar</button>
+            <button type="button" class="btn-link" (click)="toggleActive(product)">
+              {{ product.isActive ? 'Desactivar' : 'Activar' }}
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
   <ng-template #noProducts>
-    <p class="empty" *ngIf="!loading">No hay productos publicados.</p>
+    <p class="empty" *ngIf="!loading">No hay productos registrados.</p>
   </ng-template>
 </section>
+
+<app-modal [open]="formOpen" [title]="formTitle" size="md" (close)="closeForm()">
+  <form class="entity-form" (ngSubmit)="onSubmit()" #productForm="ngForm">
+    <label>
+      Nombre *
+      <input type="text" name="name" [(ngModel)]="form.name" required>
+    </label>
+    <label>
+      Categoría *
+      <select name="categoryId" [(ngModel)]="form.categoryId" required>
+        <option value="" disabled>Seleccioná una categoría</option>
+        <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+      </select>
+    </label>
+
+    <div class="form-row">
+      <label>
+        Precio *
+        <input type="number" name="price" [(ngModel)]="form.price" min="0.01" step="0.01" required>
+      </label>
+      <label>
+        Precio de oferta
+        <input type="number" name="discountPrice" [(ngModel)]="form.discountPrice" min="0.01" step="0.01">
+      </label>
+    </div>
+
+    <div class="form-row">
+      <label>
+        Stock
+        <input type="number" name="stock" [(ngModel)]="form.stock" min="0" step="1">
+      </label>
+      <label>
+        SKU
+        <input type="text" name="sku" [(ngModel)]="form.sku">
+      </label>
+    </div>
+
+    <label>
+      Descripción
+      <textarea name="description" [(ngModel)]="form.description" rows="3"></textarea>
+    </label>
+
+    <label>
+      Etiquetas (separadas por coma)
+      <input type="text" name="tags" [(ngModel)]="form.tags">
+    </label>
+
+    <label>
+      URL de imagen
+      <input type="text" name="imageUrl" [(ngModel)]="form.imageUrl" placeholder="https://…">
+    </label>
+
+    <label class="checkbox">
+      <input type="checkbox" name="isActive" [(ngModel)]="form.isActive">
+      Producto activo (visible en el catálogo)
+    </label>
+
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+      <button type="submit" [disabled]="formSaving || productForm.invalid">{{ formSaving ? 'Guardando…' : 'Guardar' }}</button>
+    </div>
+  </form>
+</app-modal>

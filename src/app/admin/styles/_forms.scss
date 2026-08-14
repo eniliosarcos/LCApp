@@ -1,0 +1,146 @@
+@use 'styles/variables' as v;
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-4;
+  margin-bottom: v.$space-4;
+}
+
+.btn-primary {
+  padding: v.$space-2 v.$space-4;
+  border: none;
+  border-radius: v.$radius-sm;
+  background: v.$color-primary;
+  color: v.$color-surface;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$color-primary-hover;
+  }
+}
+
+.btn-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: v.$color-primary;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: v.$space-3;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-4;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+    font-weight: 600;
+    color: v.$color-text;
+    font-size: 0.95rem;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: v.$space-2 v.$space-3;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    font-size: 1rem;
+    font-family: v.$font-body;
+    background: v.$color-surface;
+    color: v.$color-text;
+
+    &:focus {
+      outline: 2px solid v.$color-gold;
+      outline-offset: -1px;
+    }
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: v.$space-4;
+  }
+
+  .checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: v.$space-3;
+    font-weight: 500;
+
+    input {
+      width: auto;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: v.$space-3;
+    margin-top: v.$space-2;
+
+    button[type='submit'] {
+      padding: v.$space-2 v.$space-5;
+      border: none;
+      border-radius: v.$radius-sm;
+      background: v.$color-primary;
+      color: v.$color-surface;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: v.$color-primary-hover;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .btn-secondary {
+    padding: v.$space-2 v.$space-5;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    background: transparent;
+    color: v.$color-text-muted;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      color: v.$color-primary;
+      border-color: v.$color-primary;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .entity-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}

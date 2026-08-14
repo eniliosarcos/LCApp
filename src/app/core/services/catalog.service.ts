@@ -1,10 +1,18 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Category } from '../models/category.model';
-import { Product } from '../models/product.model';
+import { Product, ProductPayload } from '../models/product.model';
+
+export interface CategoryPayload {
+  name: string;
+  description?: string;
+  imageUrl?: string;
+}
+
+const DEFAULT_ERROR = 'No se pudo completar la operación. Intenta de nuevo.';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
@@ -44,8 +52,34 @@ export class CatalogService {
     );
   }
 
+  getAllProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/products?all=true`).pipe(catchError(this.handleError));
+  }
+
+  createProduct(payload: ProductPayload): Observable<Product> {
+    return this.http.post<Product>(`${this.apiUrl}/products`, payload).pipe(catchError(this.handleError));
+  }
+
+  updateProduct(productId: string, payload: Partial<ProductPayload>): Observable<Product> {
+    return this.http.put<Product>(`${this.apiUrl}/products/${productId}`, payload).pipe(catchError(this.handleError));
+  }
+
+  createCategory(payload: CategoryPayload): Observable<Category> {
+    return this.http.post<Category>(`${this.apiUrl}/categories`, payload).pipe(catchError(this.handleError));
+  }
+
+  updateCategory(categoryId: string, payload: Partial<CategoryPayload>): Observable<Category> {
+    return this.http.put<Category>(`${this.apiUrl}/categories/${categoryId}`, payload).pipe(catchError(this.handleError));
+  }
+
   private handleError(error: unknown): Observable<never> {
-    console.error('Error cargando datos del catálogo:', error);
-    return throwError(() => new Error('No se pudo cargar el catálogo. Intenta de nuevo.'));
+    if (error instanceof HttpErrorResponse) {
+      const serverMessage = error.error?.error;
+      if (serverMessage) {
+        return throwError(() => new Error(serverMessage));
+      }
+    }
+    console.error('Error en el catálogo:', error);
+    return throwError(() => new Error(DEFAULT_ERROR));
   }
 }
