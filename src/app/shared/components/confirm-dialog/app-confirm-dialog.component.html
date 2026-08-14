@@ -1,0 +1,18 @@
+<app-modal [open]="open" [title]="title" (close)="onCancel()">
+  <div class="confirm-dialog">
+    <p class="confirm-dialog__message">{{ message }}</p>
+    <div class="confirm-dialog__actions">
+      <button type="button" class="confirm-dialog__btn confirm-dialog__btn--ghost" (click)="onCancel()">
+        {{ cancelLabel }}
+      </button>
+      <button
+        type="button"
+        class="confirm-dialog__btn"
+        [ngClass]="variant === 'confirm' ? 'confirm-dialog__btn--confirm' : 'confirm-dialog__btn--danger'"
+        (click)="onConfirm()"
+      >
+        {{ confirmLabel }}
+      </button>
+    </div>
+  </div>
+</app-modal>

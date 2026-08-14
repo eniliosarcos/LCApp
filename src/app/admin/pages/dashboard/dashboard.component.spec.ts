@@ -3,6 +3,8 @@ import { of, throwError } from 'rxjs';
 import { Order, OrderPage, OrderStats } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
+import { AppConfirmDialogComponent } from '../../../shared/components/confirm-dialog/app-confirm-dialog.component';
+import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { DashboardComponent } from './dashboard.component';
 
 const stats: OrderStats = {
@@ -46,7 +48,7 @@ describe('DashboardComponent', () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getStats', 'getOrders', 'confirmOrder', 'cancelOrder']);
 
     await TestBed.configureTestingModule({
-      declarations: [DashboardComponent, CurrencyFormatPipe],
+      declarations: [DashboardComponent, AppConfirmDialogComponent, AppModalComponent, CurrencyFormatPipe],
       providers: [{ provide: OrderService, useValue: orderServiceSpy }]
     }).compileComponents();
   });
@@ -102,5 +104,56 @@ describe('DashboardComponent', () => {
     createComponent();
 
     expect(component.error).toBeTrue();
+  });
+
+  it('confirma solo tras aceptar el diálogo', () => {
+    orderServiceSpy.getStats.and.returnValue(of(stats));
+    orderServiceSpy.getOrders.and.returnValue(of(page([pendingOrder])));
+    orderServiceSpy.confirmOrder.and.returnValue(of({ ...pendingOrder, status: 'confirmed' }));
+    createComponent();
+
+    component.requestConfirm(pendingOrder);
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toEqual({ order: pendingOrder, type: 'confirm' });
+    expect(orderServiceSpy.confirmOrder).not.toHaveBeenCalled();
+
+    component.runPendingAction();
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.confirmOrder).toHaveBeenCalledWith('o1');
+    expect(orderServiceSpy.getOrders).toHaveBeenCalledWith(1, 5, 'pending');
+  });
+
+  it('cancela solo tras aceptar el diálogo', () => {
+    orderServiceSpy.getStats.and.returnValue(of(stats));
+    orderServiceSpy.getOrders.and.returnValue(of(page([pendingOrder])));
+    orderServiceSpy.cancelOrder.and.returnValue(of({ ...pendingOrder, status: 'cancelled' }));
+    createComponent();
+
+    component.requestCancel(pendingOrder);
+    fixture.detectChanges();
+
+    expect(orderServiceSpy.cancelOrder).not.toHaveBeenCalled();
+
+    component.runPendingAction();
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.cancelOrder).toHaveBeenCalledWith('o1');
+  });
+
+  it('cierra el diálogo sin ejecutar la acción', () => {
+    orderServiceSpy.getStats.and.returnValue(of(stats));
+    orderServiceSpy.getOrders.and.returnValue(of(page([pendingOrder])));
+    createComponent();
+
+    component.requestCancel(pendingOrder);
+    component.closePendingAction();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.cancelOrder).not.toHaveBeenCalled();
+    expect(orderServiceSpy.confirmOrder).not.toHaveBeenCalled();
   });
 });

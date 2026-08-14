@@ -36,30 +36,37 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
 
 ```
 1. Cliente navega:  home → categoría → producto
-2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart)
-3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
-4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
+ 2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart). El catálogo muestra el estado de stock (badge "En stock" / "¡Últimas X unidades!" / "Agotado") y bloquea el agregado de productos agotados; `CartService` además **topea la cantidad al stock disponible** (defensa en profundidad: la API también valida).
+ 3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
+ 4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
      a. Si no hay orden registrada: OrderService.postOrder()  →  POST /api/orders  (público)
      b. Backend genera código CAR-XXXXX, guarda la orden como 'pending'
      c. El frontend guarda el código real y abre el canal con mensaje prefabricado
-     d. Si la orden ya existe y el carrito fue modificado (flag `orderModified`):
+     d. Si la orden ya existe, **primero se re-verifica el estado al contactar**
+        (OrderService.getOrderStatus()): 'confirmed' → modal "¡Gracias por tu compra!"
+        sin redirect (vuelve a home a los 4s); 'cancelled' → aviso y se limpia el código;
+        'pending' → sigue el flujo; 404 → aviso "Pedido no encontrado"; error de red →
+        degrada y redirige igual (no bloquea el contacto)
+     e. Con la orden 'pending' y el carrito modificado (flag `orderModified`):
         OrderService.updateOrderItems()  →  PATCH /api/orders/:code/items  (público, solo 'pending')
         sincroniza items y total; si falla (400/404) se re-verifica el estado (paso 5)
-     e. Botón "Actualizar pedido" en el carrito ejecuta el mismo PATCH de forma explícita
+     f. Botón "Actualizar pedido" en el carrito ejecuta el mismo PATCH de forma explícita
         (visible solo con orden registrada, deshabilitado sin cambios pendientes)
-5. Al volver al carrito con una orden registrada, CartSummaryComponent consulta
-   el estado real:  OrderService.getOrderStatus()  →  GET /api/orders/:code/status  (público)
-     - 'confirmed'  → modal de éxito, clearCart() (vacía todo) y redirect a home
-     - 'cancelled' o 404 → clearOrderCode() (conserva items) + aviso; botones de contacto activos
-     - error de red → mantiene el estado actual sin romper la UI
-6. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
-7. Admin entra a /admin (login JWT):
-     - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/orders`, `/admin/products`, `/admin/contact`. En móvil (<768px) hay una barra superior fija (`admin-topbar`) con el hamburguesa + marca "LC · Admin"; la X de cierre vive en el propio sidebar (`.sidebar-close`, porque el drawer tapa el lado izquierdo de la topbar al abrir); el contenido compensa la barra con `padding-top`. Capas: sidebar 55 > topbar 54 > backdrop 53
+ 5. Al volver al carrito con una orden registrada, CartSummaryComponent consulta
+    el estado real:  OrderService.getOrderStatus()  →  GET /api/orders/:code/status  (público)
+      - 'confirmed'  → modal de éxito, clearCart() (vacía todo) y redirect a home
+      - 'cancelled' o 404 → clearOrderCode() (conserva items) + aviso; botones de contacto activos
+      - error de red → mantiene el estado actual sin romper la UI
+ 6. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
+ 7. Admin entra a /admin (login JWT):
+      - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/orders`, `/admin/products`, `/admin/contact`. En móvil (<768px) hay una barra superior fija (`admin-topbar`) con el hamburguesa + marca "LC · Admin"; la X de cierre vive en el propio sidebar (`.sidebar-close`, porque el drawer tapa el lado izquierdo de la topbar al abrir); el contenido compensa la barra con `padding-top`. Capas: sidebar 55 > topbar 54 > backdrop 53
       - Dashboard: métricas (GET /api/orders/stats) + últimas 5 pendientes (GET /api/orders?page=1&limit=5&status=pending)
       - Órdenes: lista paginada con filtro por estado y buscador por código (GET /api/orders?page=&limit=&status=&q=) + confirmar/cancelar; cada fila es clicable y el código es un enlace → /admin/orders/detail/:code
       - Detalle de orden (OrderDetailComponent, GET /api/orders/:code admin): breadcrumb "Órdenes › CÓDIGO" + botón "‹ Volver a Órdenes", datos de cliente, items con subtotal por línea, total, fechas y confirmar/cancelar si está 'pending'
       - Productos: lista con estado (activos e inactivos), alta/edición en modal y activar/desactivar (GET /api/products?all=true + POST/PUT /api/products con JWT)
       - Categorías: lista + alta/edición en modal (GET /api/categories + POST/PUT /api/categories con JWT)
+      - Confirmar/Cancelar (dashboard, órdenes y detalle) pasa primero por `AppConfirmDialogComponent`
+        (diálogo de reconfirmación compartido en `SharedModule`); el servicio se llama recién al aceptar
      - Confirma:  PATCH /api/orders/:id/confirm  → valida stock y descuenta
      - Cancela:   PATCH /api/orders/:id/cancel   (solo si está 'pending')
      - Edita contacto: /admin/contact (PUT /api/config)
@@ -74,7 +81,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 | Servicio | Rol |
 |---|---|
 | `CatalogService` | Catálogo: categorías y productos desde la API (Observables). Público: `getCategories`, `getProducts`, `getProductById`, `getProductBySlug`, `getProductsByCategory`. Admin (JWT vía `AuthInterceptor`): `getAllProducts` (`?all=true` incluye inactivos), `createProduct`, `updateProduct`, `createCategory`, `updateCategory`. `handleError` expone el mensaje del servidor (p. ej. "El SKU ya existe"). |
-| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `restoreCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
+| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `restoreCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). `addItem` no agrega productos agotados y topea la cantidad al stock; `updateQuantity` limita al stock y elimina el item si el producto quedó sin stock. Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
 | `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders(page?, limit?, status?, q?)` → `OrderPage`, `getOrderByCode(code)` → detalle por código, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
 | `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
@@ -88,6 +95,10 @@ Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu ca
 ### Spinner de carga
 
 `AppLoadingSpinnerComponent` (`app-loading-spinner`, en `SharedModule`) estandariza los estados de carga de toda la app: un anillo animado SCSS puro (`@keyframes spin`, borde `$color-border` con `border-top-color: $color-primary`) sin librerías ni SVG. Entradas: `label?: string` (texto opcional bajo el anillo) y `size?: 'sm'|'md'|'lg'` (default `md`). Accesible: el contenedor lleva `role="status"` + `aria-live="polite"` y el anillo es `aria-hidden`. Se usa bajo `*ngIf="loading"` (o dentro de `ng-template #loading`/`ng-container`) con el texto anterior como `label`. El host es `display:flex; justify-content:center` con `grid-column: 1 / -1` para centrar en grids. En admin, el loading va dentro de un **estado div** `.loading-region` (min-height 320px, centrado) que ocupa la misma región que el contenido (el dashboard envuelve métricas + pendientes en `*ngIf="!loading"`); en catálogo/carrito/home el spinner se coloca dentro del grid/región de contenido existente. Requiere importar `SharedModule` en el módulo consumidor (se agregó a `admin` y `home`, que no lo importaban).
+
+### Diálogo de confirmación (admin)
+
+`AppConfirmDialogComponent` (`app-confirm-dialog`, en `SharedModule`) es un wrapper de `AppModalComponent` para la **reconfirmación** de acciones destructivas/irreversibles. Entradas: `open`, `title`, `message`, `confirmLabel`, `cancelLabel` y `variant: 'confirm' | 'cancel'` (botón verde con `$color-success` o rojo con `$color-danger`); salidas `confirmed`/`cancelled`. Dismissible por backdrop/Esc → emite `cancelled` (equivale a "no hacer nada"). Se usa en las tres superficies de órdenes (dashboard, lista y detalle) como **gate UI puro**: los botones "Confirmar"/"Cancelar" llaman a `requestConfirm`/`requestCancel` (setean `pendingAction` y abren el diálogo) y el servicio se invoca recién al aceptar (`runPendingAction`); los métodos `confirmOrder`/`cancelOrder` no cambiaron. Al cerrar sin aceptar (`closePendingAction`), no se llama a la API.
 
 ### Sesión y storage (decisión importante)
 
@@ -106,7 +117,7 @@ backend/
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET / (público) + POST / y PUT /:id (admin JWT)
   routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT)
-  routes/orders.js     # POST / (público), GET /:code/status (público), PATCH /:code/items (público, solo pending) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /:code, PATCH :id/confirm, :id/cancel
+  routes/orders.js     # POST / (público; valida stock disponible), GET /:code/status (público), PATCH /:code/items (público, solo pending; valida stock) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /:code, PATCH :id/confirm (valida y descuenta stock), :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
   middleware/auth.js   # verify Authorization: Bearer JWT (authenticate + authenticateOptional)
   utils/slugify.js     # slugify (sin acentos) + uniqueSlug (garantiza unicidad con sufijo -2, -3…)
@@ -123,7 +134,7 @@ backend/
 
 - Credenciales vía env, **sin modelo de usuarios en Mongo**: `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (bcrypt) + `JWT_SECRET`.
 - `JWT_EXPIRES_IN` opcional, default `12h`.
-- El POST de creación de orden y el PATCH de items (`/orders/:code/items`) son **públicos** (el carrito no tiene token); solo las operaciones de gestión son admin. El PATCH solo muta órdenes `pending`.
+- El POST de creación de orden y el PATCH de items (`/orders/:code/items`) son **públicos** (el carrito no tiene token); solo las operaciones de gestión son admin. El PATCH solo muta órdenes `pending`. **Ambos validan disponibilidad** (`validateStockAvailability`: el producto existe, está activo y `stock >= cantidad`) → 400 con mensaje claro; al confirmar (`PATCH /:id/confirm`) se revalida y se descuenta stock (chequeo atómico final).
 
 ### Catálogo admin (productos y categorías)
 

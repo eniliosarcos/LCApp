@@ -73,13 +73,13 @@
               *ngIf="order.status === 'pending'"
               type="button"
               class="action confirm"
-              (click)="confirmOrder(order); $event.stopPropagation()"
+              (click)="requestConfirm(order); $event.stopPropagation()"
               [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
             <button
               *ngIf="order.status === 'pending'"
               type="button"
               class="action cancel"
-              (click)="cancelOrder(order); $event.stopPropagation()"
+              (click)="requestCancel(order); $event.stopPropagation()"
               [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
           </td>
         </tr>
@@ -114,4 +114,15 @@
       [attr.aria-label]="'Página siguiente'">›</button>
     <span class="range" aria-live="polite">{{ rangeLabel }}</span>
   </nav>
+
+  <app-confirm-dialog
+    [open]="pendingAction !== null"
+    [title]="pendingAction?.type === 'cancel' ? 'Cancelar orden' : 'Confirmar venta'"
+    [message]="pendingAction ? pendingActionMessage(pendingAction) : ''"
+    [confirmLabel]="pendingAction?.type === 'cancel' ? 'Sí, cancelar' : 'Confirmar'"
+    [cancelLabel]="'Volver'"
+    [variant]="pendingAction?.type === 'cancel' ? 'cancel' : 'confirm'"
+    (confirmed)="runPendingAction()"
+    (cancelled)="closePendingAction()">
+  </app-confirm-dialog>
 </section>

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { Cart } from '../../../core/models/cart.model';
 import { ContactConfig } from '../../../core/models/contact.model';
 import { Order, CreateOrderRequest, OrderStatusResponse } from '../../../core/models/order.model';
@@ -110,9 +110,11 @@ describe('CartSummaryComponent', () => {
   it('abre el modal y redirige tras el retardo cuando ya hay orden registrada y no fue modificada', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
     cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(pendingStatus));
     component.openContact('whatsapp');
     fixture.detectChanges();
 
+    expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledWith('CAR-ABC12');
     expect(component.redirecting).toBeTrue();
     expect(orderServiceSpy.createOrder).not.toHaveBeenCalled();
     expect(orderServiceSpy.updateOrderItems).not.toHaveBeenCalled();
@@ -183,9 +185,11 @@ describe('CartSummaryComponent', () => {
   it('ignora clicks repetidos mientras redirige', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
     cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(pendingStatus));
     component.openContact('whatsapp');
     component.openContact('instagram');
 
+    expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledTimes(1);
     expect(anchorClickSpy).not.toHaveBeenCalled();
     expect(component.channelName).toBe('WhatsApp');
 
@@ -197,12 +201,14 @@ describe('CartSummaryComponent', () => {
   it('actualiza la orden pendiente y redirige cuando el carrito fue modificado', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
     cartServiceSpy.hasModifiedOrder.and.returnValue(true);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(pendingStatus));
     const pending = new Subject<Order>();
     orderServiceSpy.updateOrderItems.and.returnValue(pending.asObservable());
 
     component.openContact('whatsapp');
     fixture.detectChanges();
 
+    expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledWith('CAR-ABC12');
     expect(component.redirecting).toBeTrue();
     expect(orderServiceSpy.updateOrderItems).toHaveBeenCalledWith('CAR-ABC12', [
       { productId: 'p1', productName: 'Rosa', quantity: 2, price: 100 }
@@ -229,6 +235,7 @@ describe('CartSummaryComponent', () => {
   it('no actualiza la orden cuando el carrito no fue modificado', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
     cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(pendingStatus));
 
     component.openContact('whatsapp');
     fixture.detectChanges();
@@ -248,7 +255,7 @@ describe('CartSummaryComponent', () => {
     const patch$ = new Subject<Order>();
     const status$ = new Subject<OrderStatusResponse>();
     orderServiceSpy.updateOrderItems.and.returnValue(patch$.asObservable());
-    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+    orderServiceSpy.getOrderStatus.and.returnValues(of(pendingStatus), status$.asObservable());
 
     component.openContact('whatsapp');
     fixture.detectChanges();
@@ -259,6 +266,7 @@ describe('CartSummaryComponent', () => {
 
     expect(component.redirecting).toBeFalse();
     expect(component.checkingOrder).toBeTrue();
+    expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledTimes(2);
     expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledWith('CAR-ABC12');
 
     status$.next(confirmedStatus);
@@ -270,6 +278,84 @@ describe('CartSummaryComponent', () => {
 
     tick(4000);
     fixture.detectChanges();
+  }));
+
+  it('no redirige y muestra el modal de confirmación si la orden ya fue confirmada al contactar', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(confirmedStatus));
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(component.orderConfirmed).toBeTrue();
+    expect(component.redirecting).toBeFalse();
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+    expect(orderServiceSpy.updateOrderItems).not.toHaveBeenCalled();
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(cartServiceSpy.clearCart).toHaveBeenCalledTimes(1);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+  }));
+
+  it('no redirige y muestra el aviso si la orden ya fue cancelada al contactar', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(of(cancelledStatus));
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(component.registered).toBeFalse();
+    expect(component.redirecting).toBeFalse();
+    expect(component.orderNotice).toContain('cancelado');
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+
+    tick(4000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+  }));
+
+  it('sigue redirigiendo si la verificación del estado falla por error de red', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    orderServiceSpy.getOrderStatus.and.returnValue(throwError(() => new Error('network')));
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(component.redirecting).toBeTrue();
+    expect(component.orderNotice).toBe('');
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).toHaveBeenCalled();
+    expect(component.redirecting).toBeFalse();
+  }));
+
+  it('muestra el aviso de pedido no encontrado si el 404 ocurre al contactar', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+    const notFound = new Error('Orden no encontrada') as Error & { status?: number };
+    notFound.status = 404;
+    orderServiceSpy.getOrderStatus.and.returnValue(throwError(() => notFound));
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(component.registered).toBeFalse();
+    expect(component.redirecting).toBeFalse();
+    expect(component.orderNotice).toContain('Ya no encontramos tu pedido registrado.');
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+
+    tick(4000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).not.toHaveBeenCalled();
   }));
 
   it('consulta el estado al volver y muestra el pedido registrado si sigue pending', fakeAsync(() => {

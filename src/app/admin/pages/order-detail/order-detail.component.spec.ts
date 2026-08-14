@@ -5,6 +5,8 @@ import { of, throwError } from 'rxjs';
 import { Order } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
+import { AppConfirmDialogComponent } from '../../../shared/components/confirm-dialog/app-confirm-dialog.component';
+import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { OrderDetailComponent } from './order-detail.component';
 
 const order: Order = {
@@ -38,7 +40,7 @@ describe('OrderDetailComponent', () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderByCode', 'confirmOrder', 'cancelOrder']);
 
     await TestBed.configureTestingModule({
-      declarations: [OrderDetailComponent, CurrencyFormatPipe],
+      declarations: [OrderDetailComponent, AppConfirmDialogComponent, AppModalComponent, CurrencyFormatPipe],
       imports: [RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: routeStub },
@@ -104,6 +106,57 @@ describe('OrderDetailComponent', () => {
 
     expect(component.actionError).toBe('Stock insuficiente');
     expect(fixture.nativeElement.textContent).toContain('Stock insuficiente');
+  });
+
+  it('confirma solo tras aceptar el diálogo', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    orderServiceSpy.confirmOrder.and.returnValue(of({ ...order, status: 'confirmed', confirmedAt: '2026-01-02T00:00:00.000Z' }));
+    createComponent();
+
+    component.requestConfirm();
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toBe('confirm');
+    expect(component.pendingActionMessage).toContain('CAR-ABC12');
+    expect(orderServiceSpy.confirmOrder).not.toHaveBeenCalled();
+
+    component.runPendingAction();
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.confirmOrder).toHaveBeenCalledWith('o1');
+    expect(component.order?.status).toBe('confirmed');
+  });
+
+  it('cancela solo tras aceptar el diálogo', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    orderServiceSpy.cancelOrder.and.returnValue(of({ ...order, status: 'cancelled' }));
+    createComponent();
+
+    component.requestCancel();
+    fixture.detectChanges();
+
+    expect(component.pendingActionMessage).toContain('¿Cancelar la orden CAR-ABC12?');
+    expect(orderServiceSpy.cancelOrder).not.toHaveBeenCalled();
+
+    component.runPendingAction();
+    fixture.detectChanges();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.cancelOrder).toHaveBeenCalledWith('o1');
+    expect(component.order?.status).toBe('cancelled');
+  });
+
+  it('cierra el diálogo sin ejecutar la acción', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    createComponent();
+
+    component.requestCancel();
+    component.closePendingAction();
+
+    expect(component.pendingAction).toBeNull();
+    expect(orderServiceSpy.cancelOrder).not.toHaveBeenCalled();
+    expect(orderServiceSpy.confirmOrder).not.toHaveBeenCalled();
   });
 
   it('muestra "Orden no encontrada" si el endpoint devuelve 404', () => {

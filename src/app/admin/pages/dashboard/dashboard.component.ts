@@ -16,6 +16,7 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error = false;
   actionError = '';
+  pendingAction: { order: Order; type: 'confirm' | 'cancel' } | null = null;
 
   constructor(
     private readonly orderService: OrderService,
@@ -86,6 +87,38 @@ export class DashboardComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  requestConfirm(order: Order): void {
+    this.pendingAction = { order, type: 'confirm' };
+  }
+
+  requestCancel(order: Order): void {
+    this.pendingAction = { order, type: 'cancel' };
+  }
+
+  closePendingAction(): void {
+    this.pendingAction = null;
+  }
+
+  runPendingAction(): void {
+    if (!this.pendingAction) {
+      return;
+    }
+    const { order, type } = this.pendingAction;
+    this.pendingAction = null;
+    this.cdr.markForCheck();
+    if (type === 'confirm') {
+      this.confirmOrder(order);
+    } else {
+      this.cancelOrder(order);
+    }
+  }
+
+  pendingActionMessage(action: { order: Order; type: 'confirm' | 'cancel' }): string {
+    return action.type === 'confirm'
+      ? `¿Confirmar la venta de la orden ${action.order.code}? El stock se descontará automáticamente.`
+      : `¿Cancelar la orden ${action.order.code}?`;
   }
 
   private loadRecent(): void {

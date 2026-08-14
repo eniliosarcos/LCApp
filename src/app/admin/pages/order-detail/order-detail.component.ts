@@ -14,6 +14,7 @@ export class OrderDetailComponent implements OnInit {
   loading = true;
   errorMessage = '';
   actionError = '';
+  pendingAction: 'confirm' | 'cancel' | null = null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -72,6 +73,38 @@ export class OrderDetailComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  requestConfirm(): void {
+    this.pendingAction = 'confirm';
+  }
+
+  requestCancel(): void {
+    this.pendingAction = 'cancel';
+  }
+
+  closePendingAction(): void {
+    this.pendingAction = null;
+  }
+
+  runPendingAction(): void {
+    if (!this.pendingAction) {
+      return;
+    }
+    const action = this.pendingAction;
+    this.pendingAction = null;
+    this.cdr.markForCheck();
+    if (action === 'confirm') {
+      this.confirmOrder();
+    } else {
+      this.cancelOrder();
+    }
+  }
+
+  get pendingActionMessage(): string {
+    return this.pendingAction === 'cancel'
+      ? `¿Cancelar la orden ${this.orderCode}?`
+      : `¿Confirmar la venta de la orden ${this.orderCode}? El stock se descontará automáticamente.`;
   }
 
   private loadOrder(code: string): void {

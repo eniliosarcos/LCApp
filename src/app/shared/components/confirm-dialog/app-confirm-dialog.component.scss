@@ -1,0 +1,53 @@
+@use 'styles/variables' as v;
+
+.confirm-dialog {
+  &__message {
+    margin: 0 0 v.$space-5;
+    color: v.$color-text-muted;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: v.$space-3;
+  }
+
+  &__btn {
+    padding: v.$space-2 v.$space-5;
+    border: none;
+    border-radius: v.$radius-full;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease;
+
+    &--ghost {
+      background: v.$color-bg;
+      color: v.$color-text;
+
+      &:hover {
+        background: v.$color-border;
+      }
+    }
+
+    &--confirm {
+      background: v.$color-success;
+      color: v.$color-surface;
+
+      &:hover {
+        background: v.$color-success-hover;
+      }
+    }
+
+    &--danger {
+      background: v.$color-danger;
+      color: v.$color-surface;
+
+      &:hover {
+        background: v.$color-danger-hover;
+      }
+    }
+  }
+}

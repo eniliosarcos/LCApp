@@ -85,22 +85,18 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
   }
 
   openContact(channel: ContactChannel): void {
-    if (this.contacting || this.redirecting) {
+    if (this.contacting || this.redirecting || this.checkingOrder) {
       return;
     }
 
     this.contactChannel = channel;
-    this.redirecting = true;
 
     if (this.cartService.hasRegisteredOrder()) {
-      if (this.cartService.hasModifiedOrder()) {
-        this.syncOrderAndOpen();
-      } else {
-        this.delayAndOpen();
-      }
+      this.verifyThenContinue();
       return;
     }
 
+    this.redirecting = true;
     this.contacting = true;
     this.orderService.createOrder(this.buildRequest()).subscribe({
       next: order => {
@@ -162,6 +158,50 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private verifyThenContinue(): void {
+    const code = this.cart.orderCode;
+    if (!code) {
+      this.redirecting = true;
+      this.delayAndOpen();
+      return;
+    }
+
+    this.checkingOrder = true;
+    this.orderService.getOrderStatus(code).subscribe({
+      next: status => {
+        this.checkingOrder = false;
+        this.continueAfterVerification(status.status);
+      },
+      error: err => {
+        this.checkingOrder = false;
+        if (err?.status === 404) {
+          this.resetRegistration('Ya no encontramos tu pedido registrado.', 'Pedido no encontrado');
+          return;
+        }
+        this.redirecting = true;
+        this.delayAndOpen();
+      }
+    });
+  }
+
+  private continueAfterVerification(status: OrderStatus): void {
+    switch (status) {
+      case 'confirmed':
+        this.applyOrderStatus('confirmed');
+        return;
+      case 'cancelled':
+        this.applyOrderStatus('cancelled');
+        return;
+      default:
+        this.redirecting = true;
+        if (this.cartService.hasModifiedOrder()) {
+          this.syncOrderAndOpen();
+        } else {
+          this.delayAndOpen();
+        }
+    }
   }
 
   private applyOrderStatus(status: OrderStatus): void {
