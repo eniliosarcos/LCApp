@@ -25,6 +25,18 @@ const discountProduct: Product = {
   discountPrice: 150
 };
 
+const lowStockProduct: Product = {
+  ...product,
+  id: 'p3',
+  stock: 3
+};
+
+const outOfStockProduct: Product = {
+  ...product,
+  id: 'p4',
+  stock: 0
+};
+
 describe('CartService', () => {
   let service: CartService;
 
@@ -187,5 +199,40 @@ describe('CartService', () => {
 
     expect(items.length).toBe(1);
     expect(items[0].productId).toBe('p1');
+  });
+
+  it('no agrega un producto agotado', () => {
+    service.addItem(outOfStockProduct, 1);
+
+    expect(currentCart().items.length).toBe(0);
+  });
+
+  it('agrega como máximo el stock disponible', () => {
+    service.addItem(lowStockProduct, 5);
+
+    expect(currentCart().items[0].quantity).toBe(3);
+  });
+
+  it('acumula sin superar el stock disponible', () => {
+    service.addItem(lowStockProduct, 2);
+    service.addItem(lowStockProduct, 2);
+
+    expect(currentCart().items[0].quantity).toBe(3);
+  });
+
+  it('updateQuantity limita la cantidad al stock disponible', () => {
+    service.addItem(lowStockProduct, 1);
+    service.updateQuantity('p3', 10);
+
+    expect(currentCart().items[0].quantity).toBe(3);
+  });
+
+  it('updateQuantity elimina el item si el producto quedó sin stock', () => {
+    const goneProduct: Product = { ...outOfStockProduct, id: 'p5', stock: 1 };
+    service.addItem(goneProduct, 1);
+    goneProduct.stock = 0;
+    service.updateQuantity('p5', 1);
+
+    expect(currentCart().items.length).toBe(0);
   });
 });

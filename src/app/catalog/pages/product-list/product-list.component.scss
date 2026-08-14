@@ -81,6 +81,23 @@ h1 {
       font-size: 0.9rem;
     }
 
+    .stock {
+      font-weight: 600;
+      font-size: 0.85rem;
+
+      &.in-stock {
+        color: v.$color-success;
+      }
+
+      &.low-stock {
+        color: v.$color-warning;
+      }
+
+      &.out-of-stock {
+        color: v.$color-danger;
+      }
+    }
+
     .price {
       margin-top: v.$space-2;
       display: flex;
@@ -124,6 +141,17 @@ h1 {
 
       &:hover {
         background: v.$color-primary-hover;
+      }
+
+      &:disabled {
+        background: v.$color-text-subtle;
+        color: v.$color-surface;
+        cursor: not-allowed;
+        opacity: 0.6;
+
+        &:hover {
+          background: v.$color-text-subtle;
+        }
       }
     }
   }

@@ -23,8 +23,18 @@ export class CartItemComponent {
     return this.item.product.name.charAt(0);
   }
 
+  get canIncrease(): boolean {
+    return this.item.quantity < this.item.product.stock;
+  }
+
+  get atStockLimit(): boolean {
+    return this.item.product.stock > 0 && this.item.quantity >= this.item.product.stock;
+  }
+
   increaseQuantity(): void {
-    this.updateQuantity.emit({ productId: this.item.productId, quantity: this.item.quantity + 1 });
+    if (this.canIncrease) {
+      this.updateQuantity.emit({ productId: this.item.productId, quantity: this.item.quantity + 1 });
+    }
   }
 
   decreaseQuantity(): void {

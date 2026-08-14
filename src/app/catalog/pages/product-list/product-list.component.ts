@@ -58,6 +58,9 @@ export class ProductListComponent implements OnInit {
   }
 
   addToCart(product: Product): void {
+    if (product.stock === 0) {
+      return;
+    }
     this.cartService.addItem(product);
     this.addedProductIds.add(product.id);
     this.snackbarService.show(`${product.name} agregado al carrito.`, 'success');
@@ -66,6 +69,20 @@ export class ProductListComponent implements OnInit {
 
   isAdded(productId: string): boolean {
     return this.addedProductIds.has(productId);
+  }
+
+  isOutOfStock(product: Product): boolean {
+    return product.stock === 0;
+  }
+
+  getStockStatus(product: Product): 'in-stock' | 'low-stock' | 'out-of-stock' {
+    if (product.stock > 10) {
+      return 'in-stock';
+    }
+    if (product.stock > 0) {
+      return 'low-stock';
+    }
+    return 'out-of-stock';
   }
 
   getDisplayPrice(product: Product): number {

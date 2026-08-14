@@ -72,4 +72,23 @@ describe('ProductListComponent', () => {
 
     expect(currentSnackbar()?.message).toBe('Rosa agregado al carrito.');
   });
+
+  it('un producto agotado no se agrega al carrito', () => {
+    const soldOut: Product = { ...product, stock: 0 };
+
+    component.addToCart(soldOut);
+
+    expect(component.isAdded('p1')).toBeFalse();
+    expect(component.isOutOfStock(soldOut)).toBeTrue();
+    let count = 0;
+    cartService.getCount().subscribe(value => (count = value));
+    expect(count).toBe(0);
+  });
+
+  it('clasifica el estado de stock: en stock, pocas unidades y agotado', () => {
+    expect(component.getStockStatus({ ...product, stock: 11 })).toBe('in-stock');
+    expect(component.getStockStatus({ ...product, stock: 10 })).toBe('low-stock');
+    expect(component.getStockStatus({ ...product, stock: 1 })).toBe('low-stock');
+    expect(component.getStockStatus({ ...product, stock: 0 })).toBe('out-of-stock');
+  });
 });

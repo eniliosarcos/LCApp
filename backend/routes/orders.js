@@ -34,6 +34,23 @@ async function expireStalePendingOrders() {
   );
 }
 
+// Verifica que cada item exista, esté activo y tenga stock suficiente
+async function validateStockAvailability(items) {
+  for (const item of items) {
+    const product = await Product.findById(item.productId);
+    if (!product || !product.isActive) {
+      return { ok: false, error: `Producto no disponible: "${item.productName || item.productId}"` };
+    }
+    if (product.stock < item.quantity) {
+      return {
+        ok: false,
+        error: `Stock insuficiente para "${product.name}": disponible ${product.stock}, solicitado ${item.quantity}`,
+      };
+    }
+  }
+  return { ok: true };
+}
+
 // POST /api/orders — Crear orden desde el carrito
 router.post('/', async (req, res) => {
   try {
@@ -41,6 +58,11 @@ router.post('/', async (req, res) => {
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Faltan datos: items son requeridos' });
+    }
+
+    const stockCheck = await validateStockAvailability(items);
+    if (!stockCheck.ok) {
+      return res.status(400).json({ error: stockCheck.error });
     }
 
     // Calcular total
@@ -140,6 +162,11 @@ router.patch('/:code/items', async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     if (order.status !== 'pending') {
       return res.status(400).json({ error: `No se puede actualizar una orden con estado "${order.status}"` });
+    }
+
+    const stockCheck = await validateStockAvailability(items);
+    if (!stockCheck.ok) {
+      return res.status(400).json({ error: stockCheck.error });
     }
 
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

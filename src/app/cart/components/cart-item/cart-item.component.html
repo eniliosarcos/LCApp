@@ -10,8 +10,9 @@
       <div class="quantity" role="group" [attr.aria-label]="'Cantidad de ' + item.product.name">
         <button type="button" aria-label="Disminuir cantidad" (click)="decreaseQuantity()">−</button>
         <span>{{ item.quantity }}</span>
-        <button type="button" aria-label="Aumentar cantidad" (click)="increaseQuantity()">+</button>
+        <button type="button" aria-label="Aumentar cantidad" [disabled]="!canIncrease" (click)="increaseQuantity()">+</button>
       </div>
+      <p class="stock-hint" *ngIf="atStockLimit">Stock disponible: {{ item.product.stock }}</p>
       <button type="button" class="remove" (click)="onRemove()">Quitar</button>
     </div>
   </div>

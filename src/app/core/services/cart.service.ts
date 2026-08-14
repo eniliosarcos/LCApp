@@ -30,26 +30,31 @@ export class CartService {
   }
 
   addItem(product: Product, quantity = 1): void {
-    const cart = this.cart$.getValue();
-    const existing = cart.items.find(item => item.productId === product.id);
-    if (existing) {
-      this.updateQuantity(product.id, existing.quantity + quantity);
+    if (product.stock <= 0) {
       return;
     }
-    cart.items.push({ productId: product.id, product, quantity });
+    const cart = this.cart$.getValue();
+    const existing = cart.items.find(item => item.productId === product.id);
+    const capped = Math.min(quantity, product.stock);
+    if (existing) {
+      this.updateQuantity(product.id, Math.min(existing.quantity + quantity, product.stock));
+      return;
+    }
+    cart.items.push({ productId: product.id, product, quantity: capped });
     this.markModified(cart);
     this.emit(cart);
   }
 
   updateQuantity(productId: string, quantity: number): void {
     const cart = this.cart$.getValue();
-    if (quantity <= 0) {
-      this.removeItem(productId);
-      return;
-    }
     const item = cart.items.find(i => i.productId === productId);
     if (item) {
-      item.quantity = quantity;
+      const capped = Math.min(quantity, item.product.stock);
+      if (capped <= 0) {
+        this.removeItem(productId);
+        return;
+      }
+      item.quantity = capped;
       this.markModified(cart);
       this.emit(cart);
     }
