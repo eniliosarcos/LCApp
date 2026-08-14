@@ -4,7 +4,7 @@
   <h1>Mi Carrito</h1>
 
   <ng-container *ngIf="loading; else loaded">
-    <p class="status">Cargando carrito…</p>
+    <app-loading-spinner label="Cargando carrito…"></app-loading-spinner>
   </ng-container>
 
   <ng-template #loaded>

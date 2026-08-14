@@ -3,68 +3,72 @@
   <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
   <p class="error" *ngIf="actionError">{{ actionError }}</p>
 
-  <div class="metrics" *ngIf="stats">
-    <div class="metric">
-      <span>{{ stats.pendingOrders }}</span>
-      Pendientes
-    </div>
-    <div class="metric">
-      <span>{{ stats.confirmedOrders }}</span>
-      Confirmadas
-    </div>
-    <div class="metric">
-      <span>{{ stats.totalRevenue | currency }}</span>
-      Ingresos
-    </div>
-    <div class="metric">
-      <span>{{ stats.totalOrders }}</span>
-      Total
-    </div>
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando datos del dashboard…"></app-loading-spinner>
   </div>
 
-  <div class="recent">
-    <div class="recent-header">
-      <h2>Órdenes pendientes</h2>
-      <a routerLink="/admin/orders" class="view-all">Ver todas las órdenes</a>
+  <ng-container *ngIf="!loading">
+    <div class="metrics" *ngIf="stats">
+      <div class="metric">
+        <span>{{ stats.pendingOrders }}</span>
+        Pendientes
+      </div>
+      <div class="metric">
+        <span>{{ stats.confirmedOrders }}</span>
+        Confirmadas
+      </div>
+      <div class="metric">
+        <span>{{ stats.totalRevenue | currency }}</span>
+        Ingresos
+      </div>
+      <div class="metric">
+        <span>{{ stats.totalOrders }}</span>
+        Total
+      </div>
     </div>
 
-    <p class="loading" *ngIf="loading">Cargando órdenes pendientes…</p>
+    <div class="recent">
+      <div class="recent-header">
+        <h2>Órdenes pendientes</h2>
+        <a routerLink="/admin/orders" class="view-all">Ver todas las órdenes</a>
+      </div>
 
-    <div class="table-scroll" *ngIf="!loading && recentOrders.length > 0; else noRecent">
-      <table class="orders-table">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Cliente</th>
-            <th>Total</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let order of recentOrders; trackBy: orderTrackBy">
-            <td><strong>{{ order.code }}</strong></td>
-            <td>{{ order.customerName }}</td>
-            <td>{{ order.total | currency }}</td>
-            <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              <button
-                type="button"
-                class="action confirm"
-                (click)="confirmOrder(order)"
-                [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
-              <button
-                type="button"
-                class="action cancel"
-                (click)="cancelOrder(order)"
-                [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-scroll" *ngIf="recentOrders.length > 0; else noRecent">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Total</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of recentOrders; trackBy: orderTrackBy">
+              <td><strong>{{ order.code }}</strong></td>
+              <td>{{ order.customerName }}</td>
+              <td>{{ order.total | currency }}</td>
+              <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="action confirm"
+                  (click)="confirmOrder(order)"
+                  [attr.aria-label]="'Confirmar orden ' + order.code">Confirmar</button>
+                <button
+                  type="button"
+                  class="action cancel"
+                  (click)="cancelOrder(order)"
+                  [attr.aria-label]="'Cancelar orden ' + order.code">Cancelar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noRecent>
+        <p class="empty" *ngIf="!loading">No hay órdenes pendientes. ¡Todo al día!</p>
+      </ng-template>
     </div>
-    <ng-template #noRecent>
-      <p class="empty" *ngIf="!loading">No hay órdenes pendientes. ¡Todo al día!</p>
-    </ng-template>
-  </div>
+  </ng-container>
 </section>

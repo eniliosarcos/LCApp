@@ -84,7 +84,13 @@
   border-radius: v.$radius-md;
 }
 
-.loading,
+.loading-region {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .empty {
   color: v.$color-text-muted;
   margin: v.$space-4 0;

@@ -2,7 +2,7 @@
   <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
 
   <ng-container *ngIf="loading; else loaded">
-    <p class="status">Cargando producto…</p>
+    <app-loading-spinner label="Cargando producto…"></app-loading-spinner>
   </ng-container>
 
   <ng-template #loaded>

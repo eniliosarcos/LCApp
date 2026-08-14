@@ -24,7 +24,7 @@
       </a>
     </div>
     <ng-template #loading>
-      <p *ngIf="!error">Cargando categorías…</p>
+      <app-loading-spinner *ngIf="!error" label="Cargando categorías…"></app-loading-spinner>
     </ng-template>
   </div>
 </section>

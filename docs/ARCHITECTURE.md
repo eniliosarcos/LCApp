@@ -84,6 +84,10 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 
 Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-list` ("«Nombre» agregado al carrito.") y `cart-summary` (error al registrar el pedido). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código; los estados "Verificando…" y "Registrando…" quedan junto a los botones de contacto.
 
+### Spinner de carga
+
+`AppLoadingSpinnerComponent` (`app-loading-spinner`, en `SharedModule`) estandariza los estados de carga de toda la app: un anillo animado SCSS puro (`@keyframes spin`, borde `$color-border` con `border-top-color: $color-primary`) sin librerías ni SVG. Entradas: `label?: string` (texto opcional bajo el anillo) y `size?: 'sm'|'md'|'lg'` (default `md`). Accesible: el contenedor lleva `role="status"` + `aria-live="polite"` y el anillo es `aria-hidden`. Se usa bajo `*ngIf="loading"` (o dentro de `ng-template #loading`/`ng-container`) con el texto anterior como `label`. El host es `display:flex; justify-content:center` con `grid-column: 1 / -1` para centrar en grids. En admin, el loading va dentro de un **estado div** `.loading-region` (min-height 320px, centrado) que ocupa la misma región que el contenido (el dashboard envuelve métricas + pendientes en `*ngIf="!loading"`); en catálogo/carrito/home el spinner se coloca dentro del grid/región de contenido existente. Requiere importar `SharedModule` en el módulo consumidor (se agregó a `admin` y `home`, que no lo importaban).
+
 ### Sesión y storage (decisión importante)
 
 `AuthService` mantiene la sesión **en memoria** (BehaviorSubject `session`) y usa `localStorage` como persistencia **best-effort** dentro de `try/catch`. Razón: si `localStorage` está lleno o bloqueado (`QuotaExceededError`), el login fallaba con mensaje genérico aunque el backend respondiera 200. Hoy, un storage roto no bloquea el login; solo hace que la sesión no sobreviva a un refresh.

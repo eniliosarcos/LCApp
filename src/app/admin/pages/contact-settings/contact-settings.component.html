@@ -1,6 +1,8 @@
 <section class="contact-settings">
   <h1>Configuración de contacto</h1>
-  <p class="loading" *ngIf="loading">Cargando configuración…</p>
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando configuración…"></app-loading-spinner>
+  </div>
   <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
 
   <form *ngIf="!loading" (ngSubmit)="onSubmit()" #settingsForm="ngForm" class="settings-form">

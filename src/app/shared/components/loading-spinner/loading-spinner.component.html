@@ -1,0 +1,9 @@
+<div
+  class="loading-spinner"
+  [class.sm]="size === 'sm'"
+  [class.lg]="size === 'lg'"
+  role="status"
+  aria-live="polite">
+  <span class="ring" aria-hidden="true"></span>
+  <span class="label" *ngIf="label">{{ label }}</span>
+</div>

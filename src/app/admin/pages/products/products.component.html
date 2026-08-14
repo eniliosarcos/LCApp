@@ -2,7 +2,9 @@
   <h1>Productos</h1>
 
   <p class="error" *ngIf="error">No se pudieron cargar los datos del catálogo.</p>
-  <p class="loading" *ngIf="loading">Cargando productos…</p>
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando productos…"></app-loading-spinner>
+  </div>
 
   <div class="table-scroll" *ngIf="!loading && products.length > 0; else noProducts">
     <table class="products-table">

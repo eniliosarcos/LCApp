@@ -20,7 +20,9 @@
 
   <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <p class="error" *ngIf="actionError">{{ actionError }}</p>
-  <p class="loading" *ngIf="loading">Cargando orden…</p>
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando orden…"></app-loading-spinner>
+  </div>
 
   <ng-container *ngIf="order && !loading">
     <div class="card info">
