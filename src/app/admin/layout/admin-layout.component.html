@@ -1,26 +1,35 @@
 <div class="admin-shell">
-  <aside class="sidebar" id="admin-sidebar" [class.open]="sidebarOpen">
+  <header class="admin-topbar">
     <button
       type="button"
       class="sidebar-toggle"
       (click)="toggleSidebar()"
       [attr.aria-expanded]="sidebarOpen"
       aria-controls="admin-sidebar"
-      [attr.aria-label]="sidebarOpen ? 'Cerrar menú de administración' : 'Abrir menú de administración'">
-      <svg *ngIf="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      aria-label="Abrir menú de administración">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="3" y1="12" x2="21" y2="12"></line>
         <line x1="3" y1="6" x2="21" y2="6"></line>
         <line x1="3" y1="18" x2="21" y2="18"></line>
       </svg>
-      <svg *ngIf="sidebarOpen" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
     </button>
+    <span class="topbar-brand">LC · Admin</span>
+  </header>
 
+  <aside class="sidebar" id="admin-sidebar" [class.open]="sidebarOpen">
     <div class="sidebar-brand">
       <span class="brand-mark">LC</span>
       <span class="brand-name">Admin</span>
+      <button
+        type="button"
+        class="sidebar-close"
+        (click)="closeSidebar()"
+        [attr.aria-label]="'Cerrar menú de administración'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
     <nav class="sidebar-nav" aria-label="Secciones de administración">

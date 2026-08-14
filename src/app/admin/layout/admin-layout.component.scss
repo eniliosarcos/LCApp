@@ -4,21 +4,34 @@
   min-height: 100%;
 }
 
-.sidebar-toggle {
+.admin-topbar {
   display: none;
-  position: absolute;
-  top: v.$space-3;
-  right: -2.75rem;
-  z-index: 1;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid v.$color-border;
-  border-radius: v.$radius-md;
-  background: v.$color-surface;
-  color: v.$color-primary;
-  cursor: pointer;
+}
+
+.sidebar-toggle {
+  display: flex;
   align-items: center;
   justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: v.$radius-sm;
+  background: transparent;
+  color: v.$color-pink-light;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(232, 160, 191, 0.15);
+  }
+}
+
+.topbar-brand {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: v.$color-pink-light;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .sidebar-backdrop {
@@ -58,6 +71,10 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
+}
+
+.sidebar-close {
+  display: none;
 }
 
 .sidebar-nav {
@@ -112,8 +129,20 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar-toggle {
+  .admin-topbar {
     display: flex;
+    align-items: center;
+    gap: v.$space-2;
+    padding: 0 v.$space-3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5rem;
+    background: v.$color-footer-bg;
+    color: v.$color-footer-text;
+    box-shadow: v.$shadow-card-hover;
+    z-index: 54;
   }
 
   .sidebar-backdrop {
@@ -121,7 +150,7 @@
     position: fixed;
     inset: 0;
     background: rgba(61, 43, 31, 0.5);
-    z-index: 54;
+    z-index: 53;
   }
 
   .sidebar {
@@ -134,8 +163,31 @@
     }
   }
 
+  .sidebar-brand {
+    align-items: center;
+  }
+
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;
+    border: none;
+    border-radius: v.$radius-sm;
+    background: transparent;
+    color: v.$color-pink-light;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(232, 160, 191, 0.15);
+    }
+  }
+
   .admin-content {
     margin-left: 0;
-    padding: v.$space-6 v.$space-4;
+    padding: calc(3.5rem + v.$space-4) v.$space-4 v.$space-6;
   }
 }

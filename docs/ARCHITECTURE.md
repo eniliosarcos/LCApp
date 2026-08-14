@@ -54,7 +54,7 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
      - error de red → mantiene el estado actual sin romper la UI
 6. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
 7. Admin entra a /admin (login JWT):
-     - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/orders`, `/admin/products`, `/admin/contact`
+     - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/orders`, `/admin/products`, `/admin/contact`. En móvil (<768px) hay una barra superior fija (`admin-topbar`) con el hamburguesa + marca "LC · Admin"; la X de cierre vive en el propio sidebar (`.sidebar-close`, porque el drawer tapa el lado izquierdo de la topbar al abrir); el contenido compensa la barra con `padding-top`. Capas: sidebar 55 > topbar 54 > backdrop 53
       - Dashboard: métricas (GET /api/orders/stats) + últimas 5 pendientes (GET /api/orders?page=1&limit=5&status=pending)
       - Órdenes: lista paginada con filtro por estado y buscador por código (GET /api/orders?page=&limit=&status=&q=) + confirmar/cancelar; cada fila es clicable y el código es un enlace → /admin/orders/detail/:code
       - Detalle de orden (OrderDetailComponent, GET /api/orders/:code admin): breadcrumb "Órdenes › CÓDIGO" + botón "‹ Volver a Órdenes", datos de cliente, items con subtotal por línea, total, fechas y confirmar/cancelar si está 'pending'
