@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateOrderRequest, Order, OrderStats, OrderStatusResponse } from '../models/order.model';
+import { CreateOrderRequest, Order, OrderItem, OrderStats, OrderStatusResponse } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -21,6 +21,12 @@ export class OrderService {
 
   getOrderStatus(code: string): Observable<OrderStatusResponse> {
     return this.http.get<OrderStatusResponse>(`${this.apiUrl}/orders/${code}/status`).pipe(catchError(this.handleError));
+  }
+
+  updateOrderItems(code: string, items: OrderItem[]): Observable<Order> {
+    return this.http
+      .patch<Order>(`${this.apiUrl}/orders/${code}/items`, { items })
+      .pipe(catchError(this.handleError));
   }
 
   getStats(): Observable<OrderStats> {

@@ -18,7 +18,24 @@
             (updateQuantity)="updateQuantity($event.productId, $event.quantity)">
           </app-cart-item>
 
-          <button type="button" class="clear" (click)="clearCart()">Vaciar carrito</button>
+          <div class="actions">
+            <button type="button" class="clear" (click)="clearCart()">Vaciar carrito</button>
+            <button
+              type="button"
+              class="update"
+              *ngIf="hasRegisteredOrder"
+              [disabled]="!orderModified || updating"
+              (click)="updateOrder()">
+              {{ updating ? 'Actualizando pedido…' : 'Actualizar pedido' }}
+            </button>
+          </div>
+          <p
+            class="update-message"
+            *ngIf="updateMessage"
+            [class.success]="updateMessage.type === 'success'"
+            [class.error]="updateMessage.type === 'error'">
+            {{ updateMessage.text }}
+          </p>
         </div>
 
         <app-cart-summary [cart]="cart"></app-cart-summary>

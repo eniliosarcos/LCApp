@@ -4,7 +4,7 @@ import { Subject, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Cart } from '../../../core/models/cart.model';
 import { ContactConfig } from '../../../core/models/contact.model';
-import { CreateOrderRequest, OrderStatus } from '../../../core/models/order.model';
+import { CreateOrderRequest, OrderItem, OrderStatus } from '../../../core/models/order.model';
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { OrderService } from '../../../core/services/order.service';
@@ -93,7 +93,11 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
     this.redirecting = true;
 
     if (this.cartService.hasRegisteredOrder()) {
-      this.delayAndOpen();
+      if (this.cartService.hasModifiedOrder()) {
+        this.syncOrderAndOpen();
+      } else {
+        this.delayAndOpen();
+      }
       return;
     }
 
@@ -189,14 +193,35 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
   }
 
   private buildRequest(): CreateOrderRequest {
-    return {
-      items: this.cart.items.map(item => ({
-        productId: item.product.id,
-        productName: item.product.name,
-        quantity: item.quantity,
-        price: item.product.discountPrice ?? item.product.price
-      }))
-    };
+    return { items: this.buildItems() };
+  }
+
+  private buildItems(): OrderItem[] {
+    return this.cart.items.map(item => ({
+      productId: item.product.id,
+      productName: item.product.name,
+      quantity: item.quantity,
+      price: item.product.discountPrice ?? item.product.price
+    }));
+  }
+
+  private syncOrderAndOpen(): void {
+    const code = this.cart.orderCode;
+    if (!code) {
+      this.delayAndOpen();
+      return;
+    }
+
+    this.orderService.updateOrderItems(code, this.buildItems()).subscribe({
+      next: () => {
+        this.cartService.markOrderSynced();
+        this.delayAndOpen();
+      },
+      error: () => {
+        this.redirecting = false;
+        this.verifyOrder();
+      }
+    });
   }
 
   private delayAndOpen(): void {

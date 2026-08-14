@@ -37,6 +37,7 @@ export class CartService {
       return;
     }
     cart.items.push({ productId: product.id, product, quantity });
+    this.markModified(cart);
     this.emit(cart);
   }
 
@@ -49,6 +50,7 @@ export class CartService {
     const item = cart.items.find(i => i.productId === productId);
     if (item) {
       item.quantity = quantity;
+      this.markModified(cart);
       this.emit(cart);
     }
   }
@@ -56,6 +58,7 @@ export class CartService {
   removeItem(productId: string): void {
     const cart = this.cart$.getValue();
     cart.items = cart.items.filter(item => item.productId !== productId);
+    this.markModified(cart);
     this.emit(cart);
   }
 
@@ -70,6 +73,7 @@ export class CartService {
   registerOrder(code: string): void {
     const cart = this.cart$.getValue();
     cart.orderCode = code;
+    cart.orderModified = false;
     this.emit(cart);
   }
 
@@ -77,6 +81,15 @@ export class CartService {
     const cart = this.cart$.getValue();
     if (cart.orderCode) {
       cart.orderCode = undefined;
+      cart.orderModified = false;
+      this.emit(cart);
+    }
+  }
+
+  markOrderSynced(): void {
+    const cart = this.cart$.getValue();
+    if (cart.orderModified) {
+      cart.orderModified = false;
       this.emit(cart);
     }
   }
@@ -85,8 +98,18 @@ export class CartService {
     return !!this.cart$.getValue().orderCode;
   }
 
+  hasModifiedOrder(): boolean {
+    return !!this.cart$.getValue().orderModified;
+  }
+
   private itemPrice(item: CartItem): number {
     return item.product.discountPrice ?? item.product.price;
+  }
+
+  private markModified(cart: Cart): void {
+    if (cart.orderCode) {
+      cart.orderModified = true;
+    }
   }
 
   private emit(cart: Cart): void {

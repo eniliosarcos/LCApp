@@ -42,6 +42,11 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
      a. Si no hay orden registrada: OrderService.postOrder()  →  POST /api/orders  (público)
      b. Backend genera código CAR-XXXXX, guarda la orden como 'pending'
      c. El frontend guarda el código real y abre el canal con mensaje prefabricado
+     d. Si la orden ya existe y el carrito fue modificado (flag `orderModified`):
+        OrderService.updateOrderItems()  →  PATCH /api/orders/:code/items  (público, solo 'pending')
+        sincroniza items y total; si falla (400/404) se re-verifica el estado (paso 5)
+     e. Botón "Actualizar pedido" en el carrito ejecuta el mismo PATCH de forma explícita
+        (visible solo con orden registrada, deshabilitado sin cambios pendientes)
 5. Al volver al carrito con una orden registrada, CartSummaryComponent consulta
    el estado real:  OrderService.getOrderStatus()  →  GET /api/orders/:code/status  (público)
      - 'confirmed'  → modal de éxito, clearCart() (vacía todo) y redirect a home
@@ -65,8 +70,8 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 | Servicio | Rol |
 |---|---|
 | `CatalogService` | Catálogo: categorías y productos desde la API (Observables). |
-| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`). |
-| `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`) + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
+| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
+| `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
 | `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
 
@@ -87,7 +92,7 @@ backend/
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET /
   routes/products.js   # GET /
-  routes/orders.js     # POST / (público), GET /:code/status (público) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
+  routes/orders.js     # POST / (público), GET /:code/status (público), PATCH /:code/items (público, solo pending) + admin (JWT): GET /, /stats, /:code, PATCH :id/confirm, :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
   middleware/auth.js   # verify Authorization: Bearer JWT
   models/              # Category, Product, Order, Config
@@ -103,7 +108,7 @@ backend/
 
 - Credenciales vía env, **sin modelo de usuarios en Mongo**: `ADMIN_USER` + `ADMIN_PASSWORD_HASH` (bcrypt) + `JWT_SECRET`.
 - `JWT_EXPIRES_IN` opcional, default `12h`.
-- El POST de creación de orden es **público** (el carrito no tiene token); solo las operaciones de gestión son admin.
+- El POST de creación de orden y el PATCH de items (`/orders/:code/items`) son **públicos** (el carrito no tiene token); solo las operaciones de gestión son admin. El PATCH solo muta órdenes `pending`.
 
 ## Variables de entorno y secrets
 

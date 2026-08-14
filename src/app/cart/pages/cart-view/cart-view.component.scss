@@ -41,6 +41,45 @@ h1 {
   }
 }
 
+.actions {
+  display: flex;
+  gap: v.$space-3;
+  align-self: flex-start;
+}
+
+.update {
+  padding: v.$space-2 v.$space-4;
+  border: 1px solid v.$color-primary;
+  border-radius: v.$radius-sm;
+  background: v.$color-primary;
+  color: v.$color-surface;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background: v.$color-primary-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.update-message {
+  margin: 0;
+  font-size: 0.9rem;
+
+  &.success {
+    color: v.$color-success;
+  }
+
+  &.error {
+    color: v.$color-danger;
+  }
+}
+
 .empty {
   text-align: center;
   background: v.$color-surface;

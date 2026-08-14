@@ -16,5 +16,6 @@ export interface Cart {
   items: CartItem[];
   code: string;
   orderCode?: string;
+  orderModified?: boolean;
   createdAt: string;
 }

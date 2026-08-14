@@ -86,6 +86,32 @@ router.get('/:code/status', async (req, res) => {
   }
 });
 
+// PATCH /api/orders/:code/items — Actualizar items de una orden pendiente (público)
+router.patch('/:code/items', async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'Faltan datos: items son requeridos' });
+    }
+
+    const order = await Order.findOne({ code: req.params.code });
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (order.status !== 'pending') {
+      return res.status(400).json({ error: `No se puede actualizar una orden con estado "${order.status}"` });
+    }
+
+    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    order.items = items;
+    order.total = total;
+    await order.save();
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/orders/:code — Buscar por código
 router.get('/:code', authenticate, async (req, res) => {
   try {

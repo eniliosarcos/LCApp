@@ -74,12 +74,14 @@ describe('CartSummaryComponent', () => {
   }
 
   beforeEach(async () => {
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder', 'getOrderStatus']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder', 'getOrderStatus', 'updateOrderItems']);
     cartServiceSpy = jasmine.createSpyObj('CartService', [
       'hasRegisteredOrder',
+      'hasModifiedOrder',
       'registerOrder',
       'clearOrderCode',
-      'clearCart'
+      'clearCart',
+      'markOrderSynced'
     ]);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -101,14 +103,16 @@ describe('CartSummaryComponent', () => {
     document.body.classList.remove('modal-lock');
   });
 
-  it('abre el modal y redirige tras el retardo cuando ya hay orden registrada', fakeAsync(() => {
+  it('abre el modal y redirige tras el retardo cuando ya hay orden registrada y no fue modificada', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
     component.openContact('whatsapp');
     fixture.detectChanges();
 
     expect(component.redirecting).toBeTrue();
     expect(orderServiceSpy.createOrder).not.toHaveBeenCalled();
-    console.log('DEBUG modal-lock after create:', document.body.className); expect(document.body.classList.contains('modal-lock')).toBeTrue();
+    expect(orderServiceSpy.updateOrderItems).not.toHaveBeenCalled();
+    expect(document.body.classList.contains('modal-lock')).toBeTrue();
 
     tick(2000);
     fixture.detectChanges();
@@ -174,6 +178,7 @@ describe('CartSummaryComponent', () => {
 
   it('ignora clicks repetidos mientras redirige', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
     component.openContact('whatsapp');
     component.openContact('instagram');
 
@@ -183,6 +188,84 @@ describe('CartSummaryComponent', () => {
     tick(2000);
     fixture.detectChanges();
     expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+  }));
+
+  it('actualiza la orden pendiente y redirige cuando el carrito fue modificado', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(true);
+    const pending = new Subject<Order>();
+    orderServiceSpy.updateOrderItems.and.returnValue(pending.asObservable());
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(component.redirecting).toBeTrue();
+    expect(orderServiceSpy.updateOrderItems).toHaveBeenCalledWith('CAR-ABC12', [
+      { productId: 'p1', productName: 'Rosa', quantity: 2, price: 100 }
+    ]);
+    expect(orderServiceSpy.createOrder).not.toHaveBeenCalled();
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).not.toHaveBeenCalled();
+    expect(component.redirecting).toBeTrue();
+
+    pending.next({ id: 'o1', code: 'CAR-ABC12', customerName: 'Cliente web', items: [], status: 'pending', total: 200, createdAt: '2026-01-01T00:00:00.000Z' });
+    pending.complete();
+    fixture.detectChanges();
+
+    expect(cartServiceSpy.markOrderSynced).toHaveBeenCalledTimes(1);
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).toHaveBeenCalled();
+    expect(component.redirecting).toBeFalse();
+  }));
+
+  it('no actualiza la orden cuando el carrito no fue modificado', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(false);
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+
+    expect(orderServiceSpy.updateOrderItems).not.toHaveBeenCalled();
+    expect(component.redirecting).toBeTrue();
+
+    tick(2000);
+    fixture.detectChanges();
+    expect(anchorClickSpy).toHaveBeenCalled();
+    expect(component.redirecting).toBeFalse();
+  }));
+
+  it('re-verifica el estado si la actualización de la orden falla', fakeAsync(() => {
+    cartServiceSpy.hasRegisteredOrder.and.returnValue(true);
+    cartServiceSpy.hasModifiedOrder.and.returnValue(true);
+    const patch$ = new Subject<Order>();
+    const status$ = new Subject<OrderStatusResponse>();
+    orderServiceSpy.updateOrderItems.and.returnValue(patch$.asObservable());
+    orderServiceSpy.getOrderStatus.and.returnValue(status$.asObservable());
+
+    component.openContact('whatsapp');
+    fixture.detectChanges();
+    expect(component.redirecting).toBeTrue();
+
+    patch$.error(Object.assign(new Error('No se puede actualizar una orden confirmada'), { status: 400 }));
+    fixture.detectChanges();
+
+    expect(component.redirecting).toBeFalse();
+    expect(component.checkingOrder).toBeTrue();
+    expect(orderServiceSpy.getOrderStatus).toHaveBeenCalledWith('CAR-ABC12');
+
+    status$.next(confirmedStatus);
+    status$.complete();
+    fixture.detectChanges();
+
+    expect(component.orderConfirmed).toBeTrue();
+    expect(cartServiceSpy.markOrderSynced).not.toHaveBeenCalled();
+
+    tick(4000);
+    fixture.detectChanges();
   }));
 
   it('consulta el estado al volver y muestra el pedido registrado si sigue pending', fakeAsync(() => {
@@ -266,7 +349,7 @@ describe('CartSummaryComponent', () => {
     expect(component.registered).toBeFalse();
     expect(component.orderNotice).toContain('Ya no encontramos tu pedido');
     expect(component.orderNoticeTitle).toBe('Pedido no encontrado');
-    console.log('DEBUG modal-lock after create:', document.body.className); expect(document.body.classList.contains('modal-lock')).toBeTrue();
+    expect(document.body.classList.contains('modal-lock')).toBeTrue();
   }));
 
   it('mantiene el estado registrado sin aviso si el estado no se puede verificar (error de red)', fakeAsync(() => {
