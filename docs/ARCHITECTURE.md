@@ -116,6 +116,10 @@ backend/
 - `JWT_EXPIRES_IN` opcional, default `12h`.
 - El POST de creación de orden y el PATCH de items (`/orders/:code/items`) son **públicos** (el carrito no tiene token); solo las operaciones de gestión son admin. El PATCH solo muta órdenes `pending`.
 
+### TTL perezoso de órdenes pendientes
+
+Las órdenes `pending` huérfanas (p. ej. cliente que vació el carrito o abandonó el flujo) se auto-cancelan sin cron ni TTL de Atlas: `expireStalePendingOrders()` se ejecuta **bajo demanda** al inicio de `GET /api/orders` (lista admin), `GET /api/orders/stats` y `GET /api/orders/:code/status` (público), marcando como `cancelled` toda `pending` con `createdAt` más antiguo que `ORDER_TTL_HOURS` (default **48h**). No borra documentos — el historial y las stats se conservan en `cancelled`. Efecto: al ingresar al dashboard admin, las huérfanas vencidas aparecen canceladas de inmediato; el cliente que verifica un código viejo ve `cancelled`. Tradeoff aceptado: el barrido solo corre al leer (una pestaña de admin abierta sin recargar no lo dispara).
+
 ## Variables de entorno y secrets
 
 ### Frontend (`src/environments/`)
@@ -139,6 +143,7 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 | `ADMIN_PASSWORD_HASH` | Hash bcrypt de la clave (generar con `npm run hash`) |
 | `JWT_SECRET` | Clave para firmar tokens |
 | `JWT_EXPIRES_IN` | Opcional, default `12h` |
+| `ORDER_TTL_HOURS` | Opcional; horas de vida de una orden `pending` antes de auto-cancelarse (TTL perezoso), default `48` |
 
 **Regla de oro**: nada real en el repo. Front → GitHub Secrets + CI; backend → env vars de Render. `backend/.env` y `src/environments/*` jamás se commitean con datos reales.
 

@@ -66,7 +66,7 @@ ng build --configuration production --base-href /LCApp/   # output en dist/
 
 ### Backend — `backend/.env`
 
-Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`.
+Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`).
 
 **Nunca commitear `backend/.env` ni `src/environments/*` con datos reales.** Los valores reales viven en GitHub Secrets (inyectados por CI al front) y en las env vars de Render (backend).
 

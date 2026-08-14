@@ -12,6 +12,23 @@ function generateCode() {
   return code;
 }
 
+const TTL_DEFAULT_HOURS = 48;
+
+// TTL lazy: horas de vida de una orden pending antes de considerarse abandonada (env ORDER_TTL_HOURS)
+function ttlMs() {
+  const hours = parseInt(process.env.ORDER_TTL_HOURS, 10);
+  return (Number.isFinite(hours) && hours > 0 ? hours : TTL_DEFAULT_HOURS) * 60 * 60 * 1000;
+}
+
+// Barrido bajo demanda: las pending más viejas que el TTL pasan a cancelled (no se borran)
+async function expireStalePendingOrders() {
+  const cutoff = new Date(Date.now() - ttlMs());
+  await Order.updateMany(
+    { status: 'pending', createdAt: { $lt: cutoff } },
+    { $set: { status: 'cancelled' } }
+  );
+}
+
 // POST /api/orders — Crear orden desde el carrito
 router.post('/', async (req, res) => {
   try {
@@ -42,6 +59,7 @@ router.post('/', async (req, res) => {
 // GET /api/orders — Listar órdenes (admin)
 router.get('/', authenticate, async (req, res) => {
   try {
+    await expireStalePendingOrders();
     const { status } = req.query;
     const filter = {};
     if (status) filter.status = status;
@@ -55,6 +73,7 @@ router.get('/', authenticate, async (req, res) => {
 // GET /api/orders/stats — Resumen de ventas (admin)
 router.get('/stats', authenticate, async (req, res) => {
   try {
+    await expireStalePendingOrders();
     const totalOrders = await Order.countDocuments();
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
     const confirmedOrders = await Order.countDocuments({ status: 'confirmed' });
@@ -78,6 +97,7 @@ router.get('/stats', authenticate, async (req, res) => {
 // GET /api/orders/:code/status — Estado de la orden por código (público)
 router.get('/:code/status', async (req, res) => {
   try {
+    await expireStalePendingOrders();
     const order = await Order.findOne({ code: req.params.code }, { code: 1, status: 1, confirmedAt: 1 });
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     res.json({ code: order.code, status: order.status, confirmedAt: order.confirmedAt });
