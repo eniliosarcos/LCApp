@@ -1,0 +1,87 @@
+@use 'styles/variables' as v;
+
+.snackbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: v.$space-3;
+  padding: v.$space-4;
+  background: v.$color-text;
+  color: v.$color-surface;
+  border-top: 3px solid v.$color-gold;
+  box-shadow: v.$shadow-card;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  z-index: 2000;
+
+  &.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  &--success {
+    border-top-color: v.$color-success;
+  }
+
+  &--error {
+    border-top-color: v.$color-danger;
+  }
+
+  &--info {
+    border-top-color: v.$color-gold;
+  }
+
+  &__text {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    padding: 0 v.$space-1;
+    background: none;
+    border: none;
+    color: v.$color-gold;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__close {
+    flex-shrink: 0;
+    padding: 0 v.$space-1;
+    background: none;
+    border: none;
+    color: v.$color-surface;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: v.$color-gold;
+    }
+  }
+
+  @media (min-width: 600px) {
+    left: 50%;
+    right: auto;
+    bottom: v.$space-6;
+    min-width: 344px;
+    max-width: 672px;
+    border-radius: v.$radius-md;
+    transform: translate(-50%, 100%);
+
+    &.open {
+      transform: translate(-50%, 0);
+    }
+  }
+}

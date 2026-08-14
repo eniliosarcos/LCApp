@@ -70,10 +70,16 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 | Servicio | Rol |
 |---|---|
 | `CatalogService` | Catálogo: categorías y productos desde la API (Observables). |
-| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
+| `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `restoreCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
 | `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders`, `getStats`, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
 | `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
+
+### Notificaciones (snackbar)
+
+`SnackbarService` (servicio global) + `AppSnackbarComponent` (singleton en `AppComponent`, exportado por `SharedModule`). Cualquier componente dispara avisos con `snackbar.show(message, type, duration, actionLabel?, onAction?)`; el servicio expone un `BehaviorSubject` y el componente auto-cierra con un timer reiniciable. `actionLabel`/`onAction` opcionales habilitan una acción en el aviso (ej. **Deshacer** en "Vaciar carrito", que restaura el carrito con `CartService.restoreCart`). Tipos `success`/`error`/`info` con `role=status`/`role=alert`. Responsive: ancho completo abajo en móvil (< 600px), centrado con `min-width: 344px` en desktop. A diferencia del modal (presentacional `@Input`/`@Output`), el snackbar se controla por servicio por decisión de producto.
+
+Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-list` ("«Nombre» agregado al carrito."). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código (no snackbar); el error de registro sigue junto a los botones de contacto.
 
 ### Sesión y storage (decisión importante)
 

@@ -4,6 +4,7 @@ import { BreadcrumbItem } from '../../../core/models/breadcrumb.model';
 import { OrderItem } from '../../../core/models/order.model';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-cart-view',
@@ -14,7 +15,6 @@ export class CartViewComponent implements OnInit {
   cart: Cart | null = null;
   loading = true;
   updating = false;
-  updateMessage: { type: 'success' | 'error'; text: string } | null = null;
   breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Inicio', link: '/' },
     { label: 'Carrito', link: '' }
@@ -22,7 +22,8 @@ export class CartViewComponent implements OnInit {
 
   constructor(
     private readonly cartService: CartService,
-    private readonly orderService: OrderService
+    private readonly orderService: OrderService,
+    private readonly snackbarService: SnackbarService
   ) {}
 
   get hasRegisteredOrder(): boolean {
@@ -49,7 +50,18 @@ export class CartViewComponent implements OnInit {
   }
 
   clearCart(): void {
+    if (!this.cart) {
+      return;
+    }
+    const snapshot = this.cart;
     this.cartService.clearCart();
+    this.snackbarService.show(
+      'Tu carrito fue vaciado.',
+      'info',
+      5000,
+      'Deshacer',
+      () => this.cartService.restoreCart(snapshot)
+    );
   }
 
   updateOrder(): void {
@@ -58,16 +70,15 @@ export class CartViewComponent implements OnInit {
       return;
     }
     this.updating = true;
-    this.updateMessage = null;
     this.orderService.updateOrderItems(orderCode, this.toOrderItems(this.cart.items)).subscribe({
       next: () => {
         this.cartService.markOrderSynced();
         this.updating = false;
-        this.updateMessage = { type: 'success', text: 'Tu pedido fue actualizado.' };
+        this.snackbarService.show('Tu pedido fue actualizado.', 'success');
       },
       error: () => {
         this.updating = false;
-        this.updateMessage = { type: 'error', text: 'No se pudo actualizar. Puede que la orden ya no esté disponible.' };
+        this.snackbarService.show('No se pudo actualizar. Puede que la orden ya no esté disponible.', 'error');
       }
     });
   }

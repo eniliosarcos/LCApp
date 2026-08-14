@@ -1,0 +1,18 @@
+<div
+  class="snackbar"
+  [class.open]="snackbar !== null"
+  [class.snackbar--success]="snackbar?.type === 'success'"
+  [class.snackbar--error]="snackbar?.type === 'error'"
+  [class.snackbar--info]="snackbar?.type === 'info'"
+  [attr.role]="role"
+  [attr.aria-hidden]="snackbar === null">
+  <span class="snackbar__text">{{ snackbar?.message }}</span>
+  <button
+    type="button"
+    class="snackbar__action"
+    *ngIf="snackbar?.actionLabel"
+    (click)="onAction()">
+    {{ snackbar?.actionLabel }}
+  </button>
+  <button type="button" class="snackbar__close" *ngIf="snackbar" (click)="dismiss()" aria-label="Cerrar aviso">&times;</button>
+</div>

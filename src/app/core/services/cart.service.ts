@@ -66,6 +66,10 @@ export class CartService {
     this.emit(this.createEmptyCart());
   }
 
+  restoreCart(snapshot: Cart): void {
+    this.emit(snapshot);
+  }
+
   getCartCode(): string {
     return this.cart$.getValue().code;
   }

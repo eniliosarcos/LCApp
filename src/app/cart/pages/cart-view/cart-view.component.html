@@ -29,13 +29,6 @@
               {{ updating ? 'Actualizando pedido…' : 'Actualizar pedido' }}
             </button>
           </div>
-          <p
-            class="update-message"
-            *ngIf="updateMessage"
-            [class.success]="updateMessage.type === 'success'"
-            [class.error]="updateMessage.type === 'error'">
-            {{ updateMessage.text }}
-          </p>
         </div>
 
         <app-cart-summary [cart]="cart"></app-cart-summary>

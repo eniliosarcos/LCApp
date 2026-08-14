@@ -67,19 +67,6 @@ h1 {
   }
 }
 
-.update-message {
-  margin: 0;
-  font-size: 0.9rem;
-
-  &.success {
-    color: v.$color-success;
-  }
-
-  &.error {
-    color: v.$color-danger;
-  }
-}
-
 .empty {
   text-align: center;
   background: v.$color-surface;

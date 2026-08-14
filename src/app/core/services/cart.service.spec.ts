@@ -151,6 +151,24 @@ describe('CartService', () => {
     expect(emissions).toBe(1);
   });
 
+  it('restoreCart restaura items y orden registrada tras vaciar', () => {
+    service.addItem(product, 2);
+    service.registerOrder('CAR-ABC12');
+    const snapshot = currentCart();
+
+    service.clearCart();
+
+    expect(service.hasRegisteredOrder()).toBeFalse();
+    expect(currentCart().items.length).toBe(0);
+
+    service.restoreCart(snapshot);
+
+    expect(currentCart().items.length).toBe(1);
+    expect(currentCart().items[0].quantity).toBe(2);
+    expect(currentCart().orderCode).toBe('CAR-ABC12');
+    expect(service.hasRegisteredOrder()).toBeTrue();
+  });
+
   it('getTotal usa el precio con descuento', () => {
     service.addItem(product, 2);
     service.addItem(discountProduct, 1);

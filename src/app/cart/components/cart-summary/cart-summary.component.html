@@ -7,6 +7,9 @@
     <small>Usa este código al contactarnos</small>
   </div>
 
+  <p class="status success" *ngIf="registered && !redirecting && !checkingOrder">¡Pedido registrado!</p>
+  <p class="status loading" *ngIf="registered && cart.orderModified && !redirecting && !checkingOrder">Modificaste tu carrito. Tu pedido se actualizará cuando vuelvas a contactar.</p>
+
   <div class="rows">
     <div class="row">
       <span>Productos ({{ getTotalItems() }})</span>
@@ -34,8 +37,6 @@
     </div>
 
     <p class="status loading" *ngIf="contacting && !redirecting">Registrando tu pedido…</p>
-    <p class="status success" *ngIf="registered && !redirecting && !checkingOrder">¡Pedido registrado! Tu código es {{ getOrderCode() }}.</p>
-    <p class="status loading" *ngIf="registered && cart.orderModified && !redirecting && !checkingOrder">Modificaste tu carrito. Tu pedido se actualizará cuando vuelvas a contactar.</p>
     <p class="status error" *ngIf="errorMessage && !redirecting">{{ errorMessage }}</p>
   </ng-container>
 

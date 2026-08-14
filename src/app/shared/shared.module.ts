@@ -4,11 +4,12 @@ import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { AppModalComponent } from './components/modal/app-modal.component';
+import { AppSnackbarComponent } from './components/snackbar/app-snackbar.component';
 import { CurrencyFormatPipe } from './pipes/currency-format.pipe';
 
 @NgModule({
-  declarations: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, CurrencyFormatPipe],
+  declarations: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppSnackbarComponent, CurrencyFormatPipe],
   imports: [CommonModule, RouterModule],
-  exports: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, CurrencyFormatPipe]
+  exports: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppSnackbarComponent, CurrencyFormatPipe]
 })
 export class SharedModule {}

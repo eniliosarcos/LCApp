@@ -5,6 +5,7 @@ import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 @Component({
   selector: 'app-product-list',
@@ -25,7 +26,8 @@ export class ProductListComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly catalogService: CatalogService,
-    private readonly cartService: CartService
+    private readonly cartService: CartService,
+    private readonly snackbarService: SnackbarService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +60,7 @@ export class ProductListComponent implements OnInit {
   addToCart(product: Product): void {
     this.cartService.addItem(product);
     this.addedProductIds.add(product.id);
+    this.snackbarService.show(`${product.name} agregado al carrito.`, 'success');
     setTimeout(() => this.addedProductIds.delete(product.id), 1500);
   }
 
