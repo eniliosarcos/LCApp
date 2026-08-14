@@ -8,6 +8,7 @@ import { CreateOrderRequest, OrderItem, OrderStatus } from '../../../core/models
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { OrderService } from '../../../core/services/order.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 
 type ContactChannel = 'whatsapp' | 'instagram' | 'telegram';
 
@@ -30,7 +31,6 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
   orderConfirmed = false;
   orderNotice = '';
   orderNoticeTitle = '';
-  errorMessage = '';
 
   private readonly destroy$ = new Subject<void>();
   private contactChannel: ContactChannel = 'whatsapp';
@@ -39,7 +39,8 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly contactService: ContactService,
     private readonly orderService: OrderService,
-    private readonly cartService: CartService
+    private readonly cartService: CartService,
+    private readonly snackbarService: SnackbarService
   ) {}
 
   ngOnInit(): void {
@@ -89,7 +90,6 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
     }
 
     this.contactChannel = channel;
-    this.errorMessage = '';
     this.redirecting = true;
 
     if (this.cartService.hasRegisteredOrder()) {
@@ -112,7 +112,7 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
       error: () => {
         this.contacting = false;
         this.redirecting = false;
-        this.errorMessage = 'No se pudo registrar tu pedido. Verifica tu conexión e inténtalo de nuevo.';
+        this.snackbarService.show('No se pudo registrar tu pedido. Verifica tu conexión e inténtalo de nuevo.', 'error');
       }
     });
   }

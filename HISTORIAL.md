@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-13 — feat — Error de registro del pedido migrado a snackbar en cart-summary
+- **Descripción**: El último aviso inline del flujo de contacto queda migrado al snackbar global. Cuando falla `createOrder`, `cart-summary` ahora muestra "No se pudo registrar tu pedido. Verifica tu conexión e inténtalo de nuevo." vía `snackbarService.show(..., 'error')` en vez del `<p class="status error">` que aparecía junto a los botones. Se eliminó el estado `errorMessage`, su reset en `openContact`, el render en el template y el estilo `.status.error` (sin uso).
+- **Archivos**: `src/app/cart/components/cart-summary/cart-summary.component.ts|html|scss`, `cart-summary.component.spec.ts`, `docs/ARCHITECTURE.md`
+- **Decisión clave**: Consistencia UX — todo el feedback de notificaciones del carrito pasa por el snackbar global (4s, `role=alert`); el error ya no compite con el estado "Registrando tu pedido…" dentro del resumen. Solo los estados "Verificando…"/"Registrando…" y los avisos bajo el código quedan inline (contenido posicional, no notificación).
+- **Verificación**: `ng test` cart-summary 12/12 OK (test del error ahora espera el snackbar); `ng build --configuration production` OK sin warnings de budget.
+
 ### 2026-08-13 — feat — TTL perezoso: auto-cancelación de órdenes pendientes huérfanas
 - **Descripción**: Las órdenes `pending` que quedan huérfanas (cliente que vacía el carrito o abandona el flujo) ya no viven para siempre: un barrido bajo demanda (`expireStalePendingOrders()`) pasa a `cancelled` toda `pending` con `createdAt` más antigua que `ORDER_TTL_HOURS` (default 48h). Se ejecuta al inicio de `GET /api/orders` (lista admin), `GET /api/orders/stats` y `GET /api/orders/:code/status` (público) — así, al ingresar al dashboard admin las huérfanas vencidas ya aparecen canceladas, y el cliente que verifica un código viejo ve `cancelled`. No se borran documentos (historial y stats conservados en `cancelled`); `PATCH /:code/items`, confirm/cancel admin y POST no cambian.
 - **Archivos**: `backend/routes/orders.js`, `backend/.env.example`, `README.md`, `docs/ARCHITECTURE.md`

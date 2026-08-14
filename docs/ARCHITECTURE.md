@@ -79,7 +79,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 
 `SnackbarService` (servicio global) + `AppSnackbarComponent` (singleton en `AppComponent`, exportado por `SharedModule`). Cualquier componente dispara avisos con `snackbar.show(message, type, duration, actionLabel?, onAction?)`; el servicio expone un `BehaviorSubject` y el componente auto-cierra con un timer reiniciable. `actionLabel`/`onAction` opcionales habilitan una acción en el aviso (ej. **Deshacer** en "Vaciar carrito", que restaura el carrito con `CartService.restoreCart`). Tipos `success`/`error`/`info` con `role=status`/`role=alert`. Responsive: ancho completo abajo en móvil (< 600px), centrado con `min-width: 344px` en desktop. A diferencia del modal (presentacional `@Input`/`@Output`), el snackbar se controla por servicio por decisión de producto.
 
-Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-list` ("«Nombre» agregado al carrito."). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código (no snackbar); el error de registro sigue junto a los botones de contacto.
+Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-list` ("«Nombre» agregado al carrito.") y `cart-summary` (error al registrar el pedido). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código; los estados "Verificando…" y "Registrando…" quedan junto a los botones de contacto.
 
 ### Sesión y storage (decisión importante)
 

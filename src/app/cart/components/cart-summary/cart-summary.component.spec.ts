@@ -8,6 +8,7 @@ import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { OrderService } from '../../../core/services/order.service';
+import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { CartSummaryComponent } from './cart-summary.component';
@@ -63,6 +64,7 @@ describe('CartSummaryComponent', () => {
   let component: CartSummaryComponent;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
   let cartServiceSpy: jasmine.SpyObj<CartService>;
+  let snackbarServiceSpy: jasmine.SpyObj<SnackbarService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let anchorClickSpy: jasmine.Spy;
 
@@ -84,12 +86,14 @@ describe('CartSummaryComponent', () => {
       'markOrderSynced'
     ]);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    snackbarServiceSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
     await TestBed.configureTestingModule({
       declarations: [CartSummaryComponent, AppModalComponent, CurrencyFormatPipe],
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: CartService, useValue: cartServiceSpy },
+        { provide: SnackbarService, useValue: snackbarServiceSpy },
         { provide: ContactService, useValue: { getContact: () => of(contactStub) } },
         { provide: Router, useValue: routerSpy }
       ]
@@ -153,7 +157,7 @@ describe('CartSummaryComponent', () => {
     expect(component.redirecting).toBeFalse();
   }));
 
-  it('no redirige y muestra error si el endpoint falla', fakeAsync(() => {
+  it('no redirige y muestra el snackbar de error si el endpoint falla', fakeAsync(() => {
     cartServiceSpy.hasRegisteredOrder.and.returnValue(false);
     const pending = new Subject<Order>();
     orderServiceSpy.createOrder.and.returnValue(pending.asObservable());
@@ -173,7 +177,7 @@ describe('CartSummaryComponent', () => {
     expect(anchorClickSpy).not.toHaveBeenCalled();
     expect(component.redirecting).toBeFalse();
     expect(component.contacting).toBeFalse();
-    expect(component.errorMessage).toContain('No se pudo registrar tu pedido');
+    expect(snackbarServiceSpy.show).toHaveBeenCalledWith('No se pudo registrar tu pedido. Verifica tu conexión e inténtalo de nuevo.', 'error');
   }));
 
   it('ignora clicks repetidos mientras redirige', fakeAsync(() => {
