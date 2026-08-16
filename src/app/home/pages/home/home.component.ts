@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -9,13 +9,17 @@ import { CatalogService } from '../../../core/services/catalog.service';
   styleUrls: ['./home.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewChecked {
+  @ViewChild('stripScroll') stripScroll?: ElementRef<HTMLElement>;
+
   categories: Category[] = [];
   products: Product[] = [];
   selectedCategoryId = '';
   loading = true;
   error = false;
   categoriesError = false;
+  canScrollLeft = false;
+  canScrollRight = false;
 
   constructor(
     private readonly catalogService: CatalogService,
@@ -41,12 +45,26 @@ export class HomeComponent implements OnInit {
     this.loadProducts('');
   }
 
+  ngAfterViewChecked(): void {
+    this.updateStripFades();
+  }
+
+  onStripScroll(): void {
+    this.updateStripFades();
+    this.cdr.markForCheck();
+  }
+
+  scrollStrip(direction: number): void {
+    this.stripScroll?.nativeElement.scrollBy({ left: direction * 320, behavior: 'smooth' });
+  }
+
   selectCategory(categoryId: string): void {
     if (this.selectedCategoryId === categoryId) {
       return;
     }
     this.selectedCategoryId = categoryId;
     this.loadProducts(categoryId);
+    this.scrollActiveChipIntoView();
   }
 
   categoryTrackBy(_index: number, category: Category): string {
@@ -55,6 +73,36 @@ export class HomeComponent implements OnInit {
 
   productTrackBy(_index: number, product: Product): string {
     return product.id;
+  }
+
+  private scrollActiveChipIntoView(): void {
+    const container = this.stripScroll?.nativeElement;
+    if (!container) {
+      return;
+    }
+    const chips = container.querySelectorAll<HTMLButtonElement>('.chip');
+    const index = this.selectedCategoryId === ''
+      ? 0
+      : this.categories.findIndex(category => category.id === this.selectedCategoryId) + 1;
+    const chip = chips[index];
+    if (!chip) {
+      return;
+    }
+    chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  private updateStripFades(): void {
+    const el = this.stripScroll?.nativeElement;
+    if (!el) {
+      return;
+    }
+    const canScrollLeft = el.scrollLeft > 4;
+    const canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    if (canScrollLeft !== this.canScrollLeft || canScrollRight !== this.canScrollRight) {
+      this.canScrollLeft = canScrollLeft;
+      this.canScrollRight = canScrollRight;
+      this.cdr.markForCheck();
+    }
   }
 
   private loadProducts(categoryId: string): void {

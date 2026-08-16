@@ -115,4 +115,28 @@ describe('HomeComponent', () => {
     component.selectCategory('c2');
     expect(component.selectedCategoryName).toBe('Tulipanes');
   });
+
+  it('scrollea la cinta al pulsar una flecha', () => {
+    const el = component.stripScroll?.nativeElement as HTMLElement;
+    const spy = spyOn(el, 'scrollBy') as jasmine.Spy;
+    component.scrollStrip(1);
+    expect(spy).toHaveBeenCalledWith({ left: 320, behavior: 'smooth' });
+    component.scrollStrip(-1);
+    expect(spy).toHaveBeenCalledWith({ left: -320, behavior: 'smooth' });
+  });
+
+  it('scrollear sin cinta disponible no rompe', () => {
+    component.stripScroll = undefined;
+    expect(() => component.scrollStrip(1)).not.toThrow();
+  });
+
+  it('al seleccionar una categoría centra el tab activo', () => {
+    const el = component.stripScroll?.nativeElement as HTMLElement;
+    const lastChip = el.querySelectorAll<HTMLButtonElement>('.chip')[2];
+    const spy = spyOn(lastChip, 'scrollIntoView');
+
+    component.selectCategory('c2');
+
+    expect(spy).toHaveBeenCalledWith({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  });
 });
