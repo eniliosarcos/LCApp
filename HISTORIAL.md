@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-15 — style — Modal registrar venta: el error se muestra en un diálogo (como la confirmación) + tests de Orders autocontenidos
+- **Descripción**: El error del modal de ventas manuales ya no se muestra como texto en el formulario sino en un **diálogo modal** (`AppConfirmDialogComponent` con `variant="cancel"`, título "No se pudo registrar la venta", botones "Revisar" / "Entendido" — ambos cierran el diálogo y devuelven al formulario). Aplica a validación de línea, error del servicio al guardar y error al cargar productos. De paso se corrigieron 2 tests de `orders.component.spec.ts` que dependían de estado de otro test: no llamaban a `createComponent()` y Jasmine corre los specs en orden aleatorio, por lo que fallaban intermitentemente con `TypeError: Cannot set properties of undefined (setting 'totalPages')`.
+- **Archivos**: `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.ts|html|scss|spec.ts`, `src/app/admin/pages/orders/orders.component.spec.ts`
+- **Decisión clave**: Reutilizar el patrón de confirmación existente (`formError` conserva el mensaje; `showError` controla la visibilidad del diálogo) en lugar de un inline que competía con los botones de acción. En tests: **cada spec debe ser autocontenido** (crear su propio componente); nunca depender de que otro test deje estado.
+- **Verificación**: `ng test --watch=false` **178/178 OK** en 2 corridas consecutivas (la flakiness de Orders desapareció).
+
 ### 2026-08-15 — fix — Backend: validar stock agregado por producto en ventas manuales (evita sobre-venta)
 - **Descripción**: `POST /api/orders/manual` validaba cada línea contra el stock actual por separado y descontaba por línea, por lo que el mismo producto en varias líneas podía sobre-vender (ej: stock 5 con líneas 4+4 → ambas pasaban, stock quedaba -3). Ahora se **acumulan las cantidades por producto** en un `Map` (dentro del mismo loop, sin queries extra) y se valida el total por producto antes de crear la orden y descontar. Se permite repetir el producto en varias líneas con precios distintos (caso mostrador).
 - **Archivos**: `backend/routes/orders.js` (POST /manual), `docs/ARCHITECTURE.md`

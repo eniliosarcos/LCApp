@@ -5,8 +5,6 @@
   [dismissible]="!confirming && !saving"
   (close)="close()">
   <form class="entity-form manual-sale-form" (ngSubmit)="onSubmit()">
-    <p class="error" *ngIf="formError">{{ formError }}</p>
-
     <div class="form-row">
       <label>Cliente
         <input
@@ -103,6 +101,17 @@
         [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : 'Registrar venta' }}</button>
     </div>
   </form>
+
+  <app-confirm-dialog
+    [open]="showError"
+    [title]="'No se pudo registrar la venta'"
+    [message]="formError"
+    [confirmLabel]="'Entendido'"
+    [cancelLabel]="'Revisar'"
+    [variant]="'cancel'"
+    (confirmed)="dismissError()"
+    (cancelled)="dismissError()">
+  </app-confirm-dialog>
 
   <app-confirm-dialog
     [open]="confirming"

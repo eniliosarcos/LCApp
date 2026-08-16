@@ -29,6 +29,7 @@ export class ManualSaleModalComponent implements OnInit {
   saleDate = '';
   lines: ManualSaleLine[] = [{ ...EMPTY_LINE }];
   formError = '';
+  showError = false;
   saving = false;
   confirming = false;
   private wasOpen = false;
@@ -129,8 +130,7 @@ export class ManualSaleModalComponent implements OnInit {
   onSubmit(): void {
     const validationError = this.validate();
     if (validationError) {
-      this.formError = validationError;
-      this.cdr.markForCheck();
+      this.showFormError(validationError);
       return;
     }
     this.formError = '';
@@ -145,6 +145,7 @@ export class ManualSaleModalComponent implements OnInit {
     this.confirming = false;
     this.saving = true;
     this.formError = '';
+    this.showError = false;
     this.cdr.markForCheck();
 
     const request: CreateManualOrderRequest = {
@@ -167,14 +168,18 @@ export class ManualSaleModalComponent implements OnInit {
       },
       error: (err: Error) => {
         this.saving = false;
-        this.formError = err.message;
-        this.cdr.markForCheck();
+        this.showFormError(err.message);
       }
     });
   }
 
   cancelConfirm(): void {
     this.confirming = false;
+    this.cdr.markForCheck();
+  }
+
+  dismissError(): void {
+    this.showError = false;
     this.cdr.markForCheck();
   }
 
@@ -199,8 +204,15 @@ export class ManualSaleModalComponent implements OnInit {
     this.saleDate = this.todayString();
     this.lines = [{ ...EMPTY_LINE }];
     this.formError = '';
+    this.showError = false;
     this.saving = false;
     this.confirming = false;
+    this.cdr.markForCheck();
+  }
+
+  private showFormError(message: string): void {
+    this.formError = message;
+    this.showError = true;
     this.cdr.markForCheck();
   }
 
@@ -237,8 +249,7 @@ export class ManualSaleModalComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.formError = 'No se pudieron cargar los productos.';
-        this.cdr.markForCheck();
+        this.showFormError('No se pudieron cargar los productos.');
       }
     });
   }

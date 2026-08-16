@@ -152,14 +152,18 @@ describe('ManualSaleModalComponent', () => {
     expect(component.total).toBe(90 * 2 + 100);
   });
 
-  it('valida que haya al menos un producto completo', () => {
+  it('muestra el error de validación en un diálogo', () => {
     catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1')]));
     createComponent();
+    openModal();
 
     component.onSubmit();
+    fixture.detectChanges();
 
     expect(component.confirming).toBeFalse();
     expect(component.formError).toContain('al menos un producto');
+    expect(component.showError).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('al menos un producto');
   });
 
   it('valida que la cantidad no supere el stock', () => {
@@ -172,6 +176,7 @@ describe('ManualSaleModalComponent', () => {
 
     expect(component.confirming).toBeFalse();
     expect(component.formError).toContain('Stock insuficiente');
+    expect(component.showError).toBeTrue();
   });
 
   it('muestra el diálogo de doble confirmación antes de guardar y no llama al servicio', () => {
@@ -218,17 +223,27 @@ describe('ManualSaleModalComponent', () => {
     expect(component.saving).toBeFalse();
   });
 
-  it('muestra el error del servicio en el formulario', () => {
+  it('muestra el error del servicio en un diálogo y lo cierra', () => {
     catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1')]));
     orderServiceSpy.createManualOrder.and.returnValue(throwError(() => new Error('Stock insuficiente para X')));
     createComponent();
+    openModal();
 
     component.onProductChange(0, 'p1');
     component.onSubmit();
     component.runConfirm();
+    fixture.detectChanges();
 
     expect(component.saving).toBeFalse();
     expect(component.formError).toBe('Stock insuficiente para X');
+    expect(component.showError).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('No se pudo registrar la venta');
+    expect(fixture.nativeElement.textContent).toContain('Stock insuficiente para X');
+
+    component.dismissError();
+    fixture.detectChanges();
+
+    expect(component.showError).toBeFalse();
   });
 
   it('cancela la confirmación y vuelve al formulario', () => {

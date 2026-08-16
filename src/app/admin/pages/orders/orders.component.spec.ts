@@ -153,12 +153,18 @@ describe('OrdersComponent', () => {
   });
 
   it('genera ventanas de páginas con elipsis cuando hay muchas páginas', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
     component.totalPages = 10;
     component.page = 5;
     expect(component.pageNumbers).toEqual([1, '…', 4, 5, 6, '…', 10]);
   });
 
   it('muestra el rango de la página actual', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([])));
+    createComponent();
+
     component.total = 23;
     component.page = 2;
     expect(component.rangeLabel).toBe('11–20 de 23');
