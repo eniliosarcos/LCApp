@@ -9,6 +9,8 @@ import { ProductImage } from '../../../core/models/product.model';
 export class ProductGalleryComponent implements OnInit {
   @Input() images: ProductImage[] = [];
   selectedImage: ProductImage | null = null;
+  mainImageFailed = false;
+  failedThumbs = new Set<string>();
 
   ngOnInit(): void {
     this.selectedImage = this.getPrimaryImage();
@@ -26,7 +28,24 @@ export class ProductGalleryComponent implements OnInit {
     return 'LC';
   }
 
+  get mainImage(): ProductImage | null {
+    return this.selectedImage || this.getPrimaryImage();
+  }
+
+  thumbFailed(image: ProductImage): boolean {
+    return this.failedThumbs.has(image.id);
+  }
+
   selectImage(image: ProductImage): void {
     this.selectedImage = image;
+    this.mainImageFailed = false;
+  }
+
+  onMainImageError(): void {
+    this.mainImageFailed = true;
+  }
+
+  onThumbImageError(image: ProductImage): void {
+    this.failedThumbs.add(image.id);
   }
 }

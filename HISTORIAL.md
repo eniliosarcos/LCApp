@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-16 — feat — Optimización de carga de imágenes con fallback a la inicial
+- **Descripción**: Las imágenes del detalle y del carrito pasan a cargarse de forma óptima con atributos nativos: la imagen principal de la galería usa `fetchpriority="high"` (es el LCP de la vista), y las miniaturas y las del carrito usan `loading="lazy"` + `decoding="async"`. Además, si una URL remota se rompe, el `<img>` dispara `(error)` y se muestra la inicial/placeholder como cuando no hay imagen (antes solo aparecía si la URL estaba vacía). En la galería el fallback es por imagen (una miniatura rota no afecta a las demás) y `selectImage()` reintenta la principal al cambiar de miniatura.
+- **Archivos**: `src/app/catalog/components/product-gallery/product-gallery.component.ts|html` (+ `spec.ts` nuevo), `src/app/cart/components/cart-item/cart-item.component.ts|html` (+ `spec.ts` nuevo)
+- **Decisión clave**: Se descartó `NgOptimizedImage` por ahora: las imágenes son URLs remotas arbitrarias pegadas por el admin, sin CDN/loader que redimensione, así que el `srcset` de la directiva sería inútil (inyectaría `?w=…` sobre hosts ajenos). El Tier 1 deja todo listo para sumar `srcset` real el día que se self-hosteen imágenes con variantes (upload + sharp + WebP/AVIF es feature pendiente; Cloudinary descartado por el usuario — no disponible en su país). Pendiente también: gestión multi-imagen en el formulario admin (el modelo `Product.images[]` y la galería ya lo soportan).
+- **Verificación**: `ng build --configuration production` OK; `ng test --watch=false` **207/207 OK** (6 specs nuevos de galería + 5 de cart-item).
+
 ### 2026-08-16 — fix — Quitar overflow y max-height del bloque de líneas en el modal de registrar venta
 - **Descripción**: El campo `.sale-lines` del modal de venta manual dejaba de tener scroll interno (`max-height: 40vh; overflow-y: auto`), de modo que las líneas de producto se muestran completas y el scroll lo resuelve el modal en sí.
 - **Archivos**: `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.scss`

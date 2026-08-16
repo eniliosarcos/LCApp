@@ -1,7 +1,13 @@
 <article class="cart-item">
   <div class="media" aria-hidden="true">
-    <img *ngIf="item.product.images[0]?.url" [src]="item.product.images[0].url" [alt]="item.product.images[0].alt || item.product.name">
-    <span *ngIf="!item.product.images[0]?.url" class="fallback">{{ fallback }}</span>
+    <img
+      *ngIf="productImage && !imageFailed"
+      [src]="productImage"
+      [alt]="item.product.images[0].alt || item.product.name"
+      loading="lazy"
+      decoding="async"
+      (error)="onImageError()">
+    <span *ngIf="!productImage || imageFailed" class="fallback">{{ fallback }}</span>
   </div>
 
   <div class="info">

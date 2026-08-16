@@ -10,6 +10,11 @@ export class CartItemComponent {
   @Input() item!: CartItem;
   @Output() remove = new EventEmitter<string>();
   @Output() updateQuantity = new EventEmitter<CartItemQuantity>();
+  imageFailed = false;
+
+  get productImage(): string | undefined {
+    return this.item.product.images[0]?.url;
+  }
 
   get unitPrice(): number {
     return this.item.product.discountPrice ?? this.item.product.price;
@@ -45,5 +50,9 @@ export class CartItemComponent {
 
   onRemove(): void {
     this.remove.emit(this.item.productId);
+  }
+
+  onImageError(): void {
+    this.imageFailed = true;
   }
 }
