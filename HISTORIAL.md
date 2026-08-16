@@ -21,6 +21,18 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-15 — fix — Backend: validar stock agregado por producto en ventas manuales (evita sobre-venta)
+- **Descripción**: `POST /api/orders/manual` validaba cada línea contra el stock actual por separado y descontaba por línea, por lo que el mismo producto en varias líneas podía sobre-vender (ej: stock 5 con líneas 4+4 → ambas pasaban, stock quedaba -3). Ahora se **acumulan las cantidades por producto** en un `Map` (dentro del mismo loop, sin queries extra) y se valida el total por producto antes de crear la orden y descontar. Se permite repetir el producto en varias líneas con precios distintos (caso mostrador).
+- **Archivos**: `backend/routes/orders.js` (POST /manual), `docs/ARCHITECTURE.md`
+- **Decisión clave**: La validación unitaria por línea es insuficiente cuando el mismo producto aparece en más de una línea; la acumulación por `productId` convierte el chequeo en "stock del producto vs suma de cantidades". El `Map` guarda `{ name, stock, quantity }` para reusar el fetch ya hecho y evitar consultas duplicadas.
+- **Verificación**: Smoke test con instancia temporal (puerto 3100): producto temp stock 5 → líneas 4+4 = **400** `disponible 5, solicitado 8` (stock intacto); líneas 2+2 (precios 100 y 50) = **201**, total 300, 2 líneas separadas, stock 5→1. Cleanup de datos temp OK. Frontend no cambió (178/178 sigue OK).
+
+### 2026-08-15 — style — Modal registrar venta: en móvil Cantidad angosta, Precio y Quitar en la misma fila
+- **Descripción**: En pantallas ≤600px la línea de producto pasó de `1fr 1fr` (cantidad y precio a la mitad del ancho cada uno, Quitar abajo) a `90px 1fr auto` con grid-areas: **Producto** a ancho completo arriba, y debajo **Cantidad** (columna angosta de 90px, ya no ocupa la mitad), **Precio unitario** (flexible) y **Quitar** al lado del precio en la misma fila. Sin producto seleccionado, la línea queda en 1 columna con el selector full width y Quitar abajo a la izquierda.
+- **Archivos**: `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.scss`
+- **Decisión clave**: Con la clase `sale-line--has-product` se alterna la plantilla del grid en móvil; `grid-template-areas` fija las zonas (`product`/`qty`/`price`/`remove`) sin depender del orden de los hijos. De paso se corrigió que `.sale-lines__add` (margin-top del botón "+ Agregar producto") quedó anidado por accidente dentro del media query en el edit previo; ahora vive a nivel de `.manual-sale-form`.
+- **Verificación**: `ng test --watch=false` **178/178 OK**.
+
 ### 2026-08-15 — style — Modal registrar venta: cantidad y precio unitario aparecen recién al seleccionar el producto
 - **Descripción**: Cada línea del modal de ventas manuales ahora muestra solo el selector de producto hasta que se elige uno; al seleccionarlo aparecen **Cantidad** y **Precio unitario** (con el precio efectivo autocompletado y editable, como antes). El grid de la línea se adapta: sin producto el selector ocupa todo el ancho (`minmax(0, 1fr) auto`), con producto vuelve a las 4 columnas (`minmax(0, 1fr) 90px 110px auto`) vía clase `sale-line--has-product`. En móvil mantiene el apilado actual.
 - **Archivos**: `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.html|scss|spec.ts`
