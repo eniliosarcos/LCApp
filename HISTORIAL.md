@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-15 — fix — El modal de registrar venta no vuelve a abrirse al recargar la página
+- **Descripción**: Al cerrar el modal (Cancelar) o tras registrar una venta, `?registrar=1` quedaba en la URL; al recargar la página el componente lo detectaba y volvía a abrir el modal. Ahora `closeRegister()` limpia el query param con `router.navigate([], { queryParams: { registrar: null }, queryParamsHandling: 'merge', replaceUrl: true })`, que quita solo `registrar` conservando el resto de la URL (y `replaceUrl` evita ensuciar el historial).
+- **Archivos**: `src/app/admin/pages/sales/sales.component.ts|spec.ts`
+- **Decisión clave**: El query param era la única fuente del estado "abrir modal"; al cerrar, la URL debe volver a su estado base. El `queryParamMap` emite de nuevo con `registrar=null` y la guardia `params.get('registrar') === '1'` evita re-abrir.
+- **Verificación**: `ng test --watch=false` **179/179 OK** (+1 test: "quita ?registrar=1 de la URL al cerrar el modal").
+
 ### 2026-08-15 — style — Modal registrar venta: el error se muestra en un diálogo (como la confirmación) + tests de Orders autocontenidos
 - **Descripción**: El error del modal de ventas manuales ya no se muestra como texto en el formulario sino en un **diálogo modal** (`AppConfirmDialogComponent` con `variant="cancel"`, título "No se pudo registrar la venta", botones "Revisar" / "Entendido" — ambos cierran el diálogo y devuelven al formulario). Aplica a validación de línea, error del servicio al guardar y error al cargar productos. De paso se corrigieron 2 tests de `orders.component.spec.ts` que dependían de estado de otro test: no llamaban a `createComponent()` y Jasmine corre los specs en orden aleatorio, por lo que fallaban intermitentemente con `TypeError: Cannot set properties of undefined (setting 'totalPages')`.
 - **Archivos**: `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.ts|html|scss|spec.ts`, `src/app/admin/pages/orders/orders.component.spec.ts`

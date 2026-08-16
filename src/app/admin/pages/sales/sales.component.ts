@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CategorySummary, OrderSummary, SummaryRange, TopProduct } from '../../../core/models/order.model';
@@ -35,6 +35,7 @@ export class SalesComponent implements OnInit, OnDestroy {
   constructor(
     private readonly orderService: OrderService,
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
@@ -93,12 +94,21 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   closeRegister(): void {
     this.registerOpen = false;
+    this.clearRegisterParam();
     this.cdr.markForCheck();
   }
 
   onManualSaleSaved(): void {
     this.closeRegister();
     this.load();
+  }
+
+  private clearRegisterParam(): void {
+    this.router.navigate([], {
+      queryParams: { registrar: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   private load(): void {

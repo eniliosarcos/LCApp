@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { OrderSummary } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
@@ -43,6 +43,7 @@ describe('SalesComponent', () => {
   let component: SalesComponent;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
   let routeSpy: { queryParamMap: import('rxjs').Observable<ReturnType<typeof convertToParamMap>> };
+  let routerSpy: jasmine.SpyObj<Router>;
 
   function createComponent(): void {
     fixture = TestBed.createComponent(SalesComponent);
@@ -53,13 +54,15 @@ describe('SalesComponent', () => {
   beforeEach(async () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getSummary']);
     routeSpy = { queryParamMap: of(convertToParamMap({})) };
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [CommonModule],
       declarations: [SalesComponent, ManualSaleModalStub, AppLoadingSpinnerComponent, CurrencyFormatPipe],
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
-        { provide: ActivatedRoute, useValue: routeSpy }
+        { provide: ActivatedRoute, useValue: routeSpy },
+        { provide: Router, useValue: routerSpy }
       ]
     }).compileComponents();
   });
@@ -168,5 +171,21 @@ describe('SalesComponent', () => {
 
     expect(component.registerOpen).toBeFalse();
     expect(orderServiceSpy.getSummary).toHaveBeenCalledTimes(2);
+  });
+
+  it('quita ?registrar=1 de la URL al cerrar el modal', () => {
+    orderServiceSpy.getSummary.and.returnValue(of(summary()));
+    routeSpy.queryParamMap = of(convertToParamMap({ registrar: '1' }));
+    createComponent();
+    expect(component.registerOpen).toBeTrue();
+
+    component.closeRegister();
+
+    expect(component.registerOpen).toBeFalse();
+    expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+      queryParams: { registrar: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   });
 });
