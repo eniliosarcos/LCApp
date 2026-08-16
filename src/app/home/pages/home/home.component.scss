@@ -172,6 +172,23 @@
     width: 100%;
     border-bottom: none;
     border-top: 1px solid v.$color-border;
+
+    .strip-arrow {
+      display: none;
+    }
+
+    .category-strip__scroll {
+      padding: 0;
+
+      &::before,
+      &::after {
+        content: none;
+      }
+    }
+
+    .chip {
+      flex: 1 0 auto;
+    }
   }
 
   .home-content {
