@@ -104,6 +104,7 @@ router.post('/manual', authenticate, async (req, res) => {
     }
 
     const orderItems = [];
+    const quantityByProduct = new Map();
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product || !product.isActive) {
@@ -113,11 +114,12 @@ router.post('/manual', authenticate, async (req, res) => {
       if (!Number.isFinite(quantity) || quantity < 1) {
         return res.status(400).json({ error: `Cantidad inválida para "${product.name}"` });
       }
-      if (product.stock < quantity) {
-        return res.status(400).json({
-          error: `Stock insuficiente para "${product.name}": disponible ${product.stock}, solicitado ${quantity}`,
-        });
-      }
+      const totalQuantity = (quantityByProduct.get(product._id.toString())?.quantity || 0) + quantity;
+      quantityByProduct.set(product._id.toString(), {
+        name: product.name,
+        stock: product.stock,
+        quantity: totalQuantity,
+      });
       const unitPrice = item.price !== undefined && item.price !== null
         ? Number(item.price)
         : (product.discountPrice ?? product.price);
@@ -125,6 +127,15 @@ router.post('/manual', authenticate, async (req, res) => {
         return res.status(400).json({ error: `Precio inválido para "${product.name}"` });
       }
       orderItems.push({ productId: product._id, productName: product.name, quantity, price: unitPrice });
+    }
+
+    // Validar stock agregado por producto: el mismo producto en varias líneas no puede sobre-vender
+    for (const { name, stock, quantity } of quantityByProduct.values()) {
+      if (stock < quantity) {
+        return res.status(400).json({
+          error: `Stock insuficiente para "${name}": disponible ${stock}, solicitado ${quantity}`,
+        });
+      }
     }
 
     const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
