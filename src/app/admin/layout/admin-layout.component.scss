@@ -101,6 +101,21 @@
       background: v.$color-gold;
       color: v.$color-surface;
     }
+
+    &.sidebar-link--register {
+      background: v.$color-pink;
+      color: v.$color-surface;
+
+      &:hover {
+        background: v.$color-pink-light;
+        color: v.$color-text;
+      }
+
+      &.active {
+        background: v.$color-pink-light;
+        color: v.$color-text;
+      }
+    }
   }
 }
 

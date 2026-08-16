@@ -58,6 +58,18 @@
   }
 }
 
+.source-badge {
+  display: inline-block;
+  margin-left: v.$space-2;
+  padding: 0.15rem 0.6rem;
+  border-radius: v.$radius-full;
+  background: v.$color-pink-light;
+  color: v.$color-text;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .action {
   margin-right: v.$space-2;
   padding: 0.4rem v.$space-3;

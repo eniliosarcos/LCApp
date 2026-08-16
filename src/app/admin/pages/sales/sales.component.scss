@@ -1,5 +1,21 @@
 @use 'styles/variables' as v;
 
+.btn-register {
+  padding: v.$space-2 v.$space-4;
+  border: none;
+  border-radius: v.$radius-sm;
+  background: v.$color-pink;
+  color: v.$color-surface;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$color-pink-light;
+    color: v.$color-text;
+  }
+}
+
 .range-switch {
   display: flex;
   flex-wrap: wrap;

@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { OrderSummary } from '../models/order.model';
+import { CreateManualOrderRequest, Order, OrderSummary } from '../models/order.model';
 import { OrderService } from './order.service';
 
 describe('OrderService', () => {
@@ -42,5 +42,22 @@ describe('OrderService', () => {
     req.flush(summary);
 
     expect(result).toEqual(summary);
+  });
+
+  it('createManualOrder() hace POST /api/orders/manual con el payload', () => {
+    const request: CreateManualOrderRequest = {
+      customerName: 'María',
+      saleDate: '2026-08-14',
+      items: [{ productId: 'p1', quantity: 3, price: 45 }]
+    };
+
+    let result!: Order;
+    service.createManualOrder(request).subscribe(value => (result = value));
+
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url.endsWith('/api/orders/manual'));
+    expect(req.request.body).toEqual(request);
+    req.flush({ id: 'o1', code: 'MAN-AB12C' } as Order);
+
+    expect(result).toEqual({ id: 'o1', code: 'MAN-AB12C' } as Order);
   });
 });

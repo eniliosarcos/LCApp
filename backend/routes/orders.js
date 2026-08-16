@@ -4,10 +4,10 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const authenticate = require('../middleware/auth');
 
-// Genera código CAR-XXXXX
-function generateCode() {
+// Genera código con prefijo (CAR- para web, MAN- para ventas manuales)
+function generateCode(prefix = 'CAR-') {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'CAR-';
+  let code = prefix;
   for (let i = 0; i < 5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
   return code;
 }
@@ -76,6 +76,75 @@ router.post('/', async (req, res) => {
       total,
       status: 'pending',
     });
+
+    res.status(201).json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/manual — Registrar una venta externa (admin), descuenta stock
+router.post('/manual', authenticate, async (req, res) => {
+  try {
+    const { customerName, customerPhone, saleDate, items } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Faltan datos: items son requeridos' });
+    }
+
+    let saleAt = new Date();
+    if (saleDate) {
+      saleAt = new Date(saleDate);
+      if (Number.isNaN(saleAt.getTime())) {
+        return res.status(400).json({ error: 'Fecha de venta inválida' });
+      }
+      if (saleAt.getTime() > Date.now()) {
+        return res.status(400).json({ error: 'La fecha de venta no puede ser futura' });
+      }
+    }
+
+    const orderItems = [];
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product || !product.isActive) {
+        return res.status(400).json({ error: `Producto no disponible: "${item.productId}"` });
+      }
+      const quantity = Math.floor(Number(item.quantity));
+      if (!Number.isFinite(quantity) || quantity < 1) {
+        return res.status(400).json({ error: `Cantidad inválida para "${product.name}"` });
+      }
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          error: `Stock insuficiente para "${product.name}": disponible ${product.stock}, solicitado ${quantity}`,
+        });
+      }
+      const unitPrice = item.price !== undefined && item.price !== null
+        ? Number(item.price)
+        : (product.discountPrice ?? product.price);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        return res.status(400).json({ error: `Precio inválido para "${product.name}"` });
+      }
+      orderItems.push({ productId: product._id, productName: product.name, quantity, price: unitPrice });
+    }
+
+    const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const order = await Order.create({
+      code: generateCode('MAN-'),
+      customerName: customerName || 'Cliente de mostrador',
+      customerPhone,
+      items: orderItems,
+      status: 'confirmed',
+      source: 'manual',
+      total,
+      createdAt: saleAt,
+      confirmedAt: saleAt,
+    });
+
+    // Descontar stock (mismo mecanismo que confirmar una orden web)
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+    }
 
     res.status(201).json(order);
   } catch (err) {

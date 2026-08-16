@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CategorySummary, OrderSummary, SummaryRange, TopProduct } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 
@@ -19,21 +22,34 @@ const RANGE_OPTIONS: RangeOption[] = [
   styleUrls: ['./sales.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SalesComponent implements OnInit {
+export class SalesComponent implements OnInit, OnDestroy {
   readonly rangeOptions = RANGE_OPTIONS;
   range: SummaryRange = 'week';
   summary: OrderSummary | null = null;
   productSort: 'units' | 'revenue' = 'units';
   loading = true;
   error = false;
+  registerOpen = false;
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly orderService: OrderService,
+    private readonly route: ActivatedRoute,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.load();
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params.get('registrar') === '1' && !this.registerOpen) {
+        this.openRegister();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get avgTicket(): number {
@@ -68,6 +84,21 @@ export class SalesComponent implements OnInit {
   toggleProductSort(sort: 'units' | 'revenue'): void {
     this.productSort = sort;
     this.cdr.markForCheck();
+  }
+
+  openRegister(): void {
+    this.registerOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  closeRegister(): void {
+    this.registerOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  onManualSaleSaved(): void {
+    this.closeRegister();
+    this.load();
   }
 
   private load(): void {

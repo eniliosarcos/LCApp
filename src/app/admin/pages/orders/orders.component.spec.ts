@@ -64,6 +64,23 @@ describe('OrdersComponent', () => {
     expect(rows[0].textContent).toContain('CAR-AAA11');
   });
 
+  it('muestra el badge Manual para las ventas registradas fuera de la página', () => {
+    const manualOrder = { ...order('o1', 'MAN-AAA11', 'confirmed'), source: 'manual' as const };
+    orderServiceSpy.getOrders.and.returnValue(of(page([manualOrder])));
+    createComponent();
+
+    const badge = fixture.nativeElement.querySelector('.source-badge');
+    expect(badge).not.toBeNull();
+    expect(badge.textContent).toContain('Manual');
+  });
+
+  it('no muestra el badge Manual en las órdenes web', () => {
+    orderServiceSpy.getOrders.and.returnValue(of(page([order('o1', 'CAR-AAA11', 'pending')])));
+    createComponent();
+
+    expect(fixture.nativeElement.querySelector('.source-badge')).toBeNull();
+  });
+
   it('al cambiar el filtro resetea a la página 1 y recarga con el estado', () => {
     orderServiceSpy.getOrders.and.returnValue(of(page([])));
     createComponent();

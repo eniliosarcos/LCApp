@@ -54,6 +54,7 @@
               class="order-link"
               [routerLink]="['/admin/orders/detail', order.code]"
               (click)="$event.stopPropagation()">{{ order.code }}</a>
+            <span class="source-badge" *ngIf="order.source === 'manual'">Manual</span>
           </td>
           <td>{{ order.customerName }}</td>
           <td>

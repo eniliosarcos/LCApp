@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateOrderRequest, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange } from '../models/order.model';
+import { CreateManualOrderRequest, CreateOrderRequest, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -13,6 +13,10 @@ export class OrderService {
 
   createOrder(request: CreateOrderRequest): Observable<Order> {
     return this.http.post<Order>(`${this.apiUrl}/orders`, request).pipe(catchError(this.handleError));
+  }
+
+  createManualOrder(request: CreateManualOrderRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.apiUrl}/orders/manual`, request).pipe(catchError(this.handleError));
   }
 
   getOrders(page = 1, limit = 10, status?: string, q?: string): Observable<OrderPage> {

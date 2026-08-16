@@ -1,5 +1,12 @@
 <section class="sales">
-  <h1>Resumen de ventas</h1>
+  <div class="page-header">
+    <h1>Resumen de ventas</h1>
+    <button
+      type="button"
+      class="btn-register"
+      (click)="openRegister()"
+      [attr.aria-label]="'Registrar una venta realizada fuera de la página'">+ Registrar venta</button>
+  </div>
   <p class="error" *ngIf="error">No se pudieron cargar los datos del resumen.</p>
 
   <div class="loading-region" *ngIf="loading">
@@ -110,4 +117,10 @@
       </ng-template>
     </div>
   </ng-container>
+
+  <app-manual-sale-modal
+    [open]="registerOpen"
+    (closed)="closeRegister()"
+    (saved)="onManualSaleSaved()">
+  </app-manual-sale-modal>
 </section>

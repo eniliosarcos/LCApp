@@ -59,9 +59,9 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
       - error de red → mantiene el estado actual sin romper la UI
  6. El cliente negocia por el canal humano (la confirmación de datos es fuera del sistema)
  7. Admin entra a /admin (login JWT):
-      - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/orders`, `/admin/products`, `/admin/contact`. En móvil (<768px) hay una barra superior fija (`admin-topbar`) con el hamburguesa + marca "LC · Admin"; la X de cierre vive en el propio sidebar (`.sidebar-close`, porque el drawer tapa el lado izquierdo de la topbar al abrir); el contenido compensa la barra con `padding-top`. Capas: sidebar 55 > topbar 54 > backdrop 53
+      - `AdminLayoutComponent` (sidebar lateral, drawer en móvil) envuelve todas las páginas admin vía rutas hijas: `/admin` (dashboard), `/admin/ventas`, `/admin/orders`, `/admin/products`, `/admin/categories`, `/admin/contact`. En móvil (<768px) hay una barra superior fija (`admin-topbar`) con el hamburguesa + marca "LC · Admin"; la X de cierre vive en el propio sidebar (`.sidebar-close`, porque el drawer tapa el lado izquierdo de la topbar al abrir); el contenido compensa la barra con `padding-top`. Capas: sidebar 55 > topbar 54 > backdrop 53
       - Dashboard: métricas (GET /api/orders/stats) + últimas 5 pendientes (GET /api/orders?page=1&limit=5&status=pending)
-      - Ventas (SalesComponent, /admin/ventas): resumen por período calendario con toggle Diario/Semanal/Mensual (GET /api/orders/summary?range=day|week|month). Métricas (Ventas confirmadas, Ingresos, Unidades, Ticket promedio, Canceladas, Tasa de cancelación, Pendientes del período) + tablas "Productos más vendidos" (ordenable por Unidades/Ingreso) y "Por categoría". `avgTicket`/`cancellationRate` se derivan en el componente (getters)
+      - Ventas (SalesComponent, /admin/ventas): resumen por período calendario con toggle Diario/Semanal/Mensual (GET /api/orders/summary?range=day|week|month). Métricas (Ventas confirmadas, Ingresos, Unidades, Ticket promedio, Canceladas, Tasa de cancelación, Pendientes del período) + tablas "Productos más vendidos" (ordenable por Unidades/Ingreso) y "Por categoría". `avgTicket`/`cancellationRate` se derivan en el componente (getters). Incluye el botón **"+ Registrar venta"** (color rosa distintivo) que abre `ManualSaleModalComponent`: registrar una venta realizada fuera de la página (mostrador, conocido, WhatsApp) → `POST /api/orders/manual`. El link del sidebar "+ Registrar venta" navega a `/admin/ventas?registrar=1` y el modal se abre automáticamente (el query param abre el mismo modal, sin ruta extra)
       - Órdenes: lista paginada con filtro por estado y buscador por código (GET /api/orders?page=&limit=&status=&q=) + confirmar/cancelar; cada fila es clicable y el código es un enlace → /admin/orders/detail/:code
       - Detalle de orden (OrderDetailComponent, GET /api/orders/:code admin): breadcrumb "Órdenes › CÓDIGO" + botón "‹ Volver a Órdenes", datos de cliente, items con subtotal por línea, total, fechas y confirmar/cancelar si está 'pending'
       - Productos: lista con estado (activos e inactivos), alta/edición en modal y activar/desactivar (GET /api/products?all=true + POST/PUT /api/products con JWT). Resaltado de stock sin badges: filas teñidas (rojo `stock === 0`, ámbar `stock <= 10`) y nombre en cursiva; los agotados muestran nombre y número de stock en rojo. Barra de chips "Agotados (N)" / "Stock bajo (N)" que al hacer click **filtran** la tabla (solo productos activos; click de nuevo o "Ver todas" resetea). Umbral único `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (lo usan catálogo y admin)
@@ -73,7 +73,7 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
      - Edita contacto: /admin/contact (PUT /api/config)
 ```
 
-Regla de estados de una orden: `pending → confirmed | cancelled`. Confirmar/cancelar solo es válido desde `pending`.
+Regla de estados de una orden: `pending → confirmed | cancelled`. Confirmar/cancelar solo es válido desde `pending`. Las **ventas manuales** nacen `confirmed` (con `source: 'manual'`) y descuentan stock al registrarse; las web nacen `pending` y descuentan stock al confirmar.
 
 ## Frontera de datos
 
@@ -83,7 +83,7 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 |---|---|
 | `CatalogService` | Catálogo: categorías y productos desde la API (Observables). Público: `getCategories`, `getProducts`, `getProductById`, `getProductBySlug`, `getProductsByCategory`. Admin (JWT vía `AuthInterceptor`): `getAllProducts` (`?all=true` incluye inactivos), `createProduct`, `updateProduct`, `createCategory`, `updateCategory`. `handleError` expone el mensaje del servidor (p. ej. "El SKU ya existe"). |
 | `CartService` | Entidad `Cart` persistida en `localStorage`; expone `getCart`, `getCount`, `getTotal` y mutaciones atómicas (`addItem`, `updateQuantity`, `removeItem`, `clearCart`, `restoreCart`, `registerOrder`, `clearOrderCode`, `markOrderSynced`). `addItem` no agrega productos agotados y topea la cantidad al stock; `updateQuantity` limita al stock y elimina el item si el producto quedó sin stock. Rastrea `orderModified` (cambios sobre un carrito con orden registrada). |
-| `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders(page?, limit?, status?, q?)` → `OrderPage`, `getOrderByCode(code)` → detalle por código, `getStats`, `getSummary(range)` → `OrderSummary`, `confirmOrder`, `cancelOrder`). |
+| `OrderService` | Pedidos: crear orden desde el carrito (`postOrder`), verificar estado real de una orden registrada (`getOrderStatus`), actualizar items de una orden pendiente (`updateOrderItems`) + operaciones admin (`getOrders(page?, limit?, status?, q?)` → `OrderPage`, `getOrderByCode(code)` → detalle por código, `getStats`, `getSummary(range)` → `OrderSummary`, `createManualOrder(request)` → registra una venta externa, `confirmOrder`, `cancelOrder`). |
 | `AuthService` | Login contra `/api/auth/login`; guarda token y usuario; expone `authState`, `getToken`, `logout`. |
 | `ContactService` | Abstracción del contacto (redes). Implementación: `HttpContactService` (lee de `GET/PUT /api/config`, cachea en `BehaviorSubject`, un solo GET por sesión). Registro por provider en `AppModule`. |
 
@@ -118,7 +118,7 @@ backend/
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET / (público) + POST / y PUT /:id (admin JWT)
   routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT)
-  routes/orders.js     # POST / (público; valida stock disponible), GET /:code/status (público), PATCH /:code/items (público, solo pending; valida stock) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /:code, PATCH :id/confirm (valida y descuenta stock), :id/cancel
+  routes/orders.js     # POST / (público; valida stock disponible), GET /:code/status (público), PATCH /:code/items (público, solo pending; valida stock) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /manual, /:code, PATCH :id/confirm (valida y descuenta stock), :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
   middleware/auth.js   # verify Authorization: Bearer JWT (authenticate + authenticateOptional)
   utils/slugify.js     # slugify (sin acentos) + uniqueSlug (garantiza unicidad con sufijo -2, -3…)
@@ -149,6 +149,13 @@ backend/
 
 - `GET /api/orders/summary?range=day|week|month` (JWT, default `week`). Ventanas **calendario** en zona horaria del servidor: `day` = hoy 00:00, `week` = lunes 00:00, `month` = día 1 00:00. Las agregaciones corren en paralelo (`Promise.all`): counts por estado dentro de la ventana + `$unwind` de `items` para `revenue` (Σ price×qty) y `units` + **top 20** productos por unidades + desglose por categoría (2 `$lookup` products→categories; categoría ausente → "Sin categoría"). Se apoya en que `order.items` snapshotea `productName`/`price` → los históricos no cambian aunque el catálogo se edite; solo el desglose por categoría consulta el catálogo actual (categorías no se borran). El frontend deriva `avgTicket` y `cancellationRate`.
 - `seed.js` crea **12 órdenes demo** con fechas relativas repartidas en las tres ventanas (auxiliares `startOfWeek`, `startOfMonth`, `beforeWeekStart`) para ejercitar los rangos con números verificables.
+
+### Ventas manuales (registradas fuera de la página)
+
+- `POST /api/orders/manual` (JWT): registra una venta que no pasó por la web (mostrador, conocido, WhatsApp). Body: `{ customerName?, customerPhone?, saleDate?, items: [{ productId, quantity, price? }] }`.
+- **Descuenta stock al registrar** (mismo mecanismo que confirmar una orden web) porque la mercancía ya salió del negocio. Precio por defecto = precio efectivo del producto (`discountPrice ?? price`), editable línea por línea (descuentos/negociados). `customerName` opcional, default "Cliente de mostrador". `saleDate` opcional (default hoy), validada para no ser futura; se guarda en `createdAt` y `confirmedAt` para que la venta caiga en la ventana correcta del resumen.
+- Nace `status: 'confirmed'` + `source: 'manual'` y usa código `MAN-XXXXX` (las web siguen `CAR-XXXXX`), así cuenta directo en `stats`, `summary` y la lista. Badge "Manual" junto al código en la lista de órdenes y el detalle.
+- Frontend: `ManualSaleModalComponent` (dentro de `/admin/ventas`, abierto por el botón "+ Registrar venta" o por `?registrar=1` desde el sidebar) con **doble confirmación** antes de guardar (reusa `AppConfirmDialogComponent`, igual que Confirmar/Cancelar). Cada línea muestra **cantidad y precio unitario recién al seleccionar el producto** (el precio autocompleta el efectivo, editable). La lista de productos scrollea internamente (`max-height: 40vh`); "+ Agregar producto" queda fijo fuera de esa zona.
 
 ### TTL perezoso de órdenes pendientes
 
@@ -198,6 +205,7 @@ Nota SPA: GitHub Pages no reescribe rutas; por eso `404.html` es copia de `index
 - `docs/adr/005` — backend Node.js + Express + MongoDB.
 - `docs/adr/006` — contacto configurable desde el admin (API, no mock).
 - `docs/adr/007` — resumen de ventas por período (ventanas calendario, agregaciones en el backend).
+- `docs/adr/008` — ventas manuales (source manual, descuento de stock al registrar, fecha/price editables).
 - `HISTORIAL.md` — bitácora de cambios del proyecto.
 
 ## Temas conocidos / pendientes

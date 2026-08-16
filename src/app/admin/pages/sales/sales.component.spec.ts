@@ -1,11 +1,20 @@
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { OrderSummary } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { AppLoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { SalesComponent } from './sales.component';
+
+@Component({ selector: 'app-manual-sale-modal', template: '' })
+class ManualSaleModalStub {
+  @Input() open = false;
+  @Output() closed = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<void>();
+}
 
 const summary = (overrides: Partial<OrderSummary> = {}): OrderSummary => ({
   range: 'week',
@@ -33,6 +42,7 @@ describe('SalesComponent', () => {
   let fixture: ComponentFixture<SalesComponent>;
   let component: SalesComponent;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
+  let routeSpy: { queryParamMap: import('rxjs').Observable<ReturnType<typeof convertToParamMap>> };
 
   function createComponent(): void {
     fixture = TestBed.createComponent(SalesComponent);
@@ -42,11 +52,15 @@ describe('SalesComponent', () => {
 
   beforeEach(async () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getSummary']);
+    routeSpy = { queryParamMap: of(convertToParamMap({})) };
 
     await TestBed.configureTestingModule({
       imports: [CommonModule],
-      declarations: [SalesComponent, AppLoadingSpinnerComponent, CurrencyFormatPipe],
-      providers: [{ provide: OrderService, useValue: orderServiceSpy }]
+      declarations: [SalesComponent, ManualSaleModalStub, AppLoadingSpinnerComponent, CurrencyFormatPipe],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: ActivatedRoute, useValue: routeSpy }
+      ]
     }).compileComponents();
   });
 
@@ -124,5 +138,35 @@ describe('SalesComponent', () => {
 
     expect(component.error).toBeTrue();
     expect(fixture.nativeElement.textContent).toContain('No se pudieron cargar los datos del resumen.');
+  });
+
+  it('abre el modal de registro con el botón', () => {
+    orderServiceSpy.getSummary.and.returnValue(of(summary()));
+    createComponent();
+
+    const button = fixture.nativeElement.querySelector('.btn-register');
+    button.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+
+    expect(component.registerOpen).toBeTrue();
+  });
+
+  it('abre el modal de registro si llega con ?registrar=1', () => {
+    orderServiceSpy.getSummary.and.returnValue(of(summary()));
+    routeSpy.queryParamMap = of(convertToParamMap({ registrar: '1' }));
+    createComponent();
+
+    expect(component.registerOpen).toBeTrue();
+  });
+
+  it('cierra el modal y recarga el resumen al registrar una venta', () => {
+    orderServiceSpy.getSummary.and.returnValue(of(summary()));
+    createComponent();
+
+    component.openRegister();
+    component.onManualSaleSaved();
+
+    expect(component.registerOpen).toBeFalse();
+    expect(orderServiceSpy.getSummary).toHaveBeenCalledTimes(2);
   });
 });

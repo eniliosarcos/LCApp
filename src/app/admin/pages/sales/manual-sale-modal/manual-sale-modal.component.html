@@ -1,0 +1,117 @@
+<app-modal
+  [open]="open"
+  size="md"
+  [title]="'Registrar venta'"
+  [dismissible]="!confirming && !saving"
+  (close)="close()">
+  <form class="entity-form manual-sale-form" (ngSubmit)="onSubmit()">
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+
+    <div class="form-row">
+      <label>Cliente
+        <input
+          type="text"
+          name="customerName"
+          [(ngModel)]="customerName"
+          placeholder="Cliente de mostrador"
+          [attr.aria-label]="'Nombre del cliente (opcional)'">
+      </label>
+      <label>Teléfono
+        <input
+          type="tel"
+          name="customerPhone"
+          [(ngModel)]="customerPhone"
+          placeholder="Opcional"
+          [attr.aria-label]="'Teléfono del cliente (opcional)'">
+      </label>
+    </div>
+
+    <label>Fecha de la venta
+      <input
+        type="date"
+        name="saleDate"
+        [(ngModel)]="saleDate"
+        [max]="todayString()"
+        [attr.aria-label]="'Fecha de la venta'">
+    </label>
+
+    <fieldset class="sale-lines">
+      <legend>Productos</legend>
+
+      <div
+        class="sale-line"
+        [class.sale-line--has-product]="!!line.productId"
+        *ngFor="let line of lines; let i = index; trackBy: lineTrackBy">
+        <label class="sale-line__product">Producto
+          <select
+            [ngModel]="line.productId"
+            name="product-{{ i }}"
+            (ngModelChange)="onProductChange(i, $event)"
+            [attr.aria-label]="'Producto de la línea ' + (i + 1)">
+            <option value="" disabled>Seleccioná un producto…</option>
+            <option
+              *ngFor="let product of activeProducts; trackBy: productTrackBy"
+              [value]="product.id">{{ product.name }} — {{ effectivePrice(product) | currency }} · stock: {{ product.stock }}</option>
+          </select>
+        </label>
+        <ng-container *ngIf="line.productId">
+          <label class="sale-line__qty">Cantidad
+            <input
+              type="number"
+              name="qty-{{ i }}"
+              min="1"
+              [max]="quantityMax(line)"
+              [(ngModel)]="line.quantity"
+              [attr.aria-label]="'Cantidad de la línea ' + (i + 1)">
+          </label>
+          <label class="sale-line__price">Precio unitario
+            <input
+              type="number"
+              name="price-{{ i }}"
+              min="0"
+              step="0.01"
+              [(ngModel)]="line.price"
+              [placeholder]="lineEffectivePrice(line) | currency:''"
+              [attr.aria-label]="'Precio unitario de la línea ' + (i + 1)">
+          </label>
+        </ng-container>
+        <button
+          type="button"
+          class="btn-link sale-line__remove"
+          (click)="removeLine(i)"
+          [disabled]="lines.length === 1"
+          [attr.aria-label]="'Quitar línea ' + (i + 1)">Quitar</button>
+      </div>
+
+    </fieldset>
+
+    <button type="button" class="btn-link sale-lines__add" (click)="addLine()">+ Agregar producto</button>
+
+    <p class="manual-sale-form__total">
+      Total: <strong>{{ total | currency }}</strong>
+    </p>
+
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="close()"
+        [disabled]="saving">Cancelar</button>
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : 'Registrar venta' }}</button>
+    </div>
+  </form>
+
+  <app-confirm-dialog
+    [open]="confirming"
+    [title]="'Registrar venta'"
+    [message]="confirmMessage()"
+    [confirmLabel]="'Sí, registrar'"
+    [cancelLabel]="'Revisar'"
+    [variant]="'confirm'"
+    (confirmed)="runConfirm()"
+    (cancelled)="cancelConfirm()">
+  </app-confirm-dialog>
+</app-modal>

@@ -13,6 +13,7 @@ const orderSchema = new mongoose.Schema({
   customerPhone: String,
   items: [orderItemSchema],
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
+  source: { type: String, enum: ['web', 'manual'], default: 'web' },
   total: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
   confirmedAt: Date,

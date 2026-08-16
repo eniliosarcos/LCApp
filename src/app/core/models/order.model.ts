@@ -12,6 +12,7 @@ export interface Order {
   customerPhone?: string;
   items: OrderItem[];
   status: 'pending' | 'confirmed' | 'cancelled';
+  source?: 'web' | 'manual';
   total: number;
   createdAt: string;
   confirmedAt?: string;
@@ -21,6 +22,19 @@ export interface CreateOrderRequest {
   customerName?: string;
   customerPhone?: string;
   items: OrderItem[];
+}
+
+export interface ManualSaleItem {
+  productId: string;
+  quantity: number;
+  price?: number;
+}
+
+export interface CreateManualOrderRequest {
+  customerName?: string;
+  customerPhone?: string;
+  saleDate?: string;
+  items: ManualSaleItem[];
 }
 
 export interface OrderStats {

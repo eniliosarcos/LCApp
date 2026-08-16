@@ -11,9 +11,10 @@ import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
 import { SalesComponent } from './pages/sales/sales.component';
+import { ManualSaleModalComponent } from './pages/sales/manual-sale-modal/manual-sale-modal.component';
 
 @NgModule({
-  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, CategoriesComponent, OrderDetailComponent, SalesComponent],
+  declarations: [AdminLayoutComponent, DashboardComponent, ContactSettingsComponent, OrdersComponent, ProductsComponent, CategoriesComponent, OrderDetailComponent, SalesComponent, ManualSaleModalComponent],
   imports: [CommonModule, FormsModule, SharedModule, AdminRoutingModule]
 })
 export class AdminModule {}

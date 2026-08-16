@@ -18,6 +18,9 @@
   box-shadow: v.$shadow-card-hover;
   max-width: 420px;
   width: 100%;
+  max-height: calc(100vh - v.$space-4 * 2);
+  display: flex;
+  flex-direction: column;
   padding: v.$space-6;
   animation: scale-in 0.2s ease-out;
   outline: none;
@@ -58,6 +61,8 @@
 
 .modal-body {
   color: v.$color-text;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 @keyframes fade-in {

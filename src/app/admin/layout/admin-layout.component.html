@@ -43,6 +43,11 @@
         routerLinkActive="active"
         (click)="closeSidebar()">Ventas</a>
       <a
+        class="sidebar-link--register"
+        [routerLink]="['/admin/ventas']"
+        [queryParams]="{ registrar: 1 }"
+        (click)="closeSidebar()">+ Registrar venta</a>
+      <a
         routerLink="/admin/orders"
         routerLinkActive="active"
         (click)="closeSidebar()">Órdenes</a>

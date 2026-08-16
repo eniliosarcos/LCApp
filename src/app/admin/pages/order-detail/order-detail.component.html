@@ -14,6 +14,7 @@
     </a>
     <h1>
       Detalle de la orden <span class="code">{{ orderCode }}</span>
+      <span class="source-badge" *ngIf="order?.source === 'manual'">Manual</span>
       <span class="status" *ngIf="order" [ngClass]="order.status">{{ order.status }}</span>
     </h1>
   </div>
