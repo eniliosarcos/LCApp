@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { CategoryListComponent } from './pages/category-list/category-list.component';
+import { HomeComponent } from './pages/home/home.component';
 
 const routes: Routes = [
-  { path: '', component: CategoryListComponent }
+  { path: '', component: HomeComponent }
 ];
 
 @NgModule({

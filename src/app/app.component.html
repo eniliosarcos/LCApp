@@ -1,23 +1,7 @@
 <ng-container *ngIf="!isAdminRoute">
   <app-header></app-header>
 </ng-container>
-<main>
+<main [class.main--no-pad]="isAdminRoute">
   <router-outlet></router-outlet>
 </main>
-<footer class="footer" *ngIf="!isAdminRoute">
-  <div class="container footer-grid">
-    <div class="footer-brand">
-      <span class="brand-name">L'Essence de Cerise</span>
-      <span class="brand-tagline">Catálogo oficial</span>
-    </div>
-
-    <nav class="footer-nav" aria-label="Contacto" *ngIf="contact">
-      <a [href]="getWhatsAppHref()" target="_blank" rel="noopener">WhatsApp · {{ contact.whatsappDisplay }}</a>
-      <a [href]="getInstagramHref()" target="_blank" rel="noopener">Instagram · {{ contact.instagram }}</a>
-      <a [href]="getTelegramHref()" target="_blank" rel="noopener">Telegram · {{ contact.telegram }}</a>
-    </nav>
-
-    <span class="footer-note">© {{ year }} — Hecho con &hearts;</span>
-  </div>
-</footer>
 <app-snackbar></app-snackbar>

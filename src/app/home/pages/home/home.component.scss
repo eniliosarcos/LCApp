@@ -1,0 +1,117 @@
+@use 'styles/variables' as v;
+
+.hero {
+  background: v.$gradient-hero;
+  text-align: center;
+  padding: 3rem 0;
+  margin-bottom: 0;
+
+  .hero-title {
+    color: v.$color-primary;
+    font-family: v.$font-heading;
+    font-size: 2rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .hero-subtitle {
+    color: v.$color-text-muted;
+    font-style: italic;
+    margin: 0 0 v.$space-4;
+  }
+}
+
+.category-strip {
+  position: sticky;
+  top: 2.75rem;
+  z-index: 20;
+  background: v.$color-surface;
+  border-bottom: 1px solid v.$color-border;
+
+  .category-strip__scroll {
+    display: flex;
+    align-items: stretch;
+    gap: v.$space-2;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::before,
+    &::after {
+      content: '';
+      margin: auto;
+    }
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .chip {
+    flex: 0 0 auto;
+    height: 100%;
+    padding: v.$space-3 v.$space-4;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: v.$color-text-muted;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      color: v.$color-primary;
+    }
+
+    &.chip--active {
+      background: v.$color-primary;
+      color: v.$color-surface;
+      font-weight: 700;
+
+      &:hover {
+        background: v.$color-primary;
+        color: v.$color-surface;
+      }
+    }
+  }
+}
+
+.section-title {
+  text-align: center;
+  color: v.$color-primary;
+  margin: v.$space-6 0;
+}
+
+.error {
+  color: v.$color-danger;
+  text-align: center;
+}
+
+.empty {
+  color: v.$color-text-muted;
+  text-align: center;
+  margin: v.$space-6 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: v.$space-4;
+}
+
+@media (max-width: 600px) {
+  .category-strip {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-bottom: none;
+    border-top: 1px solid v.$color-border;
+  }
+
+  .home {
+    padding-bottom: 4.25rem;
+  }
+}

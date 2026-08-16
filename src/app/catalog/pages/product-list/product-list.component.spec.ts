@@ -1,11 +1,10 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
-import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
-import { SnackbarService } from '../../../core/services/snackbar.service';
 import { ProductListComponent } from './product-list.component';
 
 const product: Product = {
@@ -23,16 +22,18 @@ const product: Product = {
   createdAt: '2026-01-01T00:00:00.000Z'
 };
 
+const category: Category = { id: 'c1', name: 'Rosas', slug: 'rosas', description: 'Rosas y flores' };
+
 describe('ProductListComponent', () => {
   let component: ProductListComponent;
   let fixture: ComponentFixture<ProductListComponent>;
-  let cartService: CartService;
-  let snackbarService: SnackbarService;
   let catalogService: jasmine.SpyObj<CatalogService>;
+  let routeParamGetter: (key: string) => string | null;
 
   beforeEach(async () => {
+    routeParamGetter = () => 'c1';
     catalogService = jasmine.createSpyObj('CatalogService', ['getCategoryById', 'getProductsByCategory']);
-    catalogService.getCategoryById.and.returnValue(of(undefined));
+    catalogService.getCategoryById.and.returnValue(of(category));
     catalogService.getProductsByCategory.and.returnValue(of([product]));
 
     await TestBed.configureTestingModule({
@@ -40,55 +41,55 @@ describe('ProductListComponent', () => {
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CatalogService, useValue: catalogService },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } }
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: (key: string) => routeParamGetter(key) } } } }
       ]
     }).compileComponents();
+  });
 
-    localStorage.clear();
-    cartService = TestBed.inject(CartService);
-    snackbarService = TestBed.inject(SnackbarService);
+  function createFixture(): ComponentFixture<ProductListComponent> {
     fixture = TestBed.createComponent(ProductListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
-
-  function currentSnackbar(): { message?: string } | null {
-    let data: { message?: string } | null = null;
-    snackbarService.getData().subscribe(value => (data = value));
-    return data;
+    return fixture;
   }
 
-  it('agregar al carrito agrega el producto y mantiene el estado local', () => {
-    component.addToCart(product);
+  it('carga la categoría y los productos al iniciar', () => {
+    createFixture();
 
-    expect(component.isAdded('p1')).toBeTrue();
-    let count = 0;
-    cartService.getCount().subscribe(value => (count = value));
-    expect(count).toBe(1);
+    expect(catalogService.getCategoryById).toHaveBeenCalledWith('c1');
+    expect(catalogService.getProductsByCategory).toHaveBeenCalledWith('c1');
+    expect(component.products).toEqual([product]);
+    expect(component.loading).toBeFalse();
+    expect(component.error).toBeFalse();
   });
 
-  it('agregar al carrito muestra un snackbar de éxito con el nombre', () => {
-    component.addToCart(product);
+  it('muestra el nombre de la categoría en el título', () => {
+    createFixture();
 
-    expect(currentSnackbar()?.message).toBe('Rosa agregado al carrito.');
+    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Rosas');
   });
 
-  it('un producto agotado no se agrega al carrito', () => {
-    const soldOut: Product = { ...product, stock: 0 };
+  it('muestra un error visible si falla la carga de productos', () => {
+    catalogService.getProductsByCategory.and.returnValue(throwError(() => new Error('boom')));
+    createFixture();
 
-    component.addToCart(soldOut);
-
-    expect(component.isAdded('p1')).toBeFalse();
-    expect(component.isOutOfStock(soldOut)).toBeTrue();
-    let count = 0;
-    cartService.getCount().subscribe(value => (count = value));
-    expect(count).toBe(0);
+    expect(component.error).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('No se pudieron cargar los productos');
   });
 
-  it('clasifica el estado de stock: en stock, pocas unidades y agotado', () => {
-    expect(component.getStockStatus({ ...product, stock: 11 })).toBe('in-stock');
-    expect(component.getStockStatus({ ...product, stock: 10 })).toBe('low-stock');
-    expect(component.getStockStatus({ ...product, stock: 1 })).toBe('low-stock');
-    expect(component.getStockStatus({ ...product, stock: 0 })).toBe('out-of-stock');
+  it('muestra un mensaje cuando la categoría no tiene productos', () => {
+    catalogService.getProductsByCategory.and.returnValue(of([]));
+    createFixture();
+
+    expect(component.products).toEqual([]);
+    expect(fixture.nativeElement.textContent).toContain('No hay productos en esta categoría.');
+  });
+
+  it('sin categoryId no carga nada y deja de mostrar el cargador', () => {
+    routeParamGetter = () => null;
+    createFixture();
+
+    expect(catalogService.getProductsByCategory).not.toHaveBeenCalled();
+    expect(component.loading).toBeFalse();
   });
 });

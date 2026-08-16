@@ -1,0 +1,133 @@
+@use 'styles/variables' as v;
+
+.card {
+  background: v.$color-surface;
+  border-radius: v.$radius-md;
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  box-shadow: v.$shadow-card;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: v.$shadow-card-hover;
+  }
+
+  .card-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .card-media {
+    aspect-ratio: 1 / 1;
+    background: v.$color-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: v.$color-gold;
+    font-family: v.$font-heading;
+    font-size: 2.5rem;
+
+    &:hover {
+      color: v.$color-primary;
+    }
+  }
+
+  .card-body {
+    padding: v.$space-5;
+    display: flex;
+    flex-direction: column;
+    gap: v.$space-2;
+
+    h2 {
+      margin: 0;
+      color: v.$color-text;
+      font-size: 1.05rem;
+    }
+
+    p {
+      margin: 0;
+      color: v.$color-text-muted;
+      font-size: 0.9rem;
+    }
+
+    .stock {
+      font-weight: 600;
+      font-size: 0.85rem;
+
+      &.in-stock {
+        color: v.$color-success;
+      }
+
+      &.low-stock {
+        color: v.$color-warning;
+      }
+
+      &.out-of-stock {
+        color: v.$color-danger;
+      }
+    }
+
+    .price {
+      margin-top: v.$space-2;
+      display: flex;
+      align-items: baseline;
+      gap: v.$space-3;
+
+      .discount {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: v.$color-primary;
+      }
+
+      .regular {
+        color: v.$color-text-subtle;
+        text-decoration: line-through;
+        font-size: 0.9rem;
+      }
+
+      &:not(:has(.regular)) {
+        color: v.$color-gold;
+        font-weight: 700;
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  .card-actions {
+    padding: 0 v.$space-5 v.$space-5;
+
+    button {
+      width: 100%;
+      padding: v.$space-2 v.$space-4;
+      border: none;
+      border-radius: v.$radius-full;
+      background: v.$color-primary;
+      color: v.$color-surface;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.3s ease;
+
+      &:hover {
+        background: v.$color-primary-hover;
+      }
+
+      &:disabled {
+        background: v.$color-text-subtle;
+        color: v.$color-surface;
+        cursor: not-allowed;
+        opacity: 0.6;
+
+        &:hover {
+          background: v.$color-text-subtle;
+        }
+      }
+    }
+  }
+}

@@ -35,7 +35,8 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
 ## Flujo de compra (end-to-end)
 
 ```
-1. Cliente navega:  home → categoría → producto
+1. Cliente navega:  home → (filtro por categoría) → detalle de producto
+  El home (`/`) muestra hero + cinta deslizable de categorías (chip "Todos" activo por defecto, carga todos los productos activos) + grid de tarjetas (`ProductCardComponent`). Seleccionar un chip filtra en el lugar; la deep link por categoría es `/catalog/:categoryId` (`ProductListComponent`, mismo grid + breadcrumb). El footer se eliminó; el contacto sigue disponible desde el carrito.
  2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart). El catálogo muestra el estado de stock (badge "En stock" / "¡Últimas X unidades!" / "Agotado") y bloquea el agregado de productos agotados; `CartService` además **topea la cantidad al stock disponible** (defensa en profundidad: la API también valida).
  3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
  4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
@@ -91,7 +92,17 @@ Toda la entrada/salida de datos vive en `src/app/core/services/` — los compone
 
 `SnackbarService` (servicio global) + `AppSnackbarComponent` (singleton en `AppComponent`, exportado por `SharedModule`). Cualquier componente dispara avisos con `snackbar.show(message, type, duration, actionLabel?, onAction?)`; el servicio expone un `BehaviorSubject` y el componente auto-cierra con un timer reiniciable. `actionLabel`/`onAction` opcionales habilitan una acción en el aviso (ej. **Deshacer** en "Vaciar carrito", que restaura el carrito con `CartService.restoreCart`). Tipos `success`/`error`/`info` con `role=status`/`role=alert`. Responsive: ancho completo abajo en móvil (< 600px), centrado con `min-width: 344px` en desktop. A diferencia del modal (presentacional `@Input`/`@Output`), el snackbar se controla por servicio por decisión de producto.
 
-Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-list` ("«Nombre» agregado al carrito.") y `cart-summary` (error al registrar el pedido). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código; los estados "Verificando…" y "Registrando…" quedan junto a los botones de contacto.
+Consumidores actuales: `cart-view` (éxito/error al actualizar el pedido; "Tu carrito fue vaciado." con Deshacer), `product-detail` y `product-card` ("«Nombre» agregado al carrito.") y `cart-summary` (error al registrar el pedido). Los avisos "¡Pedido registrado!" y "Modificaste tu carrito…" del `cart-summary` son inline bajo el bloque del código; los estados "Verificando…" y "Registrando…" quedan junto a los botones de contacto.
+
+### Tarjeta de producto compartida
+
+`ProductCardComponent` (`app-product-card`, en `SharedModule`) encapsula la tarjeta de producto del catálogo (media con inicial, nombre, descripción, badge de stock, precio con descuento tachado y botón "Agregar al carrito"). Entrada: `product`. Es `OnPush` + `ChangeDetectorRef.markForCheck()` porque el timer del estado "added" (1.5s) no re-renderizaba con la estrategia por defecto heredada; limpia el timer en `ngOnDestroy`. Lo usan `HomeComponent` y `ProductListComponent`; el grid (`repeat(auto-fill, minmax(220px, 1fr))`) vive en cada página, la tarjeta es agnóstica del layout.
+
+### Home (vista del cliente)
+
+`HomeComponent` (`/`, en `HomeModule`) es la portada: hero (título + subtítulo) + **cinta de categorías** + grid de productos. La cinta es un scroll horizontal (`overflow-x: auto`, scrollbar oculto, scroll-snap) con chips: "Todos" fijo al inicio y una chip por categoría; los chips viven en estado del componente (`selectedCategoryId`, sin cambios de URL). Es **sticky arriba** bajo el header (`top: 2.75rem`) en desktop y **fixed abajo** (`bottom: 0`, `padding-bottom` en el contenido) en móvil ≤600px: un `sticky bottom` sobre un elemento que arranca arriba en el flujo **nunca se activa** (solo entra en acción si su posición natural viola el borde), por eso en móvil se usa `fixed`. La selección de chip llama a `getProducts()` (todos) o `getProductsByCategory(id)` (filtro client-side de `CatalogService`); cada cambio resetea `loading`/`error` y los estados de error/vacío son visibles. Remplazó a `CategoryListComponent` (que solo mostraba tarjetas de categorías).
+
+El **header** (`HeaderComponent`, solo rutas no-admin) es `position: fixed` (top 0, z-index 50) para que nunca desaparezca al scrollear; `app.component` compensa el alto (2.75rem) con `padding-top` en `main` (la clase `main--no-pad` lo quita en rutas admin). La cinta de categorías del home se pega justo bajo él con `top: 2.75rem`.
 
 ### Spinner de carga
 

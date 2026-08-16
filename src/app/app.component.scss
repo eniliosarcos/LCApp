@@ -8,53 +8,9 @@
 
 main {
   flex: 1;
-}
+  padding-top: 2.75rem;
 
-.footer {
-  background: v.$color-footer-bg;
-  color: v.$color-footer-text;
-  padding: v.$space-6;
-
-  .footer-grid {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: v.$space-4;
-    flex-wrap: wrap;
-
-    .footer-brand {
-      display: flex;
-      flex-direction: column;
-
-      .brand-name {
-        font-family: v.$font-heading;
-        font-size: 1.15rem;
-        color: v.$color-gold;
-      }
-
-      .brand-tagline {
-        font-size: 0.85rem;
-        color: v.$color-footer-text-muted;
-      }
-    }
-
-    .footer-nav {
-      display: flex;
-      gap: v.$space-4;
-      flex-wrap: wrap;
-
-      a {
-        color: v.$color-footer-text;
-
-        &:hover {
-          color: v.$color-gold;
-        }
-      }
-    }
-
-    .footer-note {
-      font-size: 0.9rem;
-      color: v.$color-footer-text-muted;
-    }
+  &.main--no-pad {
+    padding-top: 0;
   }
 }

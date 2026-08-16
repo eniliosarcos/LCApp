@@ -1,0 +1,46 @@
+<section class="home">
+  <div class="hero">
+    <div class="container">
+      <h1 class="hero-title">L'Essence de Cerise</h1>
+      <p class="hero-subtitle">Descubre nuestra colección exclusiva</p>
+    </div>
+  </div>
+
+  <div class="category-strip" role="tablist" aria-label="Filtrar por categoría">
+    <div class="container category-strip__scroll">
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="selectedCategoryId === ''"
+        (click)="selectCategory('')"
+        role="tab"
+        [attr.aria-selected]="selectedCategoryId === ''">Todos</button>
+      <button
+        *ngFor="let category of categories; trackBy: categoryTrackBy"
+        type="button"
+        class="chip"
+        [class.chip--active]="selectedCategoryId === category.id"
+        (click)="selectCategory(category.id)"
+        role="tab"
+        [attr.aria-selected]="selectedCategoryId === category.id">{{ category.name }}</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">{{ selectedCategoryName }}</h2>
+    <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
+    <p class="error" *ngIf="categoriesError">No se pudieron cargar las categorías. Intenta de nuevo.</p>
+
+    <div class="grid" *ngIf="!error && loading">
+      <app-loading-spinner label="Cargando productos…"></app-loading-spinner>
+    </div>
+
+    <div class="grid" *ngIf="!error && !loading && products.length; else empty">
+      <app-product-card *ngFor="let product of products; trackBy: productTrackBy" [product]="product"></app-product-card>
+    </div>
+
+    <ng-template #empty>
+      <p class="empty" *ngIf="!error && !loading">No hay productos en esta categoría.</p>
+    </ng-template>
+  </div>
+</section>

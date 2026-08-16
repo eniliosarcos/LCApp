@@ -9,34 +9,7 @@
   </div>
 
   <div class="grid" *ngIf="!error && !loading && products.length; else empty">
-    <article class="card" *ngFor="let product of products">
-      <a [routerLink]="productLink(product)" class="card-link">
-        <div class="card-media" aria-hidden="true">{{ product.name.charAt(0) }}</div>
-        <div class="card-body">
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.description }}</p>
-          <p class="stock" [class]="getStockStatus(product)">
-            <ng-container [ngSwitch]="getStockStatus(product)">
-              <ng-container *ngSwitchCase="'in-stock'">En stock</ng-container>
-              <ng-container *ngSwitchCase="'low-stock'">¡Últimas {{ product.stock }} unidades!</ng-container>
-              <ng-container *ngSwitchCase="'out-of-stock'">Agotado</ng-container>
-            </ng-container>
-          </p>
-          <p class="price" *ngIf="product.discountPrice; else noDiscount">
-            <span class="discount">{{ getDisplayPrice(product) | currencyFormat }}</span>
-            <span class="regular">{{ product.price | currencyFormat }}</span>
-          </p>
-          <ng-template #noDiscount>
-            <p class="price">{{ getDisplayPrice(product) | currencyFormat }}</p>
-          </ng-template>
-        </div>
-      </a>
-      <div class="card-actions">
-        <button type="button" [disabled]="isOutOfStock(product)" (click)="addToCart(product)">
-          {{ isOutOfStock(product) ? 'Agotado' : (isAdded(product.id) ? '✓ Agregado' : 'Agregar al carrito') }}
-        </button>
-      </div>
-    </article>
+    <app-product-card *ngFor="let product of products; trackBy: productTrackBy" [product]="product"></app-product-card>
   </div>
 
   <ng-template #empty>
