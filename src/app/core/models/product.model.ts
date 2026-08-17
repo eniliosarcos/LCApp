@@ -1,9 +1,15 @@
+export interface ProductImageVariant {
+  width: number;
+  url: string;
+}
+
 export interface ProductImage {
   id: string;
   url: string;
   alt: string;
   isPrimary: boolean;
   order: number;
+  variants?: ProductImageVariant[];
 }
 
 export interface Product {
@@ -29,6 +35,7 @@ export interface ProductImagePayload {
   alt?: string;
   isPrimary?: boolean;
   order?: number;
+  variants?: ProductImageVariant[];
 }
 
 export interface ProductPayload {

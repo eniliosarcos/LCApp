@@ -5,6 +5,11 @@ const productImageSchema = new mongoose.Schema({
   alt: String,
   isPrimary: { type: Boolean, default: false },
   order: { type: Number, default: 0 },
+  variants: [{
+    width: Number,
+    url: String,
+    _id: false,
+  }],
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({

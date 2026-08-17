@@ -89,4 +89,25 @@ describe('ProductGalleryComponent', () => {
 
     expect(component.getPrimaryImage()?.id).toBe('i2');
   });
+
+  it('genera el srcset a partir de las variantes de la imagen principal', () => {
+    const variants = [
+      { width: 400, url: 'https://img.example/400w.webp' },
+      { width: 800, url: 'https://img.example/800w.webp' },
+      { width: 1200, url: 'https://img.example/1200w.webp' }
+    ];
+    createFixture([image({ variants })]);
+
+    const img = fixture.nativeElement.querySelector('.main-image img') as HTMLImageElement;
+    expect(component.mainSrcset).toBe(
+      'https://img.example/400w.webp 400w, https://img.example/800w.webp 800w, https://img.example/1200w.webp 1200w'
+    );
+    expect(img.getAttribute('srcset')).toContain('1200w');
+  });
+
+  it('no genera srcset si la imagen no tiene variantes', () => {
+    createFixture([image()]);
+
+    expect(component.mainSrcset).toBe('');
+  });
 });

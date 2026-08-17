@@ -136,6 +136,25 @@
       <input type="text" name="imageUrl" [(ngModel)]="form.imageUrl" placeholder="https://…">
     </label>
 
+    <div class="upload-box">
+      <label for="imageFile" class="btn-secondary">Subir imagen…</label>
+      <input
+        id="imageFile"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+        (change)="onFileSelected($event)">
+      <span
+        class="upload-status"
+        [class.upload-status--done]="form.imageVariants.length > 0 && !uploadingImage"
+        [attr.aria-live]="uploadingImage ? 'polite' : null">
+        {{ uploadingImage
+            ? 'Subiendo imagen…'
+            : form.imageVariants.length > 0
+              ? 'Imagen subida (WebP 400 / 800 / 1200w)'
+              : 'La imagen se procesa y se optimiza automáticamente' }}
+      </span>
+    </div>
+
     <label class="checkbox">
       <input type="checkbox" name="isActive" [(ngModel)]="form.isActive">
       Producto activo (visible en el catálogo)

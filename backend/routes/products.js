@@ -6,6 +6,15 @@ const authenticate = require('../middleware/auth');
 const { authenticateOptional } = require('../middleware/auth');
 const { slugify, uniqueSlug } = require('../utils/slugify');
 
+function normalizeVariants(variants) {
+  if (!Array.isArray(variants)) {
+    return [];
+  }
+  return variants
+    .filter(v => v && Number.isFinite(Number(v.width)) && typeof v.url === 'string' && v.url.trim() !== '')
+    .map(v => ({ width: Number(v.width), url: v.url.trim() }));
+}
+
 function normalizeImages(images) {
   if (!Array.isArray(images)) {
     return [];
@@ -17,6 +26,7 @@ function normalizeImages(images) {
       alt: img.alt || '',
       isPrimary: index === 0,
       order: index,
+      variants: normalizeVariants(img.variants),
     }));
 }
 

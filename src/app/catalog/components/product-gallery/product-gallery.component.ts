@@ -32,6 +32,16 @@ export class ProductGalleryComponent implements OnInit {
     return this.selectedImage || this.getPrimaryImage();
   }
 
+  get mainSrcset(): string {
+    const variants = this.mainImage?.variants;
+    if (!variants || variants.length === 0) {
+      return '';
+    }
+    return variants
+      .map(variant => `${variant.url} ${variant.width}w`)
+      .join(', ');
+  }
+
   thumbFailed(image: ProductImage): boolean {
     return this.failedThumbs.has(image.id);
   }

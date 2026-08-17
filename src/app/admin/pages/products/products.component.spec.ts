@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ImageService } from '../../../core/services/image.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AppLoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
@@ -35,6 +36,7 @@ describe('ProductsComponent', () => {
   let fixture: ComponentFixture<ProductsComponent>;
   let component: ProductsComponent;
   let catalogServiceSpy: jasmine.SpyObj<CatalogService>;
+  let imageServiceSpy: jasmine.SpyObj<ImageService>;
   let snackbarSpy: jasmine.SpyObj<SnackbarService>;
 
   function createComponent(): void {
@@ -45,6 +47,7 @@ describe('ProductsComponent', () => {
 
   beforeEach(async () => {
     catalogServiceSpy = jasmine.createSpyObj('CatalogService', ['getCategories', 'getAllProducts', 'createProduct', 'updateProduct']);
+    imageServiceSpy = jasmine.createSpyObj('ImageService', ['uploadImage']);
     snackbarSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
     await TestBed.configureTestingModule({
@@ -52,6 +55,7 @@ describe('ProductsComponent', () => {
       imports: [FormsModule],
       providers: [
         { provide: CatalogService, useValue: catalogServiceSpy },
+        { provide: ImageService, useValue: imageServiceSpy },
         { provide: SnackbarService, useValue: snackbarSpy }
       ]
     }).compileComponents();
@@ -331,5 +335,103 @@ describe('ProductsComponent', () => {
 
     expect(component.formError).toBe('El SKU ya existe');
     expect(component.formSaving).toBeFalse();
+  });
+
+  it('sube una imagen y guarda la URL principal y las variantes', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    imageServiceSpy.uploadImage.and.returnValue(of({
+      primaryUrl: 'https://img.example/400w.webp',
+      variants: [
+        { width: 400, url: 'https://img.example/400w.webp' },
+        { width: 800, url: 'https://img.example/800w.webp' }
+      ]
+    }));
+    createComponent();
+
+    component.openCreate();
+    const file = new File(['data'], 'foto.jpg', { type: 'image/jpeg' });
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onFileSelected(event);
+
+    expect(imageServiceSpy.uploadImage).toHaveBeenCalledWith(file);
+    expect(component.form.imageUrl).toBe('https://img.example/400w.webp');
+    expect(component.form.imageVariants.length).toBe(2);
+    expect(component.uploadingImage).toBeFalse();
+  });
+
+  it('rechaza archivos que no son imágenes', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    createComponent();
+
+    component.openCreate();
+    const file = new File(['texto'], 'nota.txt', { type: 'text/plain' });
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onFileSelected(event);
+
+    expect(imageServiceSpy.uploadImage).not.toHaveBeenCalled();
+    expect(component.formError).toContain('Solo se permiten imágenes');
+  });
+
+  it('rechaza imágenes mayores a 5 MB', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    createComponent();
+
+    component.openCreate();
+    const file = new File(['data'], 'grande.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(file, 'size', { value: 6 * 1024 * 1024 });
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onFileSelected(event);
+
+    expect(imageServiceSpy.uploadImage).not.toHaveBeenCalled();
+    expect(component.formError).toContain('5 MB');
+  });
+
+  it('muestra el error del servidor si falla la subida', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    imageServiceSpy.uploadImage.and.returnValue(throwError(() => new Error('No se pudo procesar la imagen')));
+    createComponent();
+
+    component.openCreate();
+    const file = new File(['data'], 'foto.jpg', { type: 'image/jpeg' });
+    const event = { target: { files: [file] } } as unknown as Event;
+    component.onFileSelected(event);
+
+    expect(component.formError).toBe('No se pudo procesar la imagen');
+    expect(component.uploadingImage).toBeFalse();
+  });
+
+  it('envía las variantes de imagen en el payload del producto', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([]));
+    catalogServiceSpy.createProduct.and.returnValue(of(product('p2', 'Nuevo', 'c1')));
+    createComponent();
+
+    component.openCreate();
+    component.form.name = 'Nuevo producto';
+    component.form.categoryId = 'c1';
+    component.form.price = 99;
+    component.form.imageUrl = 'https://img.example/400w.webp';
+    component.form.imageVariants = [
+      { width: 400, url: 'https://img.example/400w.webp' },
+      { width: 800, url: 'https://img.example/800w.webp' }
+    ];
+    component.onSubmit();
+
+    expect(catalogServiceSpy.createProduct).toHaveBeenCalledWith(jasmine.objectContaining({
+      images: [{
+        url: 'https://img.example/400w.webp',
+        alt: 'Nuevo producto',
+        isPrimary: true,
+        order: 0,
+        variants: [
+          { width: 400, url: 'https://img.example/400w.webp' },
+          { width: 800, url: 'https://img.example/800w.webp' }
+        ]
+      }]
+    }));
   });
 });

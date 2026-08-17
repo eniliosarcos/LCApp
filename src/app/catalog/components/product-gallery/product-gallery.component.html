@@ -4,6 +4,8 @@
       <img
         *ngIf="mainImage?.url && !mainImageFailed"
         [src]="mainImage?.url"
+        [srcset]="mainSrcset"
+        sizes="(min-width: 720px) 520px, 100vw"
         [alt]="mainImage?.alt || 'Imagen del producto'"
         fetchpriority="high"
         (error)="onMainImageError()">

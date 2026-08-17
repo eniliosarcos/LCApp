@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Category } from '../../../core/models/category.model';
-import { LOW_STOCK_THRESHOLD, Product, ProductPayload } from '../../../core/models/product.model';
+import { LOW_STOCK_THRESHOLD, Product, ProductImageVariant, ProductPayload } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ImageService } from '../../../core/services/image.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 
 type StockFilter = 'all' | 'out' | 'low';
+
+const ACCEPTED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
 
 interface ProductForm {
   name: string;
@@ -16,6 +19,7 @@ interface ProductForm {
   description: string;
   tags: string;
   imageUrl: string;
+  imageVariants: ProductImageVariant[];
   isActive: boolean;
 }
 
@@ -29,6 +33,7 @@ const EMPTY_FORM: ProductForm = {
   description: '',
   tags: '',
   imageUrl: '',
+  imageVariants: [],
   isActive: true
 };
 
@@ -48,11 +53,13 @@ export class ProductsComponent implements OnInit {
   formOpen = false;
   formSaving = false;
   formError = '';
+  uploadingImage = false;
   editingProduct: Product | null = null;
   form: ProductForm = { ...EMPTY_FORM };
 
   constructor(
     private readonly catalogService: CatalogService,
+    private readonly imageService: ImageService,
     private readonly snackbar: SnackbarService,
     private readonly cdr: ChangeDetectorRef
   ) {}
@@ -141,6 +148,7 @@ export class ProductsComponent implements OnInit {
   }
 
   openEdit(product: Product): void {
+    const primaryImage = product.images.find(img => img.isPrimary) ?? product.images[0];
     this.editingProduct = product;
     this.form = {
       name: product.name,
@@ -151,7 +159,8 @@ export class ProductsComponent implements OnInit {
       sku: product.sku,
       description: product.description ?? '',
       tags: product.tags.join(', '),
-      imageUrl: product.images.find(img => img.isPrimary)?.url ?? product.images[0]?.url ?? '',
+      imageUrl: primaryImage?.url ?? '',
+      imageVariants: primaryImage?.variants ? [...primaryImage.variants] : [],
       isActive: product.isActive
     };
     this.formError = '';
@@ -165,6 +174,42 @@ export class ProductsComponent implements OnInit {
     }
     this.formOpen = false;
     this.cdr.markForCheck();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+      this.formError = 'Solo se permiten imágenes (JPEG, PNG, WebP, AVIF o GIF).';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.formError = 'La imagen no puede superar los 5 MB.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.uploadingImage = true;
+    this.formError = '';
+    this.cdr.markForCheck();
+
+    this.imageService.uploadImage(file).subscribe({
+      next: result => {
+        this.form.imageUrl = result.primaryUrl;
+        this.form.imageVariants = result.variants;
+        this.uploadingImage = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: Error) => {
+        this.uploadingImage = false;
+        this.formError = err.message;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   toggleActive(product: Product): void {
@@ -204,7 +249,13 @@ export class ProductsComponent implements OnInit {
         .map(tag => tag.trim())
         .filter(tag => tag !== ''),
       images: this.form.imageUrl.trim()
-        ? [{ url: this.form.imageUrl.trim(), alt: this.form.name.trim(), isPrimary: true, order: 0 }]
+        ? [{
+            url: this.form.imageUrl.trim(),
+            alt: this.form.name.trim(),
+            isPrimary: true,
+            order: 0,
+            ...(this.form.imageVariants.length > 0 ? { variants: this.form.imageVariants } : {})
+          }]
         : [],
       isActive: this.form.isActive
     };

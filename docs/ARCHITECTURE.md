@@ -154,7 +154,15 @@ backend/
 - `GET /api/products?all=true`: devuelve también inactivos solo si el token es válido (`authenticateOptional`); sin token se mantiene el comportamiento público (solo `isActive: true`).
 - `POST/PUT /api/categories` (JWT): análogos (nombre obligatorio, slug autogenerado/único, descripción e imageUrl opcionales).
 - **No hay `DELETE`**: alta/baja vía `isActive` (productos y sus `categoryId` referencian órdenes; se evitan huérfanos).
-- Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la URL única a `images[{ url, alt, isPrimary, order }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`. El umbral de "stock bajo" es una constante compartida del dominio: `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (catálogo: badge/clasificación de `getStockStatus`; admin: resaltado de filas y chips de filtro).
+- Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la imagen a `images[{ url, alt, isPrimary, order, variants }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`. El umbral de "stock bajo" es una constante compartida del dominio: `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (catálogo: badge/clasificación de `getStockStatus`; admin: resaltado de filas y chips de filtro).
+
+### Self-hosting de imágenes (Cloudflare R2)
+
+- `POST /api/images` (JWT): sube **una** imagen de hasta **5 MB** (JPEG/PNG/WebP/AVIF/GIF, `multer` en memoria). El backend la procesa con `sharp`: corrige orientación (`rotate()`), genera **WebP en 400/800/1200w** (`resize` sin agrandar, quality 80) y las sube a R2 como `products/<uuid>/<width>w.webp` con `Cache-Control: public, max-age=31536000, immutable`. Responde `{ variants: [{ width, url }], primaryUrl }` (200/201). Si algo falla a mitad de subida, borra los objetos ya creados (`DeleteObjectsCommand` best-effort).
+- **Render es efímero** → los archivos no viven en el servidor; el backend solo firma y sube al bucket. El frontend sirve las URLs públicas directo desde R2 (los `<img>` no requieren CORS para display).
+- `ProductImage` (modelo Mongo) guarda `variants: [{ width, url }]` junto a `url`; `normalizeImages()` los preserva/limpia en `POST/PUT /api/products`. El `srcset` de la galería usa las variantes (`400w/800w/1200w`, `sizes="(min-width: 720px) 520px, 100vw"`) y el `src` sigue siendo la primaria; productos viejos sin variantes siguen funcionando (sin srcset).
+- Frontend: `ImageService.uploadImage(file)` → `POST /api/images` multipart (el `AuthInterceptor` agrega el Bearer); el formulario de producto tiene input de archivo que sube y rellena `imageUrl` + `variants` (mantiene el campo de URL manual para pegadas externas). Los errores del backend (mime, tamaño, procesado) se muestran en el formulario.
+- Sin eliminación por ahora: reemplazar la imagen de un producto deja los objetos previos en el bucket (huérfanos inofensivos). Pendiente: custom domain (la `Public Development URL` de R2 es rate-limited, no apta producción).
 
 ### Resumen de ventas por período
 
@@ -196,6 +204,13 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 | `JWT_SECRET` | Clave para firmar tokens |
 | `JWT_EXPIRES_IN` | Opcional, default `12h` |
 | `ORDER_TTL_HOURS` | Opcional; horas de vida de una orden `pending` antes de auto-cancelarse (TTL perezoso), default `48` |
+| `R2_ACCOUNT_ID` | Account ID de Cloudflare R2 (está en la URL del endpoint S3 del bucket) |
+| `R2_ACCESS_KEY_ID` | Access Key ID del API token R2 (solo se muestra al crear el token) |
+| `R2_SECRET_ACCESS_KEY` | Secret Access Key del API token R2 (solo se muestra al crear el token) |
+| `R2_BUCKET` | Nombre del bucket (ej. `lcapp-images`) |
+| `R2_PUBLIC_URL` | URL pública del bucket (hoy `https://pub-<hash>.r2.dev`; custom domain pendiente) |
+
+**Nota Node/Render**: el backend exige Node ≥ 20.9 (`engines` en `package.json`); Render debe provisionar Node 20+ o el arranque falla (sharp nativo + AWS SDK v3).
 
 **Regla de oro**: nada real en el repo. Front → GitHub Secrets + CI; backend → env vars de Render. `backend/.env` y `src/environments/*` jamás se commitean con datos reales.
 
