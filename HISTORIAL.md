@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — fix — Auth interceptor maneja 401 y redirige a login
+- **Descripción**: `AuthInterceptor` ahora captura respuestas 401 de la API. Cuando un token expirado o inválido produce un 401, el interceptor limpia la sesión (`authService.logout()`) y redirige a `/login`. Antes el guard solo verificaba la presencia del token en localStorage sin validar expiración, lo que resultaba en un panel admin vacío con navegación habilitada.
+- **Archivos**: `src/app/core/interceptors/auth.interceptor.ts`
+- **Decisión clave**: Se agregó `catchError` al pipe del interceptor en vez de crear un interceptor separado. La lógica de logout + redirect está en el mismo interceptor que agrega el Bearer, manteniendo la separación de responsabilidades.
+
 ### 2026-08-17 — fix — openEdit() ya no borra imágenes no-primarias + limpieza de huérfanas en R2 + DELETE de producto + cleanup al cancelar form + R2 key naming descriptivo + fallback onerror en card
 - **Descripción**: Múltiples mejoras en el sistema de imágenes: (1) `openEdit()` carga TODAS las imágenes del producto en `form.images[]`. (2) PUT `/api/products/:id` borra del R2 las imágenes que ya no están referenciadas. (3) Nuevo DELETE `/api/products/:id` con limpieza R2. (4) Nuevo DELETE `/api/images` para limpiar URLs específicas. (5) Al cancelar el form, se borran de R2 las imágenes que nunca se vincularon a un producto (`pendingImageUrls`). (6) Las claves R2 ahora usan el slug del producto (`products/rosa-roja-abc12/400w.webp`) en vez de UUID random. (7) `ProductCardComponent` ahora maneja `(error)` en `<img>` — si una imagen fue borrada de R2, muestra la inicial del nombre en vez de un ícono roto. `normalizeImages()` respeta `isPrimary` y `order` del cliente.
 - **Archivos**: `backend/lib/r2.js`, `backend/routes/products.js`, `src/app/admin/pages/products/products.component.ts|html|scss`, `src/app/core/models/product.model.ts`, `src/app/core/services/catalog.service.ts`, `src/app/admin/pages/products/products.component.spec.ts`
