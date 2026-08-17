@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — config — Migración de frontend de GitHub Pages a Cloudflare Pages
+- **Descripción**: El frontend ahora se despliega en Cloudflare Pages en vez de GitHub Pages. Se creó `scripts/cloudflare-build.sh` que inyecta `environment.ts` y `environment.prod.ts` desde variables de entorno de Cloudflare (API_URL), eliminando la necesidad de commitear archivos de entorno. Se creó `public/_redirects` con regla SPA fallback (`/* /index.html 200`), reemplazando el truco de copiar `index.html` → `404.html`. Base href cambió de `/LCApp/` a `/`.
+- **Archivos**: `scripts/cloudflare-build.sh` (nuevo), `public/_redirects` (nuevo)
+- **Decisión clave**: Cloudflare Pages elegido por bandwidth ilimitado gratis (vs 100GB/mes en Vercel/Netlify), mismo ecosistema que R2, y sostenibilidad del plan gratuito (el negocio core de Cloudflare es seguridad enterprise, no hosting).
+
 ### 2026-08-17 — fix — Auth interceptor maneja 401 y redirige a login
 - **Descripción**: `AuthInterceptor` ahora captura respuestas 401 de la API. Cuando un token expirado o inválido produce un 401, el interceptor limpia la sesión (`authService.logout()`) y redirige a `/login`. Antes el guard solo verificaba la presencia del token en localStorage sin validar expiración, lo que resultaba en un panel admin vacío con navegación habilitada.
 - **Archivos**: `src/app/core/interceptors/auth.interceptor.ts`
