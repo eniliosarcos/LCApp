@@ -68,7 +68,7 @@
           <td>
             <span class="status" [ngClass]="order.status">{{ order.status }}</span>
           </td>
-          <td>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ order.createdAt | date:'dd/MM/yyyy hh:mm a' }}</td>
           <td>
             <button
               *ngIf="order.status === 'pending'"

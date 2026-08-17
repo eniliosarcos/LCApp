@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — style — Formato de hora 12h en panel admin
+- **Descripción**: Las fechas en el panel admin ahora muestran la hora en formato 12 horas con AM/PM (`hh:mm a`) en vez de formato 24 horas (`HH:mm`). Aplica a order-detail, dashboard y orders.
+- **Archivos**: `src/app/admin/pages/order-detail/order-detail.component.html`, `src/app/admin/pages/dashboard/dashboard.component.html`, `src/app/admin/pages/orders/orders.component.html`
+- **Verificación**: `ng build --configuration production` OK; `ng test --watch=false` **216/216 OK**.
+
 ### 2026-08-17 — chore — Limpieza de referencias a GitHub Pages
 - **Descripción**: Se eliminó `.github/workflows/deploy.yml` (ya no se necesita, Cloudflare Pages deploya automáticamente via GitHub integration). Se actualizaron README.md, docs/ARCHITECTURE.md y backend/.env.example para reflejar Cloudflare Pages como plataforma de frontend.
 - **Archivos**: `.github/workflows/deploy.yml` (eliminado), `README.md`, `docs/ARCHITECTURE.md`, `backend/.env.example`

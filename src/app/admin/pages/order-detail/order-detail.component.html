@@ -42,11 +42,11 @@
         </div>
         <div>
           <dt>Creada</dt>
-          <dd>{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</dd>
+          <dd>{{ order.createdAt | date:'dd/MM/yyyy hh:mm a' }}</dd>
         </div>
         <div>
           <dt>Confirmada</dt>
-          <dd>{{ order.confirmedAt ? (order.confirmedAt | date:'dd/MM/yyyy HH:mm') : '-' }}</dd>
+          <dd>{{ order.confirmedAt ? (order.confirmedAt | date:'dd/MM/yyyy hh:mm a') : '-' }}</dd>
         </div>
       </dl>
     </div>
