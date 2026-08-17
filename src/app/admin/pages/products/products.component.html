@@ -69,6 +69,7 @@
             <button type="button" class="btn-link" (click)="toggleActive(product)">
               {{ product.isActive ? 'Desactivar' : 'Activar' }}
             </button>
+            <button type="button" class="btn-link btn-link--danger" (click)="deleteProduct(product)">Eliminar</button>
           </td>
         </tr>
       </tbody>
@@ -131,34 +132,45 @@
       <input type="text" name="tags" [(ngModel)]="form.tags">
     </label>
 
-    <label>
-      URL de imagen
-      <input type="text" name="imageUrl" [(ngModel)]="form.imageUrl" placeholder="https://…">
-    </label>
-
-    <div class="upload-box">
-      <label for="imageFile" class="btn-secondary">Subir imagen…</label>
-      <input
-        id="imageFile"
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-        (change)="onFileSelected($event)">
-      <span
-        class="upload-status"
-        [class.upload-status--done]="form.imageVariants.length > 0 && !uploadingImage"
-        [attr.aria-live]="uploadingImage ? 'polite' : null">
-        {{ uploadingImage
-            ? 'Subiendo imagen…'
-            : form.imageVariants.length > 0
-              ? 'Imagen subida (WebP 400 / 800 / 1200w)'
-              : 'La imagen se procesa y se optimiza automáticamente' }}
-      </span>
-    </div>
-
     <label class="checkbox">
       <input type="checkbox" name="isActive" [(ngModel)]="form.isActive">
       Producto activo (visible en el catálogo)
     </label>
+
+    <fieldset class="image-section">
+      <legend>Imágenes</legend>
+
+      <div class="image-list" *ngIf="form.images.length">
+        <div class="image-item" *ngFor="let img of form.images; let i = index">
+          <img [src]="img.variants.length ? img.variants[0].url : img.url" class="image-thumb" alt="Preview">
+          <div class="image-info">
+            <span class="image-label">{{ img.isPrimary ? 'Principal' : '#' + (i + 1) }}</span>
+            <span class="image-meta" *ngIf="img.variants.length">{{ img.variants.length }} variantes WebP</span>
+          </div>
+          <div class="image-actions">
+            <button type="button" class="btn-icon" *ngIf="!img.isPrimary" (click)="setPrimary(i)" title="Marcar como principal">★</button>
+            <button type="button" class="btn-icon btn-icon--danger" (click)="removeImage(i)" title="Eliminar imagen">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="image-empty" *ngIf="!form.images.length">Sin imágenes</p>
+
+      <div class="upload-box">
+        <label for="imageFile" class="btn-secondary">Subir imagen…</label>
+        <input
+          id="imageFile"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+          (change)="onFileSelected($event)">
+        <span
+          class="upload-status"
+          [class.upload-status--done]="!uploadingImage"
+          [attr.aria-live]="uploadingImage ? 'polite' : null">
+          {{ uploadingImage ? 'Subiendo y procesando…' : 'JPEG/PNG/WebP/AVIF/GIF, máx 5 MB' }}
+        </span>
+      </div>
+    </fieldset>
 
     <p class="error" *ngIf="formError">{{ formError }}</p>
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Category } from '../../../core/models/category.model';
-import { LOW_STOCK_THRESHOLD, Product, ProductImageVariant, ProductPayload } from '../../../core/models/product.model';
+import { FormImage, LOW_STOCK_THRESHOLD, Product, ProductImageVariant, ProductPayload } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ImageService } from '../../../core/services/image.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
@@ -18,8 +18,7 @@ interface ProductForm {
   sku: string;
   description: string;
   tags: string;
-  imageUrl: string;
-  imageVariants: ProductImageVariant[];
+  images: FormImage[];
   isActive: boolean;
 }
 
@@ -32,8 +31,7 @@ const EMPTY_FORM: ProductForm = {
   sku: '',
   description: '',
   tags: '',
-  imageUrl: '',
-  imageVariants: [],
+  images: [],
   isActive: true
 };
 
@@ -55,7 +53,8 @@ export class ProductsComponent implements OnInit {
   formError = '';
   uploadingImage = false;
   editingProduct: Product | null = null;
-  form: ProductForm = { ...EMPTY_FORM };
+  form: ProductForm = { ...EMPTY_FORM, images: [] };
+  pendingImageUrls: string[] = [];
 
   constructor(
     private readonly catalogService: CatalogService,
@@ -141,14 +140,14 @@ export class ProductsComponent implements OnInit {
 
   openCreate(): void {
     this.editingProduct = null;
-    this.form = { ...EMPTY_FORM };
+    this.form = { ...EMPTY_FORM, images: [] };
+    this.pendingImageUrls = [];
     this.formError = '';
     this.formOpen = true;
     this.cdr.markForCheck();
   }
 
   openEdit(product: Product): void {
-    const primaryImage = product.images.find(img => img.isPrimary) ?? product.images[0];
     this.editingProduct = product;
     this.form = {
       name: product.name,
@@ -159,10 +158,16 @@ export class ProductsComponent implements OnInit {
       sku: product.sku,
       description: product.description ?? '',
       tags: product.tags.join(', '),
-      imageUrl: primaryImage?.url ?? '',
-      imageVariants: primaryImage?.variants ? [...primaryImage.variants] : [],
+      images: (product.images || []).map((img, i) => ({
+        url: img.url,
+        variants: img.variants ? [...img.variants] : [],
+        alt: img.alt || product.name,
+        isPrimary: img.isPrimary,
+        order: typeof img.order === 'number' ? img.order : i,
+      })),
       isActive: product.isActive
     };
+    this.pendingImageUrls = [];
     this.formError = '';
     this.formOpen = true;
     this.cdr.markForCheck();
@@ -172,7 +177,11 @@ export class ProductsComponent implements OnInit {
     if (this.formSaving) {
       return;
     }
+    if (this.pendingImageUrls.length) {
+      this.imageService.cancelUploads(this.pendingImageUrls).subscribe();
+    }
     this.formOpen = false;
+    this.pendingImageUrls = [];
     this.cdr.markForCheck();
   }
 
@@ -182,6 +191,7 @@ export class ProductsComponent implements OnInit {
     if (!file) {
       return;
     }
+    input.value = '';
     if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
       this.formError = 'Solo se permiten imágenes (JPEG, PNG, WebP, AVIF o GIF).';
       this.cdr.markForCheck();
@@ -197,10 +207,20 @@ export class ProductsComponent implements OnInit {
     this.formError = '';
     this.cdr.markForCheck();
 
-    this.imageService.uploadImage(file).subscribe({
+    this.imageService.uploadImage(file, this.buildImageSlug()).subscribe({
       next: result => {
-        this.form.imageUrl = result.primaryUrl;
-        this.form.imageVariants = result.variants;
+        const nextOrder = this.form.images.length;
+        this.form.images.push({
+          url: result.primaryUrl,
+          variants: result.variants,
+          alt: this.form.name.trim() || '',
+          isPrimary: this.form.images.length === 0,
+          order: nextOrder,
+        });
+        this.pendingImageUrls.push(result.primaryUrl);
+        for (const v of result.variants) {
+          this.pendingImageUrls.push(v.url);
+        }
         this.uploadingImage = false;
         this.cdr.markForCheck();
       },
@@ -212,6 +232,61 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  removeImage(index: number): void {
+    const removed = this.form.images[index];
+    const wasPrimary = removed.isPrimary;
+    const removedUrls = [removed.url, ...removed.variants.map(v => v.url)];
+    this.form.images.splice(index, 1);
+    this.form.images.forEach((img, i) => img.order = i);
+    if (wasPrimary && this.form.images.length) {
+      this.form.images[0].isPrimary = true;
+    }
+    const pendingSet = new Set(this.pendingImageUrls);
+    const isPending = removedUrls.every(url => pendingSet.has(url));
+    if (isPending) {
+      this.pendingImageUrls = this.pendingImageUrls.filter(url => !removedUrls.includes(url));
+      this.imageService.cancelUploads(removedUrls).subscribe();
+    }
+    this.cdr.markForCheck();
+  }
+
+  setPrimary(index: number): void {
+    this.form.images.forEach((img, i) => img.isPrimary = i === index);
+    this.cdr.markForCheck();
+  }
+
+  private buildImageSlug(): string {
+    const name = this.form.name.trim();
+    const slug = name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (this.editingProduct) {
+      const last5 = this.editingProduct.id.slice(-5);
+      return `${slug}-${last5}`;
+    }
+    return slug;
+  }
+
+  addManualUrl(): void {
+    const url = (this.form as unknown as { manualUrl: string }).manualUrl?.trim();
+    if (!url) {
+      return;
+    }
+    const nextOrder = this.form.images.length;
+    this.form.images.push({
+      url,
+      variants: [],
+      alt: this.form.name.trim() || '',
+      isPrimary: this.form.images.length === 0,
+      order: nextOrder,
+    });
+    (this.form as unknown as { manualUrl: string }).manualUrl = '';
+    this.cdr.markForCheck();
+  }
+
   toggleActive(product: Product): void {
     this.catalogService.updateProduct(product.id, { isActive: !product.isActive }).subscribe({
       next: updated => {
@@ -220,6 +295,22 @@ export class ProductsComponent implements OnInit {
           this.products[index] = updated;
         }
         this.snackbar.show(updated.isActive ? 'Producto activado' : 'Producto desactivado', 'success');
+        this.cdr.markForCheck();
+      },
+      error: (err: Error) => {
+        this.snackbar.show(err.message, 'error');
+      }
+    });
+  }
+
+  deleteProduct(product: Product): void {
+    if (!confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    this.catalogService.deleteProduct(product.id).subscribe({
+      next: () => {
+        this.products = this.products.filter(p => p.id !== product.id);
+        this.snackbar.show('Producto eliminado', 'success');
         this.cdr.markForCheck();
       },
       error: (err: Error) => {
@@ -248,15 +339,13 @@ export class ProductsComponent implements OnInit {
         .split(',')
         .map(tag => tag.trim())
         .filter(tag => tag !== ''),
-      images: this.form.imageUrl.trim()
-        ? [{
-            url: this.form.imageUrl.trim(),
-            alt: this.form.name.trim(),
-            isPrimary: true,
-            order: 0,
-            ...(this.form.imageVariants.length > 0 ? { variants: this.form.imageVariants } : {})
-          }]
-        : [],
+      images: this.form.images.map(img => ({
+        url: img.url,
+        alt: img.alt || this.form.name.trim(),
+        isPrimary: img.isPrimary,
+        order: img.order,
+        ...(img.variants.length > 0 ? { variants: img.variants } : {})
+      })),
       isActive: this.form.isActive
     };
     if (this.form.discountPrice && Number(this.form.discountPrice) > 0) {
@@ -275,6 +364,7 @@ export class ProductsComponent implements OnInit {
       next: () => {
         this.formSaving = false;
         this.formOpen = false;
+        this.pendingImageUrls = [];
         this.snackbar.show(message, 'success');
         this.reloadProducts();
       },

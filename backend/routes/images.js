@@ -3,10 +3,24 @@ const multer = require('multer');
 const sharp = require('sharp');
 const router = express.Router();
 const authenticate = require('../middleware/auth');
-const { uploadVariants } = require('../lib/r2');
+const { uploadVariants, deleteImageUrls } = require('../lib/r2');
 
 const SIZES = [400, 800, 1200];
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+
+function buildFolder(slug) {
+  if (slug && typeof slug === 'string') {
+    const sanitized = slug
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (sanitized) {
+      return `products/${sanitized}`;
+    }
+  }
+  return null;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -38,7 +52,7 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
       variants.push({ width, buffer });
     }
 
-    const result = await uploadVariants(variants);
+    const result = await uploadVariants(variants, buildFolder(req.body.slug));
     res.status(201).json({ variants: result.variants, primaryUrl: result.primaryUrl });
   } catch (err) {
     if (err instanceof multer.MulterError) {
@@ -50,6 +64,20 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
     }
     console.error('Error al procesar la imagen:', err);
     res.status(400).json({ error: 'No se pudo procesar la imagen. Verifica que sea un archivo de imagen válido.' });
+  }
+});
+
+// DELETE /api/images — admin: borra imágenes de R2 por URL (cleanup de huérfanas).
+router.delete('/', authenticate, async (req, res) => {
+  try {
+    const { urls } = req.body;
+    if (!Array.isArray(urls) || !urls.length) {
+      return res.status(400).json({ error: 'Se requiere un array de URLs' });
+    }
+    await deleteImageUrls(urls);
+    res.json({ deleted: urls.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

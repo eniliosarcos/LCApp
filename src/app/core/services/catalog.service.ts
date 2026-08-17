@@ -64,6 +64,10 @@ export class CatalogService {
     return this.http.put<Product>(`${this.apiUrl}/products/${productId}`, payload).pipe(catchError(this.handleError));
   }
 
+  deleteProduct(productId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/products/${productId}`).pipe(catchError(this.handleError));
+  }
+
   createCategory(payload: CategoryPayload): Observable<Category> {
     return this.http.post<Category>(`${this.apiUrl}/categories`, payload).pipe(catchError(this.handleError));
   }

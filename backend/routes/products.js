@@ -5,6 +5,7 @@ const Category = require('../models/Category');
 const authenticate = require('../middleware/auth');
 const { authenticateOptional } = require('../middleware/auth');
 const { slugify, uniqueSlug } = require('../utils/slugify');
+const { deleteImageUrls, extractR2Urls } = require('../lib/r2');
 
 function normalizeVariants(variants) {
   if (!Array.isArray(variants)) {
@@ -19,15 +20,31 @@ function normalizeImages(images) {
   if (!Array.isArray(images)) {
     return [];
   }
-  return images
+  const normalized = images
     .filter(img => img && typeof img.url === 'string' && img.url.trim() !== '')
     .map((img, index) => ({
       url: img.url.trim(),
       alt: img.alt || '',
-      isPrimary: index === 0,
-      order: index,
+      isPrimary: Boolean(img.isPrimary),
+      order: typeof img.order === 'number' ? img.order : index,
       variants: normalizeVariants(img.variants),
     }));
+  const hasPrimary = normalized.some(img => img.isPrimary);
+  if (!hasPrimary && normalized.length) {
+    normalized[0].isPrimary = true;
+  }
+  if (normalized.filter(img => img.isPrimary).length > 1) {
+    let foundPrimary = false;
+    for (const img of normalized) {
+      if (img.isPrimary) {
+        if (foundPrimary) {
+          img.isPrimary = false;
+        }
+        foundPrimary = true;
+      }
+    }
+  }
+  return normalized;
 }
 
 // GET /api/products — público: solo activos. Con ?all=true y token válido: todos (para admin).
@@ -194,7 +211,14 @@ router.put('/:id', authenticate, async (req, res) => {
       product.tags = Array.isArray(tags) ? tags : [];
     }
     if (images !== undefined) {
-      product.images = normalizeImages(images);
+      const oldUrls = extractR2Urls(product.images);
+      const newNormalized = normalizeImages(images);
+      const newUrls = extractR2Urls(newNormalized);
+      const orphanUrls = oldUrls.filter(url => !newUrls.includes(url));
+      if (orphanUrls.length) {
+        deleteImageUrls(orphanUrls);
+      }
+      product.images = newNormalized;
     }
     if (isActive !== undefined) {
       product.isActive = Boolean(isActive);
@@ -206,6 +230,24 @@ router.put('/:id', authenticate, async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'El slug o el SKU ya existen' });
     }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/products/:id — solo admin: elimina producto y sus imágenes de R2.
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+    const r2Urls = extractR2Urls(product.images);
+    await product.deleteOne();
+    if (r2Urls.length) {
+      deleteImageUrls(r2Urls);
+    }
+    res.json({ message: 'Producto eliminado' });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

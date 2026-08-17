@@ -13,6 +13,7 @@ export class ProductCardComponent implements OnDestroy {
   @Input() product!: Product;
 
   added = false;
+  imageFailed = false;
   private addedTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -65,6 +66,11 @@ export class ProductCardComponent implements OnDestroy {
 
   getPrimaryImage(): ProductImage | undefined {
     return this.product.images?.find(img => img.isPrimary && img.url) ?? this.product.images?.find(img => img.url);
+  }
+
+  onImageError(): void {
+    this.imageFailed = true;
+    this.cdr.markForCheck();
   }
 
   getSrcset(image: ProductImage): string {

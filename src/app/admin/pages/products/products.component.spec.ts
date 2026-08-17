@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { Category } from '../../../core/models/category.model';
-import { Product } from '../../../core/models/product.model';
+import { FormImage, Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ImageService } from '../../../core/services/image.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
@@ -46,7 +46,7 @@ describe('ProductsComponent', () => {
   }
 
   beforeEach(async () => {
-    catalogServiceSpy = jasmine.createSpyObj('CatalogService', ['getCategories', 'getAllProducts', 'createProduct', 'updateProduct']);
+    catalogServiceSpy = jasmine.createSpyObj('CatalogService', ['getCategories', 'getAllProducts', 'createProduct', 'updateProduct', 'deleteProduct']);
     imageServiceSpy = jasmine.createSpyObj('ImageService', ['uploadImage']);
     snackbarSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
@@ -251,7 +251,9 @@ describe('ProductsComponent', () => {
     expect(component.editingProduct).toBe(p1);
     expect(component.form.name).toBe('Rosa Roja');
     expect(component.form.discountPrice).toBe(120);
-    expect(component.form.imageUrl).toBe('http://img');
+    expect(component.form.images.length).toBe(1);
+    expect(component.form.images[0].url).toBe('http://img');
+    expect(component.form.images[0].isPrimary).toBeTrue();
     expect(component.form.isActive).toBeFalse();
   });
 
@@ -354,9 +356,11 @@ describe('ProductsComponent', () => {
     const event = { target: { files: [file] } } as unknown as Event;
     component.onFileSelected(event);
 
-    expect(imageServiceSpy.uploadImage).toHaveBeenCalledWith(file);
-    expect(component.form.imageUrl).toBe('https://img.example/400w.webp');
-    expect(component.form.imageVariants.length).toBe(2);
+    expect(imageServiceSpy.uploadImage).toHaveBeenCalledWith(file, jasmine.any(String));
+    expect(component.form.images.length).toBe(1);
+    expect(component.form.images[0].url).toBe('https://img.example/400w.webp');
+    expect(component.form.images[0].variants.length).toBe(2);
+    expect(component.form.images[0].isPrimary).toBeTrue();
     expect(component.uploadingImage).toBeFalse();
   });
 
@@ -414,11 +418,16 @@ describe('ProductsComponent', () => {
     component.form.name = 'Nuevo producto';
     component.form.categoryId = 'c1';
     component.form.price = 99;
-    component.form.imageUrl = 'https://img.example/400w.webp';
-    component.form.imageVariants = [
-      { width: 400, url: 'https://img.example/400w.webp' },
-      { width: 800, url: 'https://img.example/800w.webp' }
-    ];
+    component.form.images = [{
+      url: 'https://img.example/400w.webp',
+      variants: [
+        { width: 400, url: 'https://img.example/400w.webp' },
+        { width: 800, url: 'https://img.example/800w.webp' }
+      ],
+      alt: 'Nuevo producto',
+      isPrimary: true,
+      order: 0,
+    }];
     component.onSubmit();
 
     expect(catalogServiceSpy.createProduct).toHaveBeenCalledWith(jasmine.objectContaining({

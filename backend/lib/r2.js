@@ -23,16 +23,16 @@ function getClient() {
   return client;
 }
 
-async function uploadVariants(images) {
+async function uploadVariants(images, folder) {
   const r2 = getClient();
   if (!r2) {
     throw new Error('Configuración de R2 incompleta');
   }
-  const folder = `products/${crypto.randomUUID()}`;
+  const basePath = folder || `products/${crypto.randomUUID()}`;
   const keys = [];
   try {
     for (const { width, buffer } of images) {
-      const key = `${folder}/${width}w.webp`;
+      const key = `${basePath}/${width}w.webp`;
       await r2.send(
         new PutObjectCommand({
           Bucket: bucket,
@@ -70,4 +70,50 @@ async function cleanup(r2, keys) {
   }
 }
 
-module.exports = { uploadVariants };
+async function deleteImageUrls(urls) {
+  const r2 = getClient();
+  if (!r2 || !urls?.length) {
+    return;
+  }
+  const keys = urls
+    .filter(url => typeof url === 'string' && publicUrl && url.startsWith(publicUrl))
+    .map(url => url.slice(publicUrl.length + 1));
+  if (!keys.length) {
+    return;
+  }
+  for (let i = 0; i < keys.length; i += 1000) {
+    const batch = keys.slice(i, i + 1000);
+    try {
+      await r2.send(
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: { Objects: batch.map(key => ({ Key: key })) },
+        })
+      );
+    } catch {
+      // Best effort: un error aquí no debe bloquear la operación principal.
+    }
+  }
+}
+
+function extractR2Urls(images) {
+  if (!Array.isArray(images)) {
+    return [];
+  }
+  const urls = [];
+  for (const img of images) {
+    if (img.url) {
+      urls.push(img.url);
+    }
+    if (Array.isArray(img.variants)) {
+      for (const v of img.variants) {
+        if (v.url) {
+          urls.push(v.url);
+        }
+      }
+    }
+  }
+  return urls;
+}
+
+module.exports = { uploadVariants, deleteImageUrls, extractR2Urls };
