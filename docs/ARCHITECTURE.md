@@ -8,8 +8,8 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
 
 ```
 ┌─────────────────────────────┐        ┌──────────────────────────┐
-│  Frontend (GitHub Pages)    │  HTTPS │  Backend (Render)        │
-│  Angular 15 SPA /LCApp      │ ─────► │  Express API :3000       │
+│  Frontend (Cloudflare Pages)│  HTTPS │  Backend (Render)        │
+│  Angular 15 SPA             │ ─────► │  Express API :3000       │
 │                             │  /api  │  /api/health             │
 │  home, catalog, cart,       │        │  /api/categories         │
 │  login, admin               │        │  /api/products           │
@@ -30,7 +30,7 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
 
 1. `ng serve` (4200) sirve la SPA; `npm run dev` (3000) sirve la API.
 2. Los servicios usan `environment.apiUrl` → `http://localhost:3000/api`.
-3. En prod, `environment.prod.ts` apunta a Render y es inyectado por el CI.
+3. En prod, `environment.prod.ts` apunta a Render y es inyectado por `scripts/cloudflare-build.sh` desde variables de entorno de Cloudflare.
 
 ## Flujo de compra (end-to-end)
 
@@ -140,7 +140,7 @@ backend/
 
 ### CORS
 
-`CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa el origen de Pages.
+`CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa los orígenes de Cloudflare Pages y GitHub Pages.
 
 ### Auth (admin)
 
@@ -186,11 +186,11 @@ Las órdenes `pending` huérfanas (p. ej. cliente que vació el carrito o abando
 
 | Variable | Dev | Prod |
 |---|---|---|
-| `apiUrl` | `http://localhost:3000/api` | inyectada por CI (secret `API_URL`) |
+| `apiUrl` | `http://localhost:3000/api` | inyectada por build (env var `API_URL` de Cloudflare) |
 
 El contacto **no** vive en environments: se configura desde el admin y persiste en Mongo (`Config`, `GET/PUT /api/config`).
 
-`environment.ts` y `environment.prod.ts` están gitignoreados; en el repo viven como placeholders. El CI (`deploy.yml`) los regenera con `fs.writeFileSync` antes del build.
+`environment.ts` y `environment.prod.ts` están gitignoreados; en el repo viven como placeholders. El build de Cloudflare Pages (`scripts/cloudflare-build.sh`) los regenera antes de `ng build`.
 
 ### Backend (`backend/.env`)
 
@@ -218,11 +218,11 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 
 | Pieza | Plataforma | Actualización |
 |---|---|---|
-| Frontend | GitHub Pages (`/LCApp`) | Push a `master` → `deploy.yml` inyecta envs, `ng build --configuration production --base-href /LCApp/`, copia `index.html` a `404.html` (fallback SPA) y deploy. |
+| Frontend | Cloudflare Pages (`lcapp.pages.dev`) | Push a `master` → `scripts/cloudflare-build.sh` inyecta envs, `ng build --configuration production`, SPA fallback vía `_redirects`. |
 | Backend | Render | Build automático desde el repo; env vars en el panel. |
 | Datos | MongoDB Atlas | `npm run seed` manual. |
 
-Nota SPA: GitHub Pages no reescribe rutas; por eso `404.html` es copia de `index.html`. Navegar directo a `/LCApp/admin` da 404 HTTP pero la app arranca y resuelve la ruta — es esperado, no un bug.
+Nota SPA: Cloudflare Pages usa `public/_redirects` con `/* /index.html 200` para servir la SPA en todas las rutas.
 
 ## Decisiones y referencias
 

@@ -21,6 +21,10 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — chore — Limpieza de referencias a GitHub Pages
+- **Descripción**: Se eliminó `.github/workflows/deploy.yml` (ya no se necesita, Cloudflare Pages deploya automáticamente via GitHub integration). Se actualizaron README.md, docs/ARCHITECTURE.md y backend/.env.example para reflejar Cloudflare Pages como plataforma de frontend.
+- **Archivos**: `.github/workflows/deploy.yml` (eliminado), `README.md`, `docs/ARCHITECTURE.md`, `backend/.env.example`
+
 ### 2026-08-17 — config — Migración de frontend de GitHub Pages a Cloudflare Pages
 - **Descripción**: El frontend ahora se despliega en Cloudflare Pages en vez de GitHub Pages. Se creó `scripts/cloudflare-build.sh` que inyecta `environment.ts` y `environment.prod.ts` desde variables de entorno de Cloudflare (API_URL), eliminando la necesidad de commitear archivos de entorno. Se creó `public/_redirects` con regla SPA fallback (`/* /index.html 200`), reemplazando el truco de copiar `index.html` → `404.html`. Base href cambió de `/LCApp/` a `/`.
 - **Archivos**: `scripts/cloudflare-build.sh` (nuevo), `public/_redirects` (nuevo)

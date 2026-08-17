@@ -10,7 +10,7 @@ Catálogo público de una tienda artesanal con carrito persistente y compra por 
 | Backend | **Node.js ≥20 + Express + Mongoose** | `backend/` |
 | Base de datos | **MongoDB Atlas** (cluster M0 free; prod DB `lcapp`, local DB `lcapp-dev`) | nube |
 | Imágenes | **Cloudflare R2** (S3-compatible, bucket `lcapp-images` prod / `lcapp-images-dev` local) | nube |
-| Despliegue | **GitHub Pages** (front) + **Render** (API) | CI en `.github/workflows/deploy.yml` |
+| Despliegue | **Cloudflare Pages** (front) + **Render** (API) | Auto deploy vía GitHub integration |
 
 ## Funcionalidades
 
@@ -53,11 +53,13 @@ ng serve        # http://localhost:4200
 
 El frontend apunta a `http://localhost:3000/api` en desarrollo (`src/environments/environment.ts`). Con el backend corriendo, `ng serve` levanta la app completa contra la API local.
 
-Build de producción:
+Build de producción (local, para verificar):
 
 ```bash
-ng build --configuration production --base-href /LCApp/   # output en dist/
+ng build --configuration production   # output en dist/
 ```
+
+> En Cloudflare Pages, el build se ejecuta automáticamente vía `scripts/cloudflare-build.sh` que inyecta `environment.prod.ts` desde variables de entorno.
 
 ## Configuración y secretos
 
@@ -66,7 +68,7 @@ ng build --configuration production --base-href /LCApp/   # output en dist/
 | Archivo | Uso |
 |---|---|
 | `environment.ts` | Desarrollo: `apiUrl` → `http://localhost:3000/api`, contacto en blanco |
-| `environment.prod.ts` | Producción: `apiUrl` y contactos **inyectados por CI** desde GitHub Secrets (nunca con datos reales en el repo) |
+| `environment.prod.ts` | Producción: `apiUrl` y contactos **inyectados por build** desde variables de entorno de Cloudflare (nunca con datos reales en el repo) |
 
 ### Backend — `backend/.env`
 
@@ -78,12 +80,12 @@ Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USE
 
 | Pieza | Plataforma | Cómo se actualiza |
 |---|---|---|
-| Frontend | GitHub Pages (`/LCApp`) | Push a `master` → GitHub Actions inyecta `environment.prod.ts` con secrets, build y deploy |
+| Frontend | Cloudflare Pages (`lcapp.pages.dev`) | Push a `master` → Cloudflare Pages ejecuta `scripts/cloudflare-build.sh` (inyecta envs, build Angular) |
 | Backend | Render | Push a `master` (branch del servicio) → Render rebuilda; env vars desde el panel |
 | Datos | MongoDB Atlas | `npm run seed` manual desde local |
 | Imágenes | Cloudflare R2 | upload automático desde el admin (POST /api/images) |
 
-URLs de referencia: frontend `https://eniliosarcos.github.io/LCApp`, API `https://lcapp-backend-o0jt.onrender.com/api`, health `GET /api/health`.
+URLs de referencia: frontend `https://lcapp.pages.dev`, API `https://lcapp-backend-o0jt.onrender.com/api`, health `GET /api/health`.
 
 ## Estructura
 
