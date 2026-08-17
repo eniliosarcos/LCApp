@@ -25,7 +25,7 @@
 ## Entorno y secretos (crítica)
 
 - NUNCA commitear `src/environments/environment*.ts` con datos reales (ver skill `no-env-leak`).
-- En el repo solo placeholders; los secretos reales van en GitHub Secrets e inyectados por CI en build.
+- En el repo solo placeholders; los secretos reales van en env vars de Cloudflare Pages (front) y Render (backend).
 
 ## Pre-flight checklist (cada tarea)
 

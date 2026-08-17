@@ -20,7 +20,7 @@ metadata:
 - NEVER commit `src/environments/environment.ts` or `environment.prod.ts` with real data.
 - Keep both files in `.gitignore`; never remove them from it.
 - Committed environment files use placeholder values only.
-- Real secrets (API keys, phone numbers, social handles) live in GitHub Secrets and are injected at build time by CI.
+- Real secrets (API keys, phone numbers, social handles) live in Cloudflare Pages env vars (front, injected by `scripts/cloudflare-build.sh`) and Render env vars (backend).
 
 ## Execution Steps
 

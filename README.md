@@ -74,7 +74,7 @@ ng build --configuration production   # output en dist/
 
 Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (`lcapp-images-dev` local / `lcapp-images` producción), `R2_PUBLIC_URL` (URL pública del bucket).
 
-**Nunca commitear `backend/.env` ni `src/environments/*` con datos reales.** Los valores reales viven en GitHub Secrets (inyectados por CI al front) y en las env vars de Render (backend).
+**Nunca commitear `backend/.env` ni `src/environments/*` con datos reales.** Los valores reales viven en las env vars de Cloudflare Pages (front, inyectadas por `scripts/cloudflare-build.sh`) y en las env vars de Render (backend).
 
 ## Despliegue
 
@@ -126,7 +126,11 @@ docs/ARCHITECTURE.md  # mapa del sistema completo
 | GET | `/api/orders`, `/api/orders/stats`, `/api/orders/:code` | admin (JWT) |
 | PATCH | `/api/orders/:id/confirm`, `/api/orders/:id/cancel` | admin (JWT) |
 | PUT | `/api/config` | admin (JWT, actualiza contacto) |
+| POST | `/api/products`, `/api/categories` | admin (JWT) |
+| PUT | `/api/products/:id`, `/api/categories/:id` | admin (JWT) |
+| DELETE | `/api/products/:id` | admin (JWT, limpia R2) |
 | POST | `/api/images` | admin (JWT, multipart: upload → R2 → variantes WebP) |
+| DELETE | `/api/images` | admin (JWT, limpia URLs de R2) |
 
 ## Convenciones
 

@@ -118,7 +118,7 @@ El **header** (`HeaderComponent`, solo rutas no-admin) es `position: fixed` (top
 
 Reglas derivadas:
 - `isAuthenticated()` y `getToken()` consultan memoria primero, storage como fallback.
-- `AuthInterceptor` inyecta `Authorization: Bearer <token>` solo a requests cuyo URL empieza con `environment.apiUrl`.
+- `AuthInterceptor` inyecta `Authorization: Bearer <token>` solo a requests cuyo URL empieza con `environment.apiUrl`. Si la respuesta es **401** (token expirado/inválido), limpia la sesión y redirige a `/login`.
 - `AuthGuard` protege la ruta `/admin`; redirige a `/login?returnUrl=...`.
 
 ## Backend (Express + Mongoose)
@@ -128,9 +128,10 @@ backend/
   server.js            # express, cors, json, health, monta rutas, conecta Mongo
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET / (público) + POST / y PUT /:id (admin JWT)
-  routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT)
+  routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT) + DELETE /:id (admin JWT, limpia R2)
   routes/orders.js     # POST / (público; valida stock disponible), GET /:code/status (público), PATCH /:code/items (público, solo pending; valida stock) + admin (JWT): GET / (paginado: ?page&limit&status&q → { orders, total, page, limit, totalPages }), /stats, /manual, /:code, PATCH :id/confirm (valida y descuenta stock), :id/cancel
   routes/config.js     # GET / (público, contacto) + PUT / (admin JWT, upsert doc único 'site')
+  routes/images.js     # POST / (admin JWT, upload → R2 → variantes WebP) + DELETE / (admin JWT, limpia URLs de R2)
   middleware/auth.js   # verify Authorization: Bearer JWT (authenticate + authenticateOptional)
   utils/slugify.js     # slugify (sin acentos) + uniqueSlug (garantiza unicidad con sufijo -2, -3…)
   models/              # Category, Product, Order, Config
@@ -140,7 +141,7 @@ backend/
 
 ### CORS
 
-`CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa los orígenes de Cloudflare Pages y GitHub Pages.
+`CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa los orígenes de Cloudflare Pages.
 
 ### Auth (admin)
 
@@ -153,7 +154,7 @@ backend/
 - `POST /api/products` y `PUT /api/products/:id` (JWT): validan nombre, categoría existente, `price > 0`, `discountPrice < price`, `stock` entero ≥ 0 y SKU único (400 con mensaje claro). El **slug lo genera el backend** (`slugify` sin acentos + `uniqueSlug` que agrega `-2`, `-3`… si colisiona); el frontend nunca lo envía. `PUT` es parcial (estilo `config.js`): al cambiar `name` se regenera el slug.
 - `GET /api/products?all=true`: devuelve también inactivos solo si el token es válido (`authenticateOptional`); sin token se mantiene el comportamiento público (solo `isActive: true`).
 - `POST/PUT /api/categories` (JWT): análogos (nombre obligatorio, slug autogenerado/único, descripción e imageUrl opcionales).
-- **No hay `DELETE`**: alta/baja vía `isActive` (productos y sus `categoryId` referencian órdenes; se evitan huérfanos).
+- **`DELETE /api/products/:id`** (JWT): elimina el producto y borra sus imágenes de R2. `PUT /api/products/:id` calcula el diff de URLs y borra las huérfanas. `DELETE /api/images` (JWT) limpia URLs específicas de R2 (cancelar uploads pendientes). Para productos, la baja lógica vía `isActive` sigue siendo la forma principal de desactivar.
 - Frontend: `CatalogService` agrega los métodos admin; el formulario de producto mapea la imagen a `images[{ url, alt, isPrimary, order, variants }]` (vacía → `images: []`). El modal `AppModalComponent` admite `size: 'sm' | 'md'`. El umbral de "stock bajo" es una constante compartida del dominio: `LOW_STOCK_THRESHOLD = 10` en `product.model.ts` (catálogo: badge/clasificación de `getStockStatus`; admin: resaltado de filas y chips de filtro).
 
 ### Self-hosting de imágenes (Cloudflare R2)
@@ -162,7 +163,7 @@ backend/
 - **Render es efímero** → los archivos no viven en el servidor; el backend solo firma y sube al bucket. El frontend sirve las URLs públicas directo desde R2 (los `<img>` no requieren CORS para display).
 - `ProductImage` (modelo Mongo) guarda `variants: [{ width, url }]` junto a `url`; `normalizeImages()` los preserva/limpia en `POST/PUT /api/products`. El `srcset` de la galería usa las variantes (`400w/800w/1200w`, `sizes="(min-width: 720px) 520px, 100vw"`) y el `src` sigue siendo la primaria; productos viejos sin variantes siguen funcionando (sin srcset).
 - Frontend: `ImageService.uploadImage(file)` → `POST /api/images` multipart (el `AuthInterceptor` agrega el Bearer); el formulario de producto tiene input de archivo que sube y rellena `imageUrl` + `variants` (mantiene el campo de URL manual para pegadas externas). Los errores del backend (mime, tamaño, procesado) se muestran en el formulario.
-- Sin eliminación por ahora: reemplazar la imagen de un producto deja los objetos previos en el bucket (huérfanos inofensivos). Pendiente: custom domain (la `Public Development URL` de R2 es rate-limited, no apta producción).
+- **Eliminación**: `DELETE /api/products/:id` borra imágenes de R2 al eliminar el producto. `PUT /api/products/:id` calcula el diff de URLs y borra las huérfanas. `DELETE /api/images` limpia URLs específicas (cancelar uploads pendientes). Pendiente: custom domain (la `Public Development URL` de R2 es rate-limited, no apta producción).
 
 ### Resumen de ventas por período
 
@@ -212,7 +213,7 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 
 **Nota Node/Render**: el backend exige Node ≥ 20.9 (`engines` en `package.json`); Render debe provisionar Node 20+ o el arranque falla (sharp nativo + AWS SDK v3).
 
-**Regla de oro**: nada real en el repo. Front → GitHub Secrets + CI; backend → env vars de Render. `backend/.env` y `src/environments/*` jamás se commitean con datos reales.
+**Regla de oro**: nada real en el repo. Front → variables de entorno de Cloudflare Pages (inyectadas por `scripts/cloudflare-build.sh`); backend → env vars de Render. `backend/.env` y `src/environments/*` jamás se commitean con datos reales.
 
 ## Despliegue
 
@@ -232,6 +233,7 @@ Nota SPA: Cloudflare Pages usa `public/_redirects` con `/* /index.html 200` para
 - `docs/adr/006` — contacto configurable desde el admin (API, no mock).
 - `docs/adr/007` — resumen de ventas por período (ventanas calendario, agregaciones en el backend).
 - `docs/adr/008` — ventas manuales (source manual, descuento de stock al registrar, fecha/price editables).
+- `docs/adr/009` — self-hosting de imágenes en Cloudflare R2 (upload, variantes WebP, limpieza).
 - `HISTORIAL.md` — bitácora de cambios del proyecto.
 
 ## Temas conocidos / pendientes
