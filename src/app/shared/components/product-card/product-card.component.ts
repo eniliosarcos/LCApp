@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
-import { LOW_STOCK_THRESHOLD, Product } from '../../../core/models/product.model';
+import { LOW_STOCK_THRESHOLD, Product, ProductImage } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 
@@ -61,5 +61,14 @@ export class ProductCardComponent implements OnDestroy {
 
   productLink(): string {
     return `/catalog/${this.product.categoryId}/product/${this.product.id}`;
+  }
+
+  getPrimaryImage(): ProductImage | undefined {
+    return this.product.images?.find(img => img.isPrimary && img.url) ?? this.product.images?.find(img => img.url);
+  }
+
+  getSrcset(image: ProductImage): string {
+    if (!image.variants?.length) return '';
+    return image.variants.map(v => `${v.url} ${v.width}w`).join(', ');
   }
 }

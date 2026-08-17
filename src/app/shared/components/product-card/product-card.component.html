@@ -1,6 +1,15 @@
 <article class="card">
   <a [routerLink]="productLink()" class="card-link">
-    <div class="card-media" aria-hidden="true">{{ product.name.charAt(0) }}</div>
+    <div class="card-media" aria-hidden="true">
+      <img
+        *ngIf="getPrimaryImage() as img; else letterAvatar"
+        [src]="img.url"
+        [srcset]="getSrcset(img)"
+        sizes="(min-width: 720px) 280px, 50vw"
+        [alt]="img.alt"
+        loading="lazy">
+      <ng-template #letterAvatar>{{ product.name.charAt(0) }}</ng-template>
+    </div>
     <div class="card-body">
       <h2>{{ product.name }}</h2>
       <p>{{ product.description }}</p>

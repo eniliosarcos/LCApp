@@ -7,8 +7,9 @@ Catálogo público de una tienda artesanal con carrito persistente y compra por 
 | Capa | Tecnología | Dónde vive |
 |---|---|---|
 | Frontend | **Angular 15** (NgModules clásicos, lazy loading, SCSS con tokens, RxJS + `HttpClient`) | `src/` |
-| Backend | **Node.js + Express + Mongoose** | `backend/` |
+| Backend | **Node.js ≥20 + Express + Mongoose** | `backend/` |
 | Base de datos | **MongoDB Atlas** (cluster M0 free; prod DB `lcapp`, local DB `lcapp-dev`) | nube |
+| Imágenes | **Cloudflare R2** (S3-compatible, bucket `lcapp-images` prod / `lcapp-images-dev` local) | nube |
 | Despliegue | **GitHub Pages** (front) + **Render** (API) | CI en `.github/workflows/deploy.yml` |
 
 ## Funcionalidades
@@ -17,6 +18,7 @@ Catálogo público de una tienda artesanal con carrito persistente y compra por 
 - **Carrito persistente**: entidad con código en `localStorage`; resumen con subtotal, envío gratis y botones de contacto con mensaje prefabricado. Al contactar, el pedido se registra en el backend y se usa el código real (`CAR-XXXXX`).
 - **Panel admin** (`/admin`) y **login** (`/login`): accesibles por URL para el dueño, ocultos al cliente. Autenticación con JWT contra el backend.
 - **Gestión de pedidos**: el admin lista pedidos, ve estadísticas, confirma (valida y descuenta stock) o cancela.
+- **Imágenes auto-hospedadas**: el admin sube imágenes desde el form de productos → backend procesa (sharp → WebP 400/800/1200w) → sube variantes a Cloudflare R2. Las URLs públicas de R2 se usan directo en `srcset`.
 
 ## Cómo correr
 
@@ -27,9 +29,11 @@ El proyecto son **dos procesos**: backend y frontend.
 ```bash
 cd backend
 npm install
-cp .env.example .env   # completar MONGODB_URI, ADMIN_USER, ADMIN_PASSWORD_HASH, JWT_SECRET
+cp .env.example .env   # completar MONGODB_URI, ADMIN_USER, ADMIN_PASSWORD_HASH, JWT_SECRET, R2_* (ver abajo)
 npm run dev            # http://localhost:3000/api
 ```
+
+> **Requisito:** Node ≥20 (necesario para `sharp@0.35` y `@aws-sdk/client-s3`). Verificar con `node -v`.
 
 > Para desarrollo local, `MONGODB_URI` debe apuntar a una base separada (`lcapp-dev`). Así `npm run seed` y las pruebas no tocan la base de producción (`lcapp`).
 
@@ -66,7 +70,7 @@ ng build --configuration production --base-href /LCApp/   # output en dist/
 
 ### Backend — `backend/.env`
 
-Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`).
+Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (`lcapp-images-dev` local / `lcapp-images` producción), `R2_PUBLIC_URL` (URL pública del bucket).
 
 **Nunca commitear `backend/.env` ni `src/environments/*` con datos reales.** Los valores reales viven en GitHub Secrets (inyectados por CI al front) y en las env vars de Render (backend).
 
@@ -77,6 +81,7 @@ Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USE
 | Frontend | GitHub Pages (`/LCApp`) | Push a `master` → GitHub Actions inyecta `environment.prod.ts` con secrets, build y deploy |
 | Backend | Render | Push a `master` (branch del servicio) → Render rebuilda; env vars desde el panel |
 | Datos | MongoDB Atlas | `npm run seed` manual desde local |
+| Imágenes | Cloudflare R2 | upload automático desde el admin (POST /api/images) |
 
 URLs de referencia: frontend `https://eniliosarcos.github.io/LCApp`, API `https://lcapp-backend-o0jt.onrender.com/api`, health `GET /api/health`.
 
@@ -85,6 +90,8 @@ URLs de referencia: frontend `https://eniliosarcos.github.io/LCApp`, API `https:
 ```
 src/app/
   core/         # modelos, servicios (única frontera de datos: HttpClient), interceptor JWT, guard
+    models/     # ProductImageVariant, ProductImage, etc.
+    services/   # image.service.ts (upload multipart a /api/images)
   shared/       # header, breadcrumbs, pipe currencyFormat (SharedModule)
   home/         # categorías (home)
   catalog/      # listado y detalle de producto
@@ -93,7 +100,8 @@ src/app/
   admin/        # dashboard + configuración de contacto (protegido por AuthGuard + JWT)
 backend/
   server.js     # Express, CORS, rutas, conexión a Mongo
-  routes/       # auth, categories, products, orders, config
+  lib/r2.js     # S3Client para Cloudflare R2
+  routes/       # auth, categories, products, orders, config, images
   models/       # Category, Product, Order, Config (Mongoose)
   middleware/   # auth.js (verify JWT)
   seed.js       # carga catálogo + config de contacto a MongoDB
@@ -116,6 +124,7 @@ docs/ARCHITECTURE.md  # mapa del sistema completo
 | GET | `/api/orders`, `/api/orders/stats`, `/api/orders/:code` | admin (JWT) |
 | PATCH | `/api/orders/:id/confirm`, `/api/orders/:id/cancel` | admin (JWT) |
 | PUT | `/api/config` | admin (JWT, actualiza contacto) |
+| POST | `/api/images` | admin (JWT, multipart: upload → R2 → variantes WebP) |
 
 ## Convenciones
 
