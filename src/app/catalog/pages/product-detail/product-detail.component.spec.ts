@@ -6,7 +6,6 @@ import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { ProductDetailComponent } from './product-detail.component';
 
 const product: Product = {
@@ -37,7 +36,7 @@ describe('ProductDetailComponent', () => {
     catalogService.getCategoryById.and.returnValue(of(undefined));
 
     await TestBed.configureTestingModule({
-      declarations: [ProductDetailComponent, CurrencyFormatPipe],
+      declarations: [ProductDetailComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CatalogService, useValue: catalogService },

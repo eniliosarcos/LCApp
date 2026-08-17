@@ -25,11 +25,11 @@
 
   <div class="price">
     <ng-container *ngIf="hasDiscount; else noDiscount">
-      <p class="discount-price">{{ unitPrice | currencyFormat }}</p>
-      <p class="regular-price">{{ item.product.price | currencyFormat }}</p>
+      <p class="discount-price">{{ unitPrice | currency }}</p>
+      <p class="regular-price">{{ item.product.price | currency }}</p>
     </ng-container>
     <ng-template #noDiscount>
-      <p class="price">{{ unitPrice | currencyFormat }}</p>
+      <p class="price">{{ unitPrice | currency }}</p>
     </ng-template>
   </div>
 </article>

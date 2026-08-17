@@ -4,7 +4,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { of, throwError } from 'rxjs';
 import { Order } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { AppConfirmDialogComponent } from '../../../shared/components/confirm-dialog/app-confirm-dialog.component';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { OrderDetailComponent } from './order-detail.component';
@@ -40,7 +39,7 @@ describe('OrderDetailComponent', () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderByCode', 'confirmOrder', 'cancelOrder']);
 
     await TestBed.configureTestingModule({
-      declarations: [OrderDetailComponent, AppConfirmDialogComponent, AppModalComponent, CurrencyFormatPipe],
+      declarations: [OrderDetailComponent, AppConfirmDialogComponent, AppModalComponent],
       imports: [RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: routeStub },

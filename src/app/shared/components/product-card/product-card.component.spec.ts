@@ -3,7 +3,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
-import { CurrencyFormatPipe } from '../../pipes/currency-format.pipe';
 import { ProductCardComponent } from './product-card.component';
 
 const product = (overrides: Partial<Product> = {}): Product => ({
@@ -31,7 +30,7 @@ describe('ProductCardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      declarations: [ProductCardComponent, CurrencyFormatPipe]
+      declarations: [ProductCardComponent]
     }).compileComponents();
 
     localStorage.clear();
@@ -58,14 +57,14 @@ describe('ProductCardComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Rosa');
     expect(fixture.nativeElement.textContent).toContain('Rosa roja');
-    expect(fixture.nativeElement.textContent).toContain(new CurrencyFormatPipe().transform(100));
+    expect(fixture.nativeElement.textContent).toContain('$100.00');
   });
 
   it('prioriza el precio con descuento y tacha el precio de lista', () => {
     createFixture({ price: 100, discountPrice: 80 });
 
     const card = fixture.nativeElement as HTMLElement;
-    expect(card.textContent).toContain(new CurrencyFormatPipe().transform(80));
+    expect(card.textContent).toContain('$80.00');
     expect(card.querySelector('.price .regular')).not.toBeNull();
   });
 

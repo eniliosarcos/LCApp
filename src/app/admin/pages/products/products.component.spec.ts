@@ -8,7 +8,6 @@ import { ImageService } from '../../../core/services/image.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AppLoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { ProductsComponent } from './products.component';
 
 const categories: Category[] = [
@@ -51,7 +50,7 @@ describe('ProductsComponent', () => {
     snackbarSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
     await TestBed.configureTestingModule({
-      declarations: [ProductsComponent, CurrencyFormatPipe, AppModalComponent, AppLoadingSpinnerComponent],
+      declarations: [ProductsComponent, AppModalComponent, AppLoadingSpinnerComponent],
       imports: [FormsModule],
       providers: [
         { provide: CatalogService, useValue: catalogServiceSpy },

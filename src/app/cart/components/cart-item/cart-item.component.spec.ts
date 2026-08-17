@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Product } from '../../../core/models/product.model';
 import { CartItem } from '../../../core/models/cart.model';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { CartItemComponent } from './cart-item.component';
 
 const product = (overrides: Partial<Product> = {}): Product => ({
@@ -33,7 +32,7 @@ describe('CartItemComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CartItemComponent, CurrencyFormatPipe]
+      declarations: [CartItemComponent]
     }).compileComponents();
   });
 

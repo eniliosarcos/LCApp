@@ -22,11 +22,11 @@
         </ng-container>
       </p>
       <p class="price" *ngIf="product.discountPrice; else noDiscount">
-        <span class="discount">{{ getDisplayPrice() | currencyFormat }}</span>
-        <span class="regular">{{ product.price | currencyFormat }}</span>
+        <span class="discount">{{ getDisplayPrice() | currency }}</span>
+        <span class="regular">{{ product.price | currency }}</span>
       </p>
       <ng-template #noDiscount>
-        <p class="price">{{ getDisplayPrice() | currencyFormat }}</p>
+        <p class="price">{{ getDisplayPrice() | currency }}</p>
       </ng-template>
     </div>
   </a>

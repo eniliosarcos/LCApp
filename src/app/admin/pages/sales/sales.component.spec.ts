@@ -6,7 +6,6 @@ import { of, throwError } from 'rxjs';
 import { OrderSummary } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
 import { AppLoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { SalesComponent } from './sales.component';
 
 @Component({ selector: 'app-manual-sale-modal', template: '' })
@@ -58,7 +57,7 @@ describe('SalesComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [CommonModule],
-      declarations: [SalesComponent, ManualSaleModalStub, AppLoadingSpinnerComponent, CurrencyFormatPipe],
+      declarations: [SalesComponent, ManualSaleModalStub, AppLoadingSpinnerComponent],
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: ActivatedRoute, useValue: routeSpy },

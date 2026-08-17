@@ -14,13 +14,13 @@
           <h1>{{ product.name }}</h1>
 
           <div class="price-section" *ngIf="product.discountPrice; else regularPrice">
-            <span class="discount-price">{{ product.discountPrice | currencyFormat }}</span>
-            <span class="regular-price">{{ product.price | currencyFormat }}</span>
+            <span class="discount-price">{{ product.discountPrice | currency }}</span>
+            <span class="regular-price">{{ product.price | currency }}</span>
             <span class="discount-badge">-{{ getDiscountPercentage() }}%</span>
           </div>
           <ng-template #regularPrice>
             <div class="price-section">
-              <span class="price">{{ product.price | currencyFormat }}</span>
+              <span class="price">{{ product.price | currency }}</span>
             </div>
           </ng-template>
 

@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { Order, OrderPage, OrderStats } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { AppConfirmDialogComponent } from '../../../shared/components/confirm-dialog/app-confirm-dialog.component';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { DashboardComponent } from './dashboard.component';
@@ -48,7 +47,7 @@ describe('DashboardComponent', () => {
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['getStats', 'getOrders', 'confirmOrder', 'cancelOrder']);
 
     await TestBed.configureTestingModule({
-      declarations: [DashboardComponent, AppConfirmDialogComponent, AppModalComponent, CurrencyFormatPipe],
+      declarations: [DashboardComponent, AppConfirmDialogComponent, AppModalComponent],
       providers: [{ provide: OrderService, useValue: orderServiceSpy }]
     }).compileComponents();
   });

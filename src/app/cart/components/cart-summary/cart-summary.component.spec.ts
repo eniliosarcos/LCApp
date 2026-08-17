@@ -10,7 +10,6 @@ import { ContactService } from '../../../core/services/contact.service';
 import { OrderService } from '../../../core/services/order.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
-import { CurrencyFormatPipe } from '../../../shared/pipes/currency-format.pipe';
 import { CartSummaryComponent } from './cart-summary.component';
 
 const contactStub: ContactConfig = {
@@ -89,7 +88,7 @@ describe('CartSummaryComponent', () => {
     snackbarServiceSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
     await TestBed.configureTestingModule({
-      declarations: [CartSummaryComponent, AppModalComponent, CurrencyFormatPipe],
+      declarations: [CartSummaryComponent, AppModalComponent],
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: CartService, useValue: cartServiceSpy },

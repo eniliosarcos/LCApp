@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — refactor — Unificar moneda a USD: eliminar CurrencyFormatPipe custom
+- **Descripción**: Se eliminó `CurrencyFormatPipe` (custom, locale `es-MX`, default `MXN`) y se unificó toda la app con el pipe nativo `| currency` de Angular (default USD `$`). Se reemplazaron 10 ocurrencias de `| currencyFormat` por `| currency` en templates de catalog, cart y product-card. Se eliminó el archivo `shared/pipes/currency-format.pipe.ts` y su declaración de `SharedModule`. Se actualizaron 9 specs quitando el import y declaración del pipe custom; en `product-card.spec.ts` se reemplazó `new CurrencyFormatPipe().transform()` por strings literales `$100.00`/`$80.00`.
+- **Archivos**: `src/app/shared/pipes/currency-format.pipe.ts` (eliminado), `src/app/shared/shared.module.ts`, `src/app/catalog/pages/product-detail/product-detail.component.html`, `src/app/shared/components/product-card/product-card.component.html|spec.ts`, `src/app/cart/components/cart-item/cart-item.component.html|spec.ts`, `src/app/cart/components/cart-summary/cart-summary.component.html|spec.ts`, `src/app/admin/pages/dashboard/dashboard.component.spec.ts`, `src/app/admin/pages/sales/sales.component.spec.ts`, `src/app/admin/pages/orders/orders.component.spec.ts`, `src/app/admin/pages/products/products.component.spec.ts`, `src/app/admin/pages/order-detail/order-detail.component.spec.ts`
+- **Decisión clave**: El pipe custom nacío por la necesidad de locale `es-MX` con moneda `MXN`. Con USD ya no aporta valor; el pipe nativo de Angular da `$1,234.56` con cero config. El `formatCurrency()` de `manual-sale-modal` se mantiene (usa `Intl.NumberFormat` en código TypeScript, fuera del alcance de pipes Angular).
+- **Verificación**: `ng build --configuration production` OK; `ng test --watch=false` **216/216 OK**.
+
 ### 2026-08-17 — style — Formato de hora 12h en panel admin
 - **Descripción**: Las fechas en el panel admin ahora muestran la hora en formato 12 horas con AM/PM (`hh:mm a`) en vez de formato 24 horas (`HH:mm`). Aplica a order-detail, dashboard y orders.
 - **Archivos**: `src/app/admin/pages/order-detail/order-detail.component.html`, `src/app/admin/pages/dashboard/dashboard.component.html`, `src/app/admin/pages/orders/orders.component.html`
