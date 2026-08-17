@@ -2,12 +2,13 @@
   <a [routerLink]="productLink()" class="card-link">
     <div class="card-media" aria-hidden="true">
       <img
-        *ngIf="getPrimaryImage() as img; else letterAvatar"
+        *ngIf="!imageFailed && getPrimaryImage() as img; else letterAvatar"
         [src]="img.url"
         [srcset]="getSrcset(img)"
         sizes="(min-width: 720px) 280px, 50vw"
         [alt]="img.alt"
-        loading="lazy">
+        loading="lazy"
+        (error)="onImageError()">
       <ng-template #letterAvatar>{{ product.name.charAt(0) }}</ng-template>
     </div>
     <div class="card-body">

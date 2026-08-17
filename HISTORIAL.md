@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — fix — openEdit() ya no borra imágenes no-primarias + limpieza de huérfanas en R2 + DELETE de producto + cleanup al cancelar form + R2 key naming descriptivo + fallback onerror en card
+- **Descripción**: Múltiples mejoras en el sistema de imágenes: (1) `openEdit()` carga TODAS las imágenes del producto en `form.images[]`. (2) PUT `/api/products/:id` borra del R2 las imágenes que ya no están referenciadas. (3) Nuevo DELETE `/api/products/:id` con limpieza R2. (4) Nuevo DELETE `/api/images` para limpiar URLs específicas. (5) Al cancelar el form, se borran de R2 las imágenes que nunca se vincularon a un producto (`pendingImageUrls`). (6) Las claves R2 ahora usan el slug del producto (`products/rosa-roja-abc12/400w.webp`) en vez de UUID random. (7) `ProductCardComponent` ahora maneja `(error)` en `<img>` — si una imagen fue borrada de R2, muestra la inicial del nombre en vez de un ícono roto. `normalizeImages()` respeta `isPrimary` y `order` del cliente.
+- **Archivos**: `backend/lib/r2.js`, `backend/routes/products.js`, `src/app/admin/pages/products/products.component.ts|html|scss`, `src/app/core/models/product.model.ts`, `src/app/core/services/catalog.service.ts`, `src/app/admin/pages/products/products.component.spec.ts`
+- **Decisión clave**: `deleteImageUrls()` usa batch `DeleteObjectsCommand` (hasta 1000 keys por lote) y es best-effort (no falla la operación principal si la limpieza falla). La limpieza de huérfanas en PUT es best-effort: calcula diff entre URLs viejas y nuevas, borra las que sobran, sin await bloqueante.
+
 ### 2026-08-17 — feat — Product card muestra imagen con srcset + README actualizado
 - **Descripción**: `ProductCardComponent` ahora muestra la imagen del producto (primaria o primera disponible) con `srcset` WebP y `sizes` adaptativo, en lugar de solo la inicial del nombre. Si no hay imagen, mantiene el fallback a la letra. SCSS: `.card-media img` con `object-fit: cover`. README actualizado con Cloudflare R2, Node ≥20, env vars R2, `POST /api/images` y estructura de archivos.
 - **Archivos**: `src/app/shared/components/product-card/product-card.component.ts|html|scss`, `README.md`

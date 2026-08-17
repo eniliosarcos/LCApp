@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ProductImageVariant } from '../models/product.model';
@@ -18,10 +18,20 @@ export class ImageService {
 
   constructor(private readonly http: HttpClient) {}
 
-  uploadImage(file: File): Observable<ImageUploadResult> {
+  uploadImage(file: File, slug?: string): Observable<ImageUploadResult> {
     const formData = new FormData();
     formData.append('file', file, file.name);
+    if (slug) {
+      formData.append('slug', slug);
+    }
     return this.http.post<ImageUploadResult>(`${this.apiUrl}/images`, formData).pipe(catchError(this.handleError));
+  }
+
+  cancelUploads(urls: string[]): Observable<void> {
+    if (!urls.length) {
+      return of(undefined);
+    }
+    return this.http.delete<void>(`${this.apiUrl}/images`, { body: { urls } }).pipe(catchError(this.handleError));
   }
 
   private handleError(error: unknown): Observable<never> {

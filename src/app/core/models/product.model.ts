@@ -50,3 +50,11 @@ export interface ProductPayload {
   images?: ProductImagePayload[];
   isActive?: boolean;
 }
+
+export interface FormImage {
+  url: string;
+  variants: ProductImageVariant[];
+  alt: string;
+  isPrimary: boolean;
+  order: number;
+}
