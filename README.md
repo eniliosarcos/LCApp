@@ -67,8 +67,8 @@ ng build --configuration production   # output en dist/
 
 | Archivo | Uso |
 |---|---|
-| `environment.ts` | Desarrollo: `apiUrl` → `http://localhost:3000/api`, contacto en blanco |
-| `environment.prod.ts` | Producción: `apiUrl` y contactos **inyectados por build** desde variables de entorno de Cloudflare (nunca con datos reales en el repo) |
+| `environment.ts` | Desarrollo: `apiUrl` → `http://localhost:3000/api` |
+| `environment.prod.ts` | Producción: `apiUrl` **inyectado por build** desde variables de entorno de Cloudflare (nunca con datos reales en el repo) |
 
 ### Backend — `backend/.env`
 
