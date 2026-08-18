@@ -22,7 +22,10 @@ export class LoginComponent {
       .login(this.username, this.password)
       .subscribe({
         next: () => this.router.navigateByUrl(this.returnUrl),
-        error: (err: Error) => (this.errorMessage = err.message),
+        error: (err: Error) => {
+          this.errorMessage = err.message;
+          this.loading = false;
+        },
         complete: () => (this.loading = false)
       });
   }

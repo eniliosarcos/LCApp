@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — fix — Login: botón loading no se resetea en error
+- **Descripción**: Al fallar el login (credenciales incorrectas), el botón quedaba en estado loading indefinidamente. Causa: el callback `error` de RxJS no ejecutaba `this.loading = false`; solo `complete` lo hacía, y `complete` no se ejecuta cuando hay error.
+- **Archivos**: `src/app/auth/pages/login/login.component.ts`
+- **Decisión clave**: Agregar `this.loading = false` en el callback `error` del subscribe.
+
 ### 2026-08-18 — config — Carga de datos reales: 12 categorías y 24 productos
 - **Descripción**: Se limpiaron las bases de datos de prod (`lcapp`) y dev (`lcapp-dev`) y se cargaron datos reales del negocio: 12 categorías de maquillaje y 24 productos (Dolce Bella, Aria Cosmetics, Salomé, Sheglam, Prosa, MaxGlow, Trendy) con precios en USD y stock. Se crearon `backend/clean.js` (limpieza directa contra MongoDB) y `backend/seed-real.js` (carga vía API con login JWT). Se descubrió que `sku: { unique: true }` en el modelo de Producto sin `sparse: true` bloquea múltiples productos sin SKU (índice único no sparse trata `null` como duplicado); se resolvió asignando SKUs únicos a cada producto.
 - **Archivos**: `backend/clean.js` (nuevo), `backend/seed-real.js` (nuevo)
