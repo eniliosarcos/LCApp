@@ -237,6 +237,96 @@ describe('ProductsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('No hay productos agotados.');
   });
 
+  it('filtra productos por nombre de búsqueda', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Rosa Roja', 'c1'),
+      product('p2', 'Girasol Amarillo', 'c2'),
+      product('p3', 'Rosa Blanca', 'c1')
+    ]));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-bar input');
+    input.value = 'Rosa';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.filteredProducts.length).toBe(2);
+    expect(component.filteredProducts.map(p => p.name)).toEqual(['Rosa Roja', 'Rosa Blanca']);
+  });
+
+  it('filtra productos por categoría al buscar', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Rosa Roja', 'c1'),
+      product('p2', 'Girasol Amarillo', 'c2'),
+      product('p3', 'Rosas del Valle', 'c1')
+    ]));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-bar input');
+    input.value = 'Girasoles';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.filteredProducts.length).toBe(1);
+    expect(component.filteredProducts[0].name).toBe('Girasol Amarillo');
+  });
+
+  it('normaliza tildes y caracteres especiales al buscar', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Maquíllaje Premium', 'c1'),
+      product('p2', 'Base Rubor', 'c2')
+    ]));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-bar input');
+    input.value = 'maquillaje';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.filteredProducts.length).toBe(1);
+    expect(component.filteredProducts[0].name).toBe('Maquíllaje Premium');
+  });
+
+  it('muestra mensaje cuando la búsqueda no coincide', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Rosa Roja', 'c1'),
+      product('p2', 'Girasol', 'c1')
+    ]));
+    createComponent();
+
+    const input = fixture.nativeElement.querySelector('.search-bar input');
+    input.value = 'tulipán';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No se encontraron productos para "tulipán"');
+  });
+
+  it('combina filtro de stock con búsqueda por nombre', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'Rosa Roja', 'c1', { stock: 1 }),
+      product('p2', 'Rosa Blanca', 'c1', { stock: 11 }),
+      product('p3', 'Girasol', 'c1', { stock: 0 })
+    ]));
+    createComponent();
+
+    component.toggleStockFilter('low');
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('.search-bar input');
+    input.value = 'rosa';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.filteredProducts.length).toBe(1);
+    expect(component.filteredProducts[0].name).toBe('Rosa Roja');
+  });
+
   it('muestra el error si falla la carga', () => {
     catalogServiceSpy.getCategories.and.returnValue(throwError(() => new Error('boom')));
     catalogServiceSpy.getAllProducts.and.returnValue(of([]));

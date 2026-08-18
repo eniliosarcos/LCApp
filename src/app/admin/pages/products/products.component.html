@@ -41,7 +41,11 @@
     </button>
   </div>
 
-  <div class="table-scroll" *ngIf="!loading && visibleProducts.length > 0; else noProducts">
+  <div class="search-bar" *ngIf="!loading && products.length > 0">
+    <input type="text" placeholder="Buscar por nombre o categoría…" [(ngModel)]="searchTerm">
+  </div>
+
+  <div class="table-scroll" *ngIf="!loading && filteredProducts.length > 0; else noProducts">
     <table class="products-table">
       <thead>
         <tr>
@@ -55,7 +59,7 @@
       </thead>
       <tbody>
         <tr
-          *ngFor="let product of visibleProducts; trackBy: productTrackBy"
+          *ngFor="let product of filteredProducts; trackBy: productTrackBy"
           [class.row-out]="stockStatus(product) === 'out'"
           [class.row-low]="stockStatus(product) === 'low'">
           <td
@@ -82,11 +86,13 @@
   </div>
   <ng-template #noProducts>
     <p class="empty" *ngIf="!loading">
-      {{ stockFilter === 'out'
-          ? 'No hay productos agotados.'
-          : stockFilter === 'low'
-            ? 'No hay productos con stock bajo.'
-            : 'No hay productos registrados.' }}
+      {{ searchTerm
+          ? 'No se encontraron productos para "' + searchTerm + '".'
+          : stockFilter === 'out'
+            ? 'No hay productos agotados.'
+            : stockFilter === 'low'
+              ? 'No hay productos con stock bajo.'
+              : 'No hay productos registrados.' }}
     </p>
   </ng-template>
 </section>

@@ -47,6 +47,7 @@ export class ProductsComponent implements OnInit {
   loading = true;
   error = false;
   stockFilter: StockFilter = 'all';
+  searchTerm = '';
 
   formOpen = false;
   formSaving = false;
@@ -126,6 +127,22 @@ export class ProductsComponent implements OnInit {
       return this.products;
     }
     return this.products.filter(product => this.stockStatus(product) === this.stockFilter);
+  }
+
+  get filteredProducts(): Product[] {
+    let result = this.visibleProducts;
+    if (this.searchTerm.trim()) {
+      const term = this.normalizeText(this.searchTerm);
+      result = result.filter(p =>
+        this.normalizeText(p.name).includes(term) ||
+        this.normalizeText(this.categoryName(p.categoryId)).includes(term)
+      );
+    }
+    return result;
+  }
+
+  private normalizeText(text: string): string {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
   toggleStockFilter(filter: Exclude<StockFilter, 'all'>): void {
