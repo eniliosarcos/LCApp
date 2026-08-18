@@ -28,7 +28,7 @@ export interface Product {
   createdAt: string;
 }
 
-export const LOW_STOCK_THRESHOLD = 10;
+export const LOW_STOCK_THRESHOLD = 4;
 
 export interface ProductImagePayload {
   url: string;

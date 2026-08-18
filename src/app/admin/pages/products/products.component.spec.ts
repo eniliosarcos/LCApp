@@ -110,8 +110,8 @@ describe('ProductsComponent', () => {
 
     expect(component.stockStatus(product('p1', 'A', 'c1', { stock: 0 }))).toBe('out');
     expect(component.stockStatus(product('p2', 'B', 'c1', { stock: 1 }))).toBe('low');
-    expect(component.stockStatus(product('p3', 'C', 'c1', { stock: 10 }))).toBe('low');
-    expect(component.stockStatus(product('p4', 'D', 'c1', { stock: 11 }))).toBeNull();
+    expect(component.stockStatus(product('p3', 'C', 'c1', { stock: 2 }))).toBe('low');
+    expect(component.stockStatus(product('p4', 'D', 'c1', { stock: 5 }))).toBeNull();
     expect(component.stockStatus(product('p5', 'E', 'c1', { stock: 0, isActive: false }))).toBeNull();
   });
 

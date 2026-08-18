@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — fix — LOW_STOCK_THRESHOLD: 10 → 3
+- **Descripción**: Se redujo el umbral de stock bajo de 10 a 3. Con stock promedio de 2-6 unidades, el badge "¡Últimas X unidades!" se mostraba en todos los productos, perdiendo efectividad. Ahora solo aparece en productos con stock ≤ 3.
+- **Archivos**: `src/app/core/models/product.model.ts`, `src/app/shared/components/product-card/product-card.component.spec.ts`, `src/app/admin/pages/products/products.component.spec.ts`
+- **Decisión clave**: El umbral de 10 era genérico; con inventario real de pocas unidades por producto, 3 es el punto donde el badge tiene impacto real.
+
 ### 2026-08-18 — feat — Valor total de inventario en admin
 - **Descripción**: Se agregó el valor total del inventario (suma de `price × stock`) como subtítulo en el page header de la página de productos del admin. Getter computed `inventoryValue` calcula el total a partir del array `products` ya cargado, sin llamadas al backend adicionales.
 - **Archivos**: `src/app/admin/pages/products/products.component.ts`, `.html`, `.scss`, `.spec.ts`

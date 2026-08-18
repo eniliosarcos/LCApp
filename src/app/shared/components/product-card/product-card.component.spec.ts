@@ -12,7 +12,7 @@ const product = (overrides: Partial<Product> = {}): Product => ({
   slug: 'rosa',
   description: 'Rosa roja',
   price: 100,
-  stock: 10,
+  stock: 2,
   sku: 'ROSA-1',
   images: [],
   tags: [],
@@ -105,7 +105,7 @@ describe('ProductCardComponent', () => {
     createFixture();
     expect(component.getStockStatus()).toBe('low-stock');
 
-    component.product = product({ stock: 11 });
+    component.product = product({ stock: 5 });
     expect(component.getStockStatus()).toBe('in-stock');
 
     component.product = product({ stock: 0 });
