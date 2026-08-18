@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-17 — config — Rename de Cloudflare Pages: lcapp → lessencerise
+- **Descripción**: Se creó un nuevo proyecto `lessencerise` en Cloudflare Pages (renombrar el viejo solo cambia el nombre visual, no la URL). Se actualizaron referencias en README.md, ARCHITECTURE.md y backend/.env.example (`CORS_ORIGIN`). Los buckets R2 (`lcapp-images` / `lcapp-images-dev`) no cambiaron.
+- **Archivos**: `README.md`, `docs/ARCHITECTURE.md`, `backend/.env.example`
+- **Decisión clave**: Cloudflare Pages no permite cambiar la hostname de un proyecto existente; la solución es crear uno nuevo y apuntar al mismo repo.
+
 ### 2026-08-17 — refactor — Unificar moneda a USD: eliminar CurrencyFormatPipe custom
 - **Descripción**: Se eliminó `CurrencyFormatPipe` (custom, locale `es-MX`, default `MXN`) y se unificó toda la app con el pipe nativo `| currency` de Angular (default USD `$`). Se reemplazaron 10 ocurrencias de `| currencyFormat` por `| currency` en templates de catalog, cart y product-card. Se eliminó el archivo `shared/pipes/currency-format.pipe.ts` y su declaración de `SharedModule`. Se actualizaron 9 specs quitando el import y declaración del pipe custom; en `product-card.spec.ts` se reemplazó `new CurrencyFormatPipe().transform()` por strings literales `$100.00`/`$80.00`.
 - **Archivos**: `src/app/shared/pipes/currency-format.pipe.ts` (eliminado), `src/app/shared/shared.module.ts`, `src/app/catalog/pages/product-detail/product-detail.component.html`, `src/app/shared/components/product-card/product-card.component.html|spec.ts`, `src/app/cart/components/cart-item/cart-item.component.html|spec.ts`, `src/app/cart/components/cart-summary/cart-summary.component.html|spec.ts`, `src/app/admin/pages/dashboard/dashboard.component.spec.ts`, `src/app/admin/pages/sales/sales.component.spec.ts`, `src/app/admin/pages/orders/orders.component.spec.ts`, `src/app/admin/pages/products/products.component.spec.ts`, `src/app/admin/pages/order-detail/order-detail.component.spec.ts`

@@ -219,7 +219,7 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 
 | Pieza | Plataforma | Actualización |
 |---|---|---|
-| Frontend | Cloudflare Pages (`lcapp.pages.dev`) | Push a `master` → `scripts/cloudflare-build.sh` inyecta envs, `ng build --configuration production`, SPA fallback vía `_redirects`. |
+| Frontend | Cloudflare Pages (`lessencerise.pages.dev`) | Push a `master` → `scripts/cloudflare-build.sh` inyecta envs, `ng build --configuration production`, SPA fallback vía `_redirects`. |
 | Backend | Render | Build automático desde el repo; env vars en el panel. |
 | Datos | MongoDB Atlas | `npm run seed` manual. |
 

@@ -80,12 +80,12 @@ Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USE
 
 | Pieza | Plataforma | Cómo se actualiza |
 |---|---|---|
-| Frontend | Cloudflare Pages (`lcapp.pages.dev`) | Push a `master` → Cloudflare Pages ejecuta `scripts/cloudflare-build.sh` (inyecta envs, build Angular) |
+| Frontend | Cloudflare Pages (`lessencerise.pages.dev`) | Push a `master` → Cloudflare Pages ejecuta `scripts/cloudflare-build.sh` (inyecta envs, build Angular) |
 | Backend | Render | Push a `master` (branch del servicio) → Render rebuilda; env vars desde el panel |
 | Datos | MongoDB Atlas | `npm run seed` manual desde local |
 | Imágenes | Cloudflare R2 | upload automático desde el admin (POST /api/images) |
 
-URLs de referencia: frontend `https://lcapp.pages.dev`, API `https://lcapp-backend-o0jt.onrender.com/api`, health `GET /api/health`.
+URLs de referencia: frontend `https://lessencerise.pages.dev`, API `https://lcapp-backend-o0jt.onrender.com/api`, health `GET /api/health`.
 
 ## Estructura
 
