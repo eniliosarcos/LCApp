@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — config — Carga de datos reales: 12 categorías y 24 productos
+- **Descripción**: Se limpiaron las bases de datos de prod (`lcapp`) y dev (`lcapp-dev`) y se cargaron datos reales del negocio: 12 categorías de maquillaje y 24 productos (Dolce Bella, Aria Cosmetics, Salomé, Sheglam, Prosa, MaxGlow, Trendy) con precios en USD y stock. Se crearon `backend/clean.js` (limpieza directa contra MongoDB) y `backend/seed-real.js` (carga vía API con login JWT). Se descubrió que `sku: { unique: true }` en el modelo de Producto sin `sparse: true` bloquea múltiples productos sin SKU (índice único no sparse trata `null` como duplicado); se resolvió asignando SKUs únicos a cada producto.
+- **Archivos**: `backend/clean.js` (nuevo), `backend/seed-real.js` (nuevo)
+- **Decisión clave**: Datos reales se cargan vía API (no seed directo a MongoDB) para validar la misma lógica que usa el admin. Los scripts son de uso único; no se ejecutan en CI ni en deploy.
+
 ### 2026-08-17 — config — Rename de Cloudflare Pages: lcapp → lessencerise
 - **Descripción**: Se creó un nuevo proyecto `lessencerise` en Cloudflare Pages (renombrar el viejo solo cambia el nombre visual, no la URL). Se actualizaron referencias en README.md, ARCHITECTURE.md y backend/.env.example (`CORS_ORIGIN`). Los buckets R2 (`lcapp-images` / `lcapp-images-dev`) no cambiaron.
 - **Archivos**: `README.md`, `docs/ARCHITECTURE.md`, `backend/.env.example`
