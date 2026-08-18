@@ -15,6 +15,7 @@ export class HomeComponent implements OnInit, AfterViewChecked {
   categories: Category[] = [];
   products: Product[] = [];
   selectedCategoryId = '';
+  searchTerm = '';
   loading = true;
   error = false;
   categoriesError = false;
@@ -29,6 +30,19 @@ export class HomeComponent implements OnInit, AfterViewChecked {
   get selectedCategoryName(): string {
     const category = this.categories.find(category => category.id === this.selectedCategoryId);
     return category ? category.name : 'Todos los productos';
+  }
+
+  get filteredProducts(): Product[] {
+    let result = this.products;
+    if (this.searchTerm.trim()) {
+      const term = this.normalizeText(this.searchTerm);
+      result = result.filter(p => this.normalizeText(p.name).includes(term));
+    }
+    return result;
+  }
+
+  private normalizeText(text: string): string {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
   ngOnInit(): void {

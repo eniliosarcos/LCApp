@@ -1,5 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
@@ -41,6 +42,7 @@ describe('HomeComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [HomeComponent],
+      imports: [FormsModule],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [{ provide: CatalogService, useValue: catalogService }]
     }).compileComponents();
@@ -138,5 +140,59 @@ describe('HomeComponent', () => {
     component.selectCategory('c2');
 
     expect(spy).toHaveBeenCalledWith({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  });
+
+  describe('búsqueda', () => {
+    it('filtra productos por nombre', () => {
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'Tulipán';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filteredProducts.length).toBe(1);
+      expect(component.filteredProducts[0].name).toBe('Tulipán');
+    });
+
+    it('normaliza tildes al buscar', () => {
+      catalogService.getProducts.and.returnValue(of([
+        { ...productA, name: 'Maquíllaje Premium' },
+        productB
+      ]));
+      fixture = TestBed.createComponent(HomeComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'maquillaje';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filteredProducts.length).toBe(1);
+      expect(component.filteredProducts[0].name).toBe('Maquíllaje Premium');
+    });
+
+    it('muestra mensaje cuando la búsqueda no coincide', () => {
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'inexistente';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('No se encontraron productos para "inexistente"');
+    });
+
+    it('persiste el término al cambiar de categoría', () => {
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'Rosa';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filteredProducts.length).toBe(1);
+
+      fixture.nativeElement.querySelectorAll('.chip')[0].click();
+      fixture.detectChanges();
+
+      expect(component.searchTerm).toBe('Rosa');
+      expect(component.filteredProducts.length).toBe(1);
+    });
   });
 });

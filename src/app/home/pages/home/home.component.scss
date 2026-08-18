@@ -135,6 +135,31 @@
   }
 }
 
+.search-bar {
+  margin-bottom: v.$space-4;
+
+  input {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    display: block;
+    padding: v.$space-3 v.$space-4;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    font-size: 1rem;
+    background: v.$color-surface;
+
+    &::placeholder {
+      color: v.$color-text-muted;
+    }
+
+    &:focus {
+      outline: 2px solid v.$color-primary;
+      outline-offset: 1px;
+    }
+  }
+}
+
 .section-title {
   text-align: center;
   color: v.$color-primary;

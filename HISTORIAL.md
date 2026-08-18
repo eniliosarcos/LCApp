@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — feat — Búsqueda por nombre en home (cliente)
+- **Descripción**: Se agregó un campo de búsqueda por nombre en la página principal del catálogo, ubicado entre la cinta de chips de categoría y el grid de productos. Filtrado en tiempo real con `[(ngModel)]`. El getter `filteredProducts` busca solo por nombre de producto (no categoría). Búsqueda normalizada (sin tildes/caracteres especiales). El término de búsqueda persiste al cambiar de categoría. Mensaje contextualizado cuando no hay coincidencias.
+- **Archivos**: `src/app/home/pages/home/home.component.ts`, `.html`, `.scss`, `.spec.ts`, `src/app/home/home.module.ts`
+- **Decisión clave**: Se eligió buscar solo por nombre (no por categoría) porque la navegación por categoría ya existe con los chips. Se persiste el término al cambiar de categoría (Opción B) para que el usuario pueda comparar resultados.
+
 ### 2026-08-18 — feat — Búsqueda por nombre y categoría en admin productos
 - **Descripción**: Se agregó un campo de búsqueda por nombre o categoría en la página de productos del admin, ubicado entre los filtros de stock y la tabla. Filtrado en tiempo real con `[(ngModel)]`. El getter `filteredProducts` compina filtro de stock + búsqueda por nombre/categoría. Búsqueda normalizada (sin tildes/caracteres especiales) con `normalizeText`. Mensaje contextualizado cuando no hay coincidencias.
 - **Archivos**: `src/app/admin/pages/products/products.component.ts`, `src/app/admin/pages/products/products.component.html`, `src/app/admin/pages/products/products.component.spec.ts`
