@@ -27,6 +27,12 @@
 - NUNCA commitear `src/environments/environment*.ts` con datos reales (ver skill `no-env-leak`).
 - En el repo solo placeholders; los secretos reales van en env vars de Cloudflare Pages (front) y Render (backend).
 
+## Base de datos de producción (crítica)
+
+- **NUNCA** ejecutar comandos contra la base de datos de producción (`lcapp` en MongoDB Atlas) sin aprobación explícita del usuario.
+- Antes de cualquier operación de base de datos, explicar: (1) qué hace, (2) qué impacto tiene (crear/modificar/borrar), (3) contra qué base apunta (prod o dev).
+- El usuario administra los datos de prod (imágenes, descripciones, stock, etc.). El agente puede ayudar con dev y scripts.
+
 ## Pre-flight checklist (cada tarea)
 
 - [ ] Leer modelos/servicios relevantes antes de tocar código.
