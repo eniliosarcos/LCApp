@@ -117,6 +117,10 @@ export class ProductsComponent implements OnInit {
     return this.products.filter(product => this.stockStatus(product) === 'low').length;
   }
 
+  get inventoryValue(): number {
+    return this.products.reduce((sum, p) => sum + p.price * p.stock, 0);
+  }
+
   get visibleProducts(): Product[] {
     if (this.stockFilter === 'all') {
       return this.products;

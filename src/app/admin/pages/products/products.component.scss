@@ -1,5 +1,24 @@
 @use 'styles/variables' as v;
 
+.page-header__title {
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.page-header__subtitle {
+  font-size: 0.9rem;
+  color: v.$color-text-muted;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.page-header .btn-primary {
+  flex-shrink: 0;
+}
+
 .stock-summary {
   display: flex;
   align-items: center;
@@ -221,4 +240,11 @@
   font-size: 0.9rem;
   color: v.$color-text-muted;
   margin-bottom: v.$space-3;
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+  }
 }

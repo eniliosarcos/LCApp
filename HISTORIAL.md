@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — feat — Valor total de inventario en admin
+- **Descripción**: Se agregó el valor total del inventario (suma de `price × stock`) como subtítulo en el page header de la página de productos del admin. Getter computed `inventoryValue` calcula el total a partir del array `products` ya cargado, sin llamadas al backend adicionales.
+- **Archivos**: `src/app/admin/pages/products/products.component.ts`, `.html`, `.scss`, `.spec.ts`
+- **Decisión clave**: Se ubicó en el header de la página de productos (no en el dashboard) para respetar la separación de responsabilidades: inventario es tema de productos, no de órdenes. Sin cambios en backend ni modelos.
+
 ### 2026-08-18 — fix — Login: botón loading no se resetea en error
 - **Descripción**: Al fallar el login (credenciales incorrectas), el botón quedaba en estado loading indefinidamente. Causa: el callback `error` de RxJS no ejecutaba `this.loading = false`; solo `complete` lo hacía, y `complete` no se ejecuta cuando hay error.
 - **Archivos**: `src/app/auth/pages/login/login.component.ts`

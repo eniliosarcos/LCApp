@@ -73,6 +73,20 @@ describe('ProductsComponent', () => {
     expect(rows[0].textContent).toContain('Activo');
   });
 
+  it('muestra el valor del inventario en el header cuando hay productos', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'A', 'c1', { price: 10, stock: 5 }),
+      product('p2', 'B', 'c1', { price: 25, stock: 3 })
+    ]));
+    createComponent();
+
+    const subtitle = fixture.nativeElement.querySelector('.page-header__subtitle');
+    expect(subtitle).not.toBeNull();
+    expect(subtitle.textContent).toContain('Inventario:');
+    expect(subtitle.textContent).toContain('$125');
+  });
+
   it('muestra guión cuando la categoría del producto no se encuentra', () => {
     catalogServiceSpy.getCategories.and.returnValue(of([]));
     catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', 'Rosa Roja', 'no-existe')]));
@@ -113,6 +127,18 @@ describe('ProductsComponent', () => {
 
     expect(component.outOfStockCount).toBe(1);
     expect(component.lowStockCount).toBe(1);
+  });
+
+  it('calcula el valor total del inventario como suma de price * stock', () => {
+    catalogServiceSpy.getCategories.and.returnValue(of(categories));
+    catalogServiceSpy.getAllProducts.and.returnValue(of([
+      product('p1', 'A', 'c1', { price: 10, stock: 5 }),
+      product('p2', 'B', 'c1', { price: 25, stock: 3 }),
+      product('p3', 'C', 'c1', { price: 0, stock: 100 })
+    ]));
+    createComponent();
+
+    expect(component.inventoryValue).toBe(125);
   });
 
   it('filtra la tabla por agotados o stock bajo y resetea', () => {
