@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — refactor — Product card truncation simplified to pure CSS
+- **Descripción**: Se eliminó la detección JS de truncado (`AfterViewInit`, `scrollHeight > clientHeight`) por ser frágil con el timing del render. Ahora se usa `-webkit-line-clamp: 3` siempre activo en CSS + "ver más" siempre visible. Hover en "ver más" muestra underline estilo link.
+- **Archivos**: `src/app/shared/components/product-card/product-card.component.ts`, `.html`, `.scss`, `.spec.ts`
+- **Decisión clave**: Pure CSS > JS detection para truncado de texto. Más confiable, menos complejidad.
+
 ### 2026-08-18 — config — Sync prod→dev DB y R2
 - **Descripción**: Sincronización completa de datos de producción a desarrollo. DB: categories (12) + products (24) copiados de `lcapp` a `lcapp-dev` via script Node.js con mongoose. R2: 45 imágenes migradas de `lcapp-images` (prod) a `lcapp-images-dev` (dev) descargando via URL pública y subiendo con credenciales dev. URLs en MongoDB dev actualizadas para apuntar al bucket dev.
 - **Archivos**: `backend/sync-prod-to-dev.js`, `backend/sync-r2-prod-to-dev.js`, `.gitignore`
