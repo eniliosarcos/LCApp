@@ -46,3 +46,4 @@ Thumbs.db
 src/environments/environment.ts
 src/environments/environment.prod.ts
 backend/.env
+backend/sync-*.js

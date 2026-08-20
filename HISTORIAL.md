@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — config — Sync prod→dev DB y R2
+- **Descripción**: Sincronización completa de datos de producción a desarrollo. DB: categories (12) + products (24) copiados de `lcapp` a `lcapp-dev` via script Node.js con mongoose. R2: 45 imágenes migradas de `lcapp-images` (prod) a `lcapp-images-dev` (dev) descargando via URL pública y subiendo con credenciales dev. URLs en MongoDB dev actualizadas para apuntar al bucket dev.
+- **Archivos**: `backend/sync-prod-to-dev.js`, `backend/sync-r2-prod-to-dev.js`, `.gitignore`
+- **Decisión clave**: Scripts con credenciales hardcoded → gitignored (`backend/sync-*.js`). Download+upload en vez de CopyObject cross-bucket por restricciones de permisos de tokens R2 separados.
+
 ### 2026-08-18 — feat — Truncar descripción en product-card con "ver más"
 - **Descripción**: Se limitó la descripción de las product cards a 4 líneas usando CSS line-clamp. Cuando la descripción se trunca, se muestra un indicador "ver más" en el color primario. Detección de truncado vía `scrollHeight > clientHeight` en `AfterViewInit`. La card completa ya es un link al detalle, así que "ver más" es solo indicador visual.
 - **Archivos**: `src/app/shared/components/product-card/product-card.component.ts`, `.html`, `.scss`, `.spec.ts`
