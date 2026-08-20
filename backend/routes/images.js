@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const sharp = require('sharp');
+const crypto = require('crypto');
 const router = express.Router();
 const authenticate = require('../middleware/auth');
 const { uploadVariants, deleteImageUrls } = require('../lib/r2');
@@ -16,7 +17,8 @@ function buildFolder(slug) {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
     if (sanitized) {
-      return `products/${sanitized}`;
+      const fragment = crypto.randomUUID().slice(0, 8);
+      return `products/${sanitized}-${fragment}`;
     }
   }
   return null;

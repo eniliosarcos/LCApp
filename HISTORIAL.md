@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — fix(images): unique folder per upload to prevent image overwrite
+- **Descripción**: Al subir múltiples imágenes para el mismo producto, la segunda sobreescribía la primera en R2 porque ambas generaban la misma clave (`products/<slug>/400w.webp`). Fix: cada upload ahora incluye un fragmento UUID de 8 caracteres en la carpeta (`products/<slug>-a3f2b1c8/400w.webp`). Esto garantiza unicidad sin afectar uploads existentes.
+- **Archivos**: `backend/routes/images.js`
+- **Decisión clave**: UUID fragment corto (8 chars) en vez de timestamp — suficiente para unicidad, mantiene paths legibles.
+
 ### 2026-08-18 — refactor — Product card truncation simplified to pure CSS
 - **Descripción**: Se eliminó la detección JS de truncado (`AfterViewInit`, `scrollHeight > clientHeight`) por ser frágil con el timing del render. Ahora se usa `-webkit-line-clamp: 3` siempre activo en CSS + "ver más" siempre visible. Hover en "ver más" muestra underline estilo link.
 - **Archivos**: `src/app/shared/components/product-card/product-card.component.ts`, `.html`, `.scss`, `.spec.ts`
