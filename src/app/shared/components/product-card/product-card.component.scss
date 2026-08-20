@@ -70,14 +70,9 @@
 
       &.description {
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-
-        &:not(.truncated) {
-          -webkit-line-clamp: unset;
-          display: block;
-        }
       }
     }
 
@@ -85,6 +80,11 @@
       color: v.$color-primary;
       font-size: 0.85rem;
       font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .stock {

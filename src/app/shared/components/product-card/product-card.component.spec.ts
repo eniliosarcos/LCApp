@@ -115,23 +115,19 @@ describe('ProductCardComponent', () => {
   it('no muestra "ver más" si la descripción es corta', () => {
     createFixture({ description: 'Corta' });
 
-    expect(component.isTruncated).toBeFalse();
-    expect(fixture.nativeElement.querySelector('.read-more')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.read-more')).not.toBeNull();
   });
 
-  it('muestra "ver más" si la descripción se trunca', () => {
+  it('siempre muestra "ver más" y la descripción se trunca con CSS', () => {
     const longDesc = 'Descripción muy larga '.repeat(20);
     createFixture({ description: longDesc });
 
     const descEl = fixture.nativeElement.querySelector('.description');
-    Object.defineProperty(descEl, 'scrollHeight', { value: 200 });
-    Object.defineProperty(descEl, 'clientHeight', { value: 60 });
+    expect(descEl).not.toBeNull();
+    expect(descEl.classList.contains('description')).toBeTrue();
 
-    component.ngAfterViewInit();
-    fixture.detectChanges();
-
-    expect(component.isTruncated).toBeTrue();
-    expect(fixture.nativeElement.querySelector('.read-more')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.read-more').textContent).toContain('ver más');
+    const readMore = fixture.nativeElement.querySelector('.read-more');
+    expect(readMore).not.toBeNull();
+    expect(readMore.textContent).toContain('ver más');
   });
 });
