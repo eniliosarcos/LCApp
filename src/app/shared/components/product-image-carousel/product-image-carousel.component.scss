@@ -1,0 +1,77 @@
+@use 'styles/variables' as v;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+:host img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &__track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    height: 100%;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    height: 100%;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+  }
+
+  &__dots {
+    position: absolute;
+    bottom: v.$space-2;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: v.$space-1;
+    z-index: 1;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.5);
+    transition: background 0.25s ease, transform 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    &--active {
+      background: v.$color-surface;
+      transform: scale(1.3);
+    }
+  }
+}

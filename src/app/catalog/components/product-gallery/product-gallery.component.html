@@ -2,35 +2,65 @@
   <div class="main-image" aria-hidden="true">
     <ng-container *ngIf="hasImages; else noImage">
       <img
-        *ngIf="mainImage?.url && !mainImageFailed"
-        [src]="mainImage?.url"
-        [srcset]="mainSrcset"
+        *ngIf="!thumbFailed(currentImage!)"
+        [src]="currentImage!.url"
+        [srcset]="getSrcset(currentImage!)"
         sizes="(min-width: 720px) 520px, 100vw"
-        [alt]="mainImage?.alt || 'Imagen del producto'"
+        [alt]="currentImage!.alt"
         fetchpriority="high"
-        (error)="onMainImageError()">
-      <span *ngIf="!mainImage?.url || mainImageFailed" class="main-fallback">{{ fallback }}</span>
+        decoding="async"
+        (click)="openLightbox()"
+        class="main-image__img">
+      <span *ngIf="thumbFailed(currentImage!)" class="main-fallback">{{ fallback }}</span>
     </ng-container>
     <ng-template #noImage>
       <span class="main-fallback">{{ fallback }}</span>
     </ng-template>
   </div>
 
-  <div class="thumbnails" *ngIf="images.length > 1">
+  <div class="thumbs" *ngIf="hasMultiple">
     <button
+      *ngFor="let img of images; let i = index"
       type="button"
-      class="thumbnail"
-      *ngFor="let image of images"
-      (click)="selectImage(image)"
-      [class.selected]="image.id === selectedImage?.id">
+      class="thumb"
+      [class.thumb--active]="i === currentIndex"
+      (click)="selectImage(i)">
       <img
-        *ngIf="image.url && !thumbFailed(image)"
-        [src]="image.url"
-        [alt]="image.alt || 'Miniatura del producto'"
+        *ngIf="img.url && !thumbFailed(img)"
+        [src]="img.url"
+        [alt]="img.alt || 'Miniatura'"
         loading="lazy"
         decoding="async"
-        (error)="onThumbImageError(image)">
-      <span *ngIf="!image.url || thumbFailed(image)" class="thumb-fallback">{{ fallback }}</span>
+        (error)="onThumbError(img)">
+      <span *ngIf="!img.url || thumbFailed(img)" class="thumb__fallback">LC</span>
     </button>
   </div>
+</div>
+
+<div
+  class="lightbox"
+  *ngIf="lightboxOpen"
+  (click)="closeLightbox()"
+  (keydown)="onKeydown($event)"
+  tabindex="0"
+  role="dialog"
+  aria-label="Ver imagen completa">
+  <button type="button" class="lightbox__close" (click)="closeLightbox()" aria-label="Cerrar">✕</button>
+  <button
+    type="button"
+    class="lightbox__arrow lightbox__arrow--prev"
+    (click)="prev(); $event.stopPropagation()"
+    aria-label="Imagen anterior">‹</button>
+  <img
+    class="lightbox__img"
+    [src]="currentImage?.url"
+    [srcset]="getSrcset(currentImage!)"
+    [alt]="currentImage?.alt || 'Imagen del producto'"
+    (click)="$event.stopPropagation()">
+  <button
+    type="button"
+    class="lightbox__arrow lightbox__arrow--next"
+    (click)="next(); $event.stopPropagation()"
+    aria-label="Imagen siguiente">›</button>
+  <div class="lightbox__counter">{{ currentIndex + 1 }} / {{ images.length }}</div>
 </div>

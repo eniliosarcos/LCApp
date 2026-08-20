@@ -1,14 +1,11 @@
 <article class="card">
   <a [routerLink]="productLink()" class="card-link">
     <div class="card-media" aria-hidden="true">
-      <img
-        *ngIf="!imageFailed && getPrimaryImage() as img; else letterAvatar"
-        [src]="img.url"
-        [srcset]="getSrcset(img)"
-        sizes="(min-width: 720px) 280px, 50vw"
-        [alt]="img.alt"
-        loading="lazy"
-        (error)="onImageError()">
+      <app-product-image-carousel
+        *ngIf="!imageFailed && product.images?.length; else letterAvatar"
+        [images]="product.images"
+        sizes="(min-width: 720px) 280px, 50vw">
+      </app-product-image-carousel>
       <ng-template #letterAvatar>{{ product.name.charAt(0) }}</ng-template>
     </div>
     <div class="card-body">

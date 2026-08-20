@@ -1,0 +1,46 @@
+<ng-container *ngIf="hasMultiple; else singleImage">
+  <div
+    class="carousel"
+    (pointerenter)="onPointerEnter()"
+    (pointerleave)="onPointerLeave()">
+    <div
+      #track
+      class="carousel__track"
+      (scroll)="onTrackScroll()">
+      <div class="carousel__slide" *ngFor="let img of images; let i = index">
+        <img
+          [src]="img.url"
+          [srcset]="getSrcset(img)"
+          [sizes]="sizes"
+          [alt]="img.alt"
+          [attr.fetchpriority]="i === 0 ? 'high' : null"
+          [loading]="i === 0 ? 'eager' : 'lazy'"
+          decoding="async">
+      </div>
+    </div>
+    <div class="carousel__dots" role="tablist" aria-label="Imágenes del producto">
+      <button
+        *ngFor="let img of images; let i = index"
+        type="button"
+        class="carousel__dot"
+        [class.carousel__dot--active]="i === currentIndex"
+        (click)="goTo(i)"
+        [attr.aria-label]="'Imagen ' + (i + 1)"
+        role="tab"
+        [attr.aria-selected]="i === currentIndex">
+      </button>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #singleImage>
+  <ng-container *ngIf="images.length > 0">
+    <img
+      [src]="images[0].url"
+      [srcset]="getSrcset(images[0])"
+      [sizes]="sizes"
+      [alt]="images[0].alt"
+      fetchpriority="high"
+      decoding="async">
+  </ng-container>
+</ng-template>
