@@ -67,6 +67,24 @@
       margin: 0;
       color: v.$color-text-muted;
       font-size: 0.9rem;
+
+      &.description {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+
+        &:not(.truncated) {
+          -webkit-line-clamp: unset;
+          display: block;
+        }
+      }
+    }
+
+    .read-more {
+      color: v.$color-primary;
+      font-size: 0.85rem;
+      font-weight: 600;
     }
 
     .stock {

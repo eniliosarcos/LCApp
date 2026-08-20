@@ -111,4 +111,27 @@ describe('ProductCardComponent', () => {
     component.product = product({ stock: 0 });
     expect(component.getStockStatus()).toBe('out-of-stock');
   });
+
+  it('no muestra "ver más" si la descripción es corta', () => {
+    createFixture({ description: 'Corta' });
+
+    expect(component.isTruncated).toBeFalse();
+    expect(fixture.nativeElement.querySelector('.read-more')).toBeNull();
+  });
+
+  it('muestra "ver más" si la descripción se trunca', () => {
+    const longDesc = 'Descripción muy larga '.repeat(20);
+    createFixture({ description: longDesc });
+
+    const descEl = fixture.nativeElement.querySelector('.description');
+    Object.defineProperty(descEl, 'scrollHeight', { value: 200 });
+    Object.defineProperty(descEl, 'clientHeight', { value: 60 });
+
+    component.ngAfterViewInit();
+    fixture.detectChanges();
+
+    expect(component.isTruncated).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.read-more')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.read-more').textContent).toContain('ver más');
+  });
 });

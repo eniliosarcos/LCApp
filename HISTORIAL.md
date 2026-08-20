@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-18 — feat — Truncar descripción en product-card con "ver más"
+- **Descripción**: Se limitó la descripción de las product cards a 4 líneas usando CSS line-clamp. Cuando la descripción se trunca, se muestra un indicador "ver más" en el color primario. Detección de truncado vía `scrollHeight > clientHeight` en `AfterViewInit`. La card completa ya es un link al detalle, así que "ver más" es solo indicador visual.
+- **Archivos**: `src/app/shared/components/product-card/product-card.component.ts`, `.html`, `.scss`, `.spec.ts`
+- **Decisión clave**: Se usó `@ViewChild` + `AfterViewInit` para detectar truncado real (no siempre mostrar "ver más"). El `*ngIf="isTruncated"` evita mostrar el indicador en descripciones cortas.
+
 ### 2026-08-18 — feat — Búsqueda por nombre en home (cliente)
 - **Descripción**: Se agregó un campo de búsqueda por nombre en la página principal del catálogo, ubicado entre la cinta de chips de categoría y el grid de productos. Filtrado en tiempo real con `[(ngModel)]`. El getter `filteredProducts` busca solo por nombre de producto (no categoría). Búsqueda normalizada (sin tildes/caracteres especiales). El término de búsqueda persiste al cambiar de categoría. Mensaje contextualizado cuando no hay coincidencias.
 - **Archivos**: `src/app/home/pages/home/home.component.ts`, `.html`, `.scss`, `.spec.ts`, `src/app/home/home.module.ts`
