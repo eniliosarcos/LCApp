@@ -21,10 +21,10 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
-### 2026-08-20 — refactor(ui): gallery sin carousel, lightbox full-width
-- **Descripción**: Revertido el carousel del detail page. `ProductGalleryComponent` ahora muestra imagen principal + thumbnails clickeables + lightbox full-width (`100vw`, altura natural). Carousel simplificado: eliminados `variant`, lightbox, thumbnails, y toda la lógica de gallery. Solo queda para product-cards en home (dots, autoplay 1.5-5s).
+### 2026-08-20 — refactor(ui): gallery sin carousel, lightbox + simplificación carousel
+- **Descripción**: Revertido el carousel del detail page. `ProductGalleryComponent` ahora muestra imagen principal + thumbnails clickeables + lightbox (`max-width: 90vw; max-height: 85vh; object-fit: contain`). Carousel simplificado: eliminados `variant`, lightbox, thumbnails. Solo queda para product-cards en home (dots, autoplay 1.5-5s, IntersectionObserver).
 - **Archivos**: `product-gallery.component.*`, `product-image-carousel.component.*`
-- **Decisión clave**: Separar responsabilidades: carousel solo para home cards, gallery con lightbox propio para detail. Lightbox con `width: 100vw; height: auto` para respetar proporción original.
+- **Decisión clave**: Separar responsabilidades: carousel solo para home cards, gallery con lightbox propio para detail. Lightbox con tamaño natural limitado a viewport para respetar proporción original sin cubrir toda la pantalla.
 
 ### 2026-08-18 — fix(images): unique folder per upload to prevent image overwrite
 - **Descripción**: Al subir múltiples imágenes para el mismo producto, la segunda sobreescribía la primera en R2 porque ambas generaban la misma clave (`products/<slug>/400w.webp`). Fix: cada upload ahora incluye un fragmento UUID de 8 caracteres en la carpeta (`products/<slug>-a3f2b1c8/400w.webp`). Esto garantiza unicidad sin afectar uploads existentes.
@@ -35,9 +35,6 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 - **Descripción**: Nuevo componente shared `ProductImageCarouselComponent` con carousel de imágenes, auto-play cada 4s, pausa en hover/touch, dots clickeables, swipe con CSS scroll-snap, y pausa inteligente con IntersectionObserver. Integrado en product-card (home grid) y product-gallery (detail page). Cuando hay 1 imagen, se muestra sin carousel. Gallery simplificado: eliminados thumbnails y lógica de selección manual.
 - **Archivos**: `src/app/shared/components/product-image-carousel/` (nuevo), `shared.module.ts`, `product-card.component.*`, `product-gallery.component.*`
 - **Decisión clave**: Carousel shared reutilizable para ambos contextos. CSS scroll-snap nativo para swipe (sin librería). `IntersectionObserver` para pausar auto-play off-screen.
-- **Descripción**: Se eliminó la detección JS de truncado (`AfterViewInit`, `scrollHeight > clientHeight`) por ser frágil con el timing del render. Ahora se usa `-webkit-line-clamp: 3` siempre activo en CSS + "ver más" siempre visible. Hover en "ver más" muestra underline estilo link.
-- **Archivos**: `src/app/shared/components/product-card/product-card.component.ts`, `.html`, `.scss`, `.spec.ts`
-- **Decisión clave**: Pure CSS > JS detection para truncado de texto. Más confiable, menos complejidad.
 
 ### 2026-08-18 — config — Sync prod→dev DB y R2
 - **Descripción**: Sincronización completa de datos de producción a desarrollo. DB: categories (12) + products (24) copiados de `lcapp` a `lcapp-dev` via script Node.js con mongoose. R2: 45 imágenes migradas de `lcapp-images` (prod) a `lcapp-images-dev` (dev) descargando via URL pública y subiendo con credenciales dev. URLs en MongoDB dev actualizadas para apuntar al bucket dev.

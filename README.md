@@ -94,7 +94,7 @@ src/app/
   core/         # modelos, servicios (única frontera de datos: HttpClient), interceptor JWT, guard
     models/     # ProductImageVariant, ProductImage, etc.
     services/   # image.service.ts (upload multipart a /api/images)
-  shared/       # header, breadcrumbs, product-card (SharedModule)
+  shared/       # header, breadcrumbs, product-card, product-image-carousel (SharedModule)
   home/         # categorías (home)
   catalog/      # listado y detalle de producto
   cart/         # carrito, cart-item, cart-summary (registra orden al contactar)
