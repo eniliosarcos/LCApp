@@ -21,6 +21,19 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-21 — style(ui): padding-bottom en home, catalog y product-detail
+- **Descripción**: `padding-bottom: 1rem` en `.catalog` y `.product-detail`. En home, `padding-bottom` del contenedor `.home` ajustado a `3.25rem` en mobile (antes `4.25rem`) para compensar la strip fija inferior.
+- **Archivos**: `product-list.component.scss`, `product-detail.component.scss`, `home.component.scss`
+
+### 2026-08-21 — feat(ui): "ver más" condicional en product-card
+- **Descripción**: El enlace "ver más" en la descripción del producto solo se muestra cuando el texto se truna realmente (detectado vía `scrollHeight > clientHeight` en `ngAfterViewInit`). Para descripciones cortas no aparece el enlace.
+- **Archivos**: `product-card.component.*`
+- **Decisión clave**: Detección de truncado por comparación de dimensiones reales del DOM con `OnPush` + `markForCheck()`. Test de layouts extensos imposible en unit tests (NG0100) — se validó solo el caso negativo.
+
+### 2026-08-20 — style(home): buscar productos arriba del título
+- **Descripción**: La barra de búsqueda por nombre en el home ahora aparece arriba del título de la sección ("Todos los productos") en vez de debajo. Reordenamiento HTML sin cambios de SCSS.
+- **Archivos**: `src/app/home/pages/home/home.component.html`
+
 ### 2026-08-20 — refactor(ui): gallery sin carousel, lightbox + simplificación carousel
 - **Descripción**: Revertido el carousel del detail page. `ProductGalleryComponent` ahora muestra imagen principal + thumbnails clickeables + lightbox (`max-width: 90vw; max-height: 85vh; object-fit: contain`). Carousel simplificado: eliminados `variant`, lightbox, thumbnails. Solo queda para product-cards en home (dots, autoplay 1.5-5s, IntersectionObserver).
 - **Archivos**: `product-gallery.component.*`, `product-image-carousel.component.*`

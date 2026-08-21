@@ -44,13 +44,13 @@
   </div>
 
   <div class="container home-content">
-    <h2 class="section-title">{{ selectedCategoryName }}</h2>
-    <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
-    <p class="error" *ngIf="categoriesError">No se pudieron cargar las categorías. Intenta de nuevo.</p>
-
     <div class="search-bar" *ngIf="!loading && !error && products.length">
       <input type="text" placeholder="Buscar producto…" [(ngModel)]="searchTerm">
     </div>
+
+    <h2 class="section-title">{{ selectedCategoryName }}</h2>
+    <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
+    <p class="error" *ngIf="categoriesError">No se pudieron cargar las categorías. Intenta de nuevo.</p>
 
     <div class="grid" *ngIf="!error && loading">
       <app-loading-spinner label="Cargando productos…"></app-loading-spinner>

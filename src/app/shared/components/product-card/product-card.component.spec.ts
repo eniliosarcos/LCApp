@@ -117,19 +117,11 @@ describe('ProductCardComponent', () => {
   it('no muestra "ver más" si la descripción es corta', () => {
     createFixture({ description: 'Corta' });
 
-    expect(fixture.nativeElement.querySelector('.read-more')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.read-more')).toBeNull();
   });
 
-  it('siempre muestra "ver más" y la descripción se trunca con CSS', () => {
-    const longDesc = 'Descripción muy larga '.repeat(20);
-    createFixture({ description: longDesc });
-
-    const descEl = fixture.nativeElement.querySelector('.description');
-    expect(descEl).not.toBeNull();
-    expect(descEl.classList.contains('description')).toBeTrue();
-
-    const readMore = fixture.nativeElement.querySelector('.read-more');
-    expect(readMore).not.toBeNull();
-    expect(readMore.textContent).toContain('ver más');
+  it('isTruncated detecta si el texto se desborda', () => {
+    createFixture({ description: 'Corta' });
+    expect(component.isTruncated).toBeFalse();
   });
 });

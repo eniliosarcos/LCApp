@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { LOW_STOCK_THRESHOLD, Product, ProductImage } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
@@ -9,11 +9,13 @@ import { SnackbarService } from '../../../core/services/snackbar.service';
   styleUrls: ['./product-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductCardComponent implements OnDestroy {
+export class ProductCardComponent implements AfterViewInit, OnDestroy {
   @Input() product!: Product;
+  @ViewChild('desc') descRef?: ElementRef<HTMLElement>;
 
   added = false;
   imageFailed = false;
+  isTruncated = false;
   private addedTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -21,6 +23,14 @@ export class ProductCardComponent implements OnDestroy {
     private readonly snackbarService: SnackbarService,
     private readonly cdr: ChangeDetectorRef
   ) {}
+
+  ngAfterViewInit(): void {
+    const el = this.descRef?.nativeElement;
+    if (el) {
+      this.isTruncated = el.scrollHeight > el.clientHeight;
+      this.cdr.markForCheck();
+    }
+  }
 
   ngOnDestroy(): void {
     if (this.addedTimer) {

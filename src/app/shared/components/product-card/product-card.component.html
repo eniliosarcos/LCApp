@@ -11,7 +11,7 @@
     <div class="card-body">
       <h2>{{ product.name }}</h2>
       <p #desc class="description">{{ product.description }}</p>
-      <span class="read-more">ver más</span>
+      <span class="read-more" *ngIf="isTruncated">ver más</span>
       <p class="stock" [class]="getStockStatus()">
         <ng-container [ngSwitch]="getStockStatus()">
           <ng-container *ngSwitchCase="'in-stock'">En stock</ng-container>

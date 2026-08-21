@@ -3,7 +3,7 @@
 .hero {
   background: v.$gradient-hero;
   text-align: center;
-  padding: 3rem 0;
+  padding: 2rem 0;
   margin-bottom: 0;
 
   .hero-title {
@@ -139,6 +139,7 @@
   position: sticky;
   top: 5.5rem;
   z-index: 15;
+  margin-top: 1rem;
   margin-bottom: v.$space-4;
 
   input {
@@ -231,6 +232,6 @@
   }
 
   .home {
-    padding-bottom: 4.25rem;
+    padding-bottom: 3.25rem;
   }
 }
