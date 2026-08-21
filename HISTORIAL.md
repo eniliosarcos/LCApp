@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-21 — feat(ui): animaciones sutiles para vista del cliente
+- **Descripción**: Sistema completo de animaciones CSS + Angular solo para rutas del cliente (no admin): tokens compartidos (`_animations.scss`), transiciones de ruta fade (200ms), hero fade-in, stagger de product cards (60ms entre cada una), y scroll reveal directive (`IntersectionObserver`). Todo con `prefers-reduced-motion` para accesibilidad.
+- **Archivos**: `styles/_animations.scss` (nuevo), `styles/_scroll-reveal.scss` (nuevo), `app/animations.ts` (nuevo), `shared/directives/scroll-reveal.directive.ts` (nuevo), `app.module.ts`, `app.component.ts`, `app.component.html`, `app-routing.module.ts`, `shared.module.ts`, `home.component.scss`, `home.component.html`, `product-detail.component.html`, `cart-view.component.html`
+- **Decisión clave**: Sin librerías externas. CSS keyframes + Angular `@angular/animations` (ya instalado sin usar). Admin excluido de animaciones.
+
 ### 2026-08-21 — style(ui): padding-bottom en home, catalog y product-detail
 - **Descripción**: `padding-bottom: 1rem` en `.catalog` y `.product-detail`. En home, `padding-bottom` del contenedor `.home` ajustado a `3.25rem` en mobile (antes `4.25rem`) para compensar la strip fija inferior.
 - **Archivos**: `product-list.component.scss`, `product-detail.component.scss`, `home.component.scss`

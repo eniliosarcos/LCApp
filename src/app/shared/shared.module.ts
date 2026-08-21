@@ -9,10 +9,11 @@ import { AppSnackbarComponent } from './components/snackbar/app-snackbar.compone
 import { AppLoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { ProductCardComponent } from './components/product-card/product-card.component';
 import { ProductImageCarouselComponent } from './components/product-image-carousel/product-image-carousel.component';
+import { ScrollRevealDirective } from './directives/scroll-reveal.directive';
 
 @NgModule({
-  declarations: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent],
+  declarations: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective],
   imports: [CommonModule, RouterModule],
-  exports: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent]
+  exports: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective]
 })
 export class SharedModule {}

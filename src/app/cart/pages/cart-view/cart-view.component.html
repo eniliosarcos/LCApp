@@ -9,7 +9,7 @@
 
   <ng-template #loaded>
     <ng-container *ngIf="cart && cart.items.length > 0; else empty">
-      <div class="layout">
+      <div class="layout" appScrollReveal>
         <div class="items">
           <app-cart-item
             *ngFor="let item of cart.items"

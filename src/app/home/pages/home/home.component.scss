@@ -1,4 +1,5 @@
 @use 'styles/variables' as v;
+@use 'styles/animations' as a;
 
 .hero {
   background: v.$gradient-hero;
@@ -11,12 +12,14 @@
     font-family: v.$font-heading;
     font-size: 2rem;
     margin: 0 0 0.25rem;
+    animation: slide-up a.$duration-slow a.$ease-out both;
   }
 
   .hero-subtitle {
     color: v.$color-text-muted;
     font-style: italic;
     margin: 0 0 v.$space-4;
+    animation: slide-up a.$duration-slow a.$ease-out 150ms both;
   }
 }
 
@@ -185,10 +188,33 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: v.$space-4;
+
+  app-product-card {
+    animation: slide-up a.$duration-slow a.$ease-out both;
+
+    @for $i from 1 through 12 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{($i - 1) * 60}ms;
+      }
+    }
+  }
 }
 
 .home-content {
   padding-bottom: v.$space-6;
+}
+
+@include a.reduce-motion {
+  .hero-title,
+  .hero-subtitle {
+    animation: none;
+    opacity: 1;
+  }
+
+  .grid app-product-card {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 @media (max-width: 600px) {

@@ -10,7 +10,7 @@
       <div class="card">
         <app-product-gallery [images]="product.images"></app-product-gallery>
 
-        <div class="info">
+        <div class="info" appScrollReveal>
           <h1>{{ product.name }}</h1>
 
           <div class="price-section" *ngIf="product.discountPrice; else regularPrice">

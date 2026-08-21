@@ -48,7 +48,7 @@
       <input type="text" placeholder="Buscar producto…" [(ngModel)]="searchTerm">
     </div>
 
-    <h2 class="section-title">{{ selectedCategoryName }}</h2>
+    <h2 class="section-title" appScrollReveal>{{ selectedCategoryName }}</h2>
     <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
     <p class="error" *ngIf="categoriesError">No se pudieron cargar las categorías. Intenta de nuevo.</p>
 

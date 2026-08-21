@@ -1,0 +1,21 @@
+@use 'styles/animations' as a;
+
+[appScrollReveal] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity a.$duration-slow a.$ease-out,
+              transform a.$duration-slow a.$ease-out;
+
+  &.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@include a.reduce-motion {
+  [appScrollReveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -2,6 +2,11 @@
   <app-header></app-header>
 </ng-container>
 <main [class.main--no-pad]="isAdminRoute">
-  <router-outlet></router-outlet>
+  <div *ngIf="!isAdminRoute; else adminOutlet" [@routeAnimations]="getRouteAnimationData()">
+    <router-outlet></router-outlet>
+  </div>
+  <ng-template #adminOutlet>
+    <router-outlet></router-outlet>
+  </ng-template>
 </main>
 <app-snackbar></app-snackbar>
