@@ -11,6 +11,7 @@ export class CartItemComponent {
   @Output() remove = new EventEmitter<string>();
   @Output() updateQuantity = new EventEmitter<CartItemQuantity>();
   imageFailed = false;
+  removing = false;
 
   get productImage(): string | undefined {
     return this.item.product.images[0]?.url;
@@ -49,7 +50,8 @@ export class CartItemComponent {
   }
 
   onRemove(): void {
-    this.remove.emit(this.item.productId);
+    this.removing = true;
+    setTimeout(() => this.remove.emit(this.item.productId), 250);
   }
 
   onImageError(): void {

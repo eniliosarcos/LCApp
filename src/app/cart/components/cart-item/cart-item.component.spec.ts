@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { fakeAsync, tick } from '@angular/core/testing';
 import { Product } from '../../../core/models/product.model';
 import { CartItem } from '../../../core/models/cart.model';
 import { CartItemComponent } from './cart-item.component';
@@ -80,13 +81,14 @@ describe('CartItemComponent', () => {
     expect(payload).toEqual({ productId: 'p1', quantity: 10 });
   });
 
-  it('emitir remoción con el id del producto', () => {
+  it('emitir remoción con el id del producto', fakeAsync(() => {
     createFixture(item());
     let emitted = '';
     component.remove.subscribe(value => (emitted = value));
 
     component.onRemove();
+    tick(250);
 
     expect(emitted).toBe('p1');
-  });
+  }));
 });

@@ -1,4 +1,4 @@
-<article class="cart-item">
+<article class="cart-item" [class.cart-item--removing]="removing">
   <div class="media" aria-hidden="true">
     <img
       *ngIf="productImage && !imageFailed"

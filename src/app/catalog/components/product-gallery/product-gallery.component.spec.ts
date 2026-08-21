@@ -3,6 +3,8 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ProductImage } from '../../../core/models/product.model';
 import { ProductGalleryComponent } from './product-gallery.component';
 
+import { fakeAsync, tick } from '@angular/core/testing';
+
 const image = (overrides: Partial<ProductImage> = {}): ProductImage => ({
   id: 'i1',
   url: 'http://img/1.jpg',
@@ -112,16 +114,17 @@ describe('ProductGalleryComponent', () => {
     expect(fixture.nativeElement.querySelector('.lightbox')).not.toBeNull();
   });
 
-  it('closeLightbox desactiva lightboxOpen', () => {
+  it('closeLightbox desactiva lightboxOpen', fakeAsync(() => {
     createFixture([image()]);
 
     component.openLightbox();
     fixture.detectChanges();
     component.closeLightbox();
+    tick(150);
     fixture.detectChanges();
     expect(component.lightboxOpen).toBeFalse();
     expect(fixture.nativeElement.querySelector('.lightbox')).toBeNull();
-  });
+  }));
 
   it('prev() retrocede circularmente', () => {
     createFixture([image({ id: 'i1' }), image({ id: 'i2', isPrimary: false }), image({ id: 'i3', isPrimary: false })]);

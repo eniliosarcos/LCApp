@@ -11,6 +11,7 @@ export class ProductGalleryComponent {
 
   currentIndex = 0;
   lightboxOpen = false;
+  lightboxClosing = false;
   failedThumbs = new Set<string>();
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
@@ -57,8 +58,13 @@ export class ProductGalleryComponent {
   }
 
   closeLightbox(): void {
-    this.lightboxOpen = false;
-    document.body.style.overflow = '';
+    this.lightboxClosing = true;
+    setTimeout(() => {
+      this.lightboxOpen = false;
+      this.lightboxClosing = false;
+      document.body.style.overflow = '';
+      this.cdr.markForCheck();
+    }, 150);
     this.cdr.markForCheck();
   }
 

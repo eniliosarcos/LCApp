@@ -1,4 +1,10 @@
 @use 'styles/variables' as v;
+@use 'styles/animations' as a;
+
+:host {
+  display: block;
+  overflow: hidden;
+}
 
 .cart-item {
   background: v.$color-surface;
@@ -9,6 +15,12 @@
   display: flex;
   gap: v.$space-4;
   align-items: center;
+  transition: transform a.$duration-normal a.$ease-out, opacity a.$duration-normal a.$ease-out;
+
+  &--removing {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 
   .media {
     width: 5rem;
@@ -132,6 +144,17 @@
       color: v.$color-gold;
       font-weight: 700;
       font-size: 1.05rem;
+    }
+  }
+}
+
+@include a.reduce-motion {
+  .cart-item {
+    transition: none;
+
+    &--removing {
+      transform: none;
+      opacity: 0;
     }
   }
 }

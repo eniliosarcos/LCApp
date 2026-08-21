@@ -21,6 +21,15 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-21 — feat(ui): lightbox fade+scale y cart item slide-out
+- **Descripción**: (1) Lightbox de galería con animación de entrada (fade + scale 0.95→1, 250ms) y salida (fade + scale inverso, 150ms) vía two-phase close con `setTimeout`. (2) Cart item con slide-out a la izquierda + fade al quitar: `removing` flag con delay de 250ms antes de emitir el evento, `overflow: hidden` en `:host` para clip limpio.
+- **Archivos**: `product-gallery.component.ts`, `product-gallery.component.html`, `product-gallery.component.scss`, `cart-item.component.ts`, `cart-item.component.html`, `cart-item.component.scss`
+- **Decisión clave**: Lightbox usa dos-phase close (first `closing` class → animation out → then `lightboxOpen = false`) para animar salida. Tests actualizados a `fakeAsync`/`tick` para manejar los delays.
+
+### 2026-08-21 — style(ui): micro-animaciones CSS (search focus, botón carrito, crossfade galería)
+- **Descripción**: Tres mejoras CSS puras: (1) search bar focus con `outline-color` transition en vez de outline instantáneo, (2) botón "Agregar al carrito" con hover transition + `:active` scale(0.97) para feedback de press, (3) crossfade de imagen en galería de producto con `opacity` transition al cambiar de imagen.
+- **Archivos**: `home.component.scss`, `product-detail.component.scss`, `product-gallery.component.scss`
+
 ### 2026-08-21 — feat(ui): animaciones sutiles para vista del cliente
 - **Descripción**: Sistema completo de animaciones CSS + Angular solo para rutas del cliente (no admin): tokens compartidos (`_animations.scss`), transiciones de ruta fade (200ms), hero fade-in, stagger de product cards (60ms entre cada una), y scroll reveal directive (`IntersectionObserver`). Todo con `prefers-reduced-motion` para accesibilidad.
 - **Archivos**: `styles/_animations.scss` (nuevo), `styles/_scroll-reveal.scss` (nuevo), `app/animations.ts` (nuevo), `shared/directives/scroll-reveal.directive.ts` (nuevo), `app.module.ts`, `app.component.ts`, `app.component.html`, `app-routing.module.ts`, `shared.module.ts`, `home.component.scss`, `home.component.html`, `product-detail.component.html`, `cart-view.component.html`

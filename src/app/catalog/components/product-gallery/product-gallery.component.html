@@ -39,6 +39,7 @@
 
 <div
   class="lightbox"
+  [class.lightbox--closing]="lightboxClosing"
   *ngIf="lightboxOpen"
   (click)="closeLightbox()"
   (keydown)="onKeydown($event)"
