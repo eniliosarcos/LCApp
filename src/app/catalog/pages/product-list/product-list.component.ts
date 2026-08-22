@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { BreadcrumbItem } from '../../../core/models/breadcrumb.model';
 import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
@@ -17,6 +18,13 @@ export class ProductListComponent implements OnInit {
   searchTerm = '';
   loading = true;
   error = false;
+
+  get breadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: 'Inicio', link: '/' },
+      { label: this.category?.name || 'Productos' }
+    ];
+  }
 
   get filteredProducts(): Product[] {
     let result = this.products;

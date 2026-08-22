@@ -5,7 +5,7 @@
     <input type="text" placeholder="Buscar producto…" [(ngModel)]="searchTerm">
   </div>
 
-  <h1>{{ category?.name || 'Productos' }}</h1>
+  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
 
   <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
 

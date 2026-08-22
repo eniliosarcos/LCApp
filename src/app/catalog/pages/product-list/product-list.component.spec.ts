@@ -69,10 +69,13 @@ describe('ProductListComponent', () => {
     expect(component.error).toBeFalse();
   });
 
-  it('muestra el nombre de la categoría en el título', () => {
+  it('muestra el breadcrumb con el nombre de la categoría', () => {
     createFixture();
 
-    expect(fixture.nativeElement.querySelector('h1').textContent).toContain('Rosas');
+    expect(component.breadcrumbItems).toEqual([
+      { label: 'Inicio', link: '/' },
+      { label: 'Rosas' }
+    ]);
   });
 
   it('muestra un error visible si falla la carga de productos', () => {

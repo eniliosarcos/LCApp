@@ -38,10 +38,6 @@
   color: v.$color-danger;
 }
 
-h1 {
-  color: v.$color-primary;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
