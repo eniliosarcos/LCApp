@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-21 — feat(ui): lightbox pinch-to-zoom custom + pan + double-tap
+- **Descripción**: Reemplazado el `touch-action: none` global por un handler custom de zoom: (1) pinch-to-zoom con 2 dedos (1x a 4x), (2) pan con 1 dedo cuando está zoomed, (3) double-tap para toggle 1x/2x, (4) zoom reset al cerrar lightbox o cambiar de imagen. Los controles (X, flechas, counter) no se ven afectados por el zoom porque solo la imagen recibe `transform: scale()`.
+- **Archivos**: `product-gallery.component.ts`, `product-gallery.component.html`, `product-gallery.component.scss`
+- **Decisión clave**: `touch-action: none` en `.lightbox__img` (solo imagen) permite control total del zoom. El lightbox container no tiene `touch-action`, así que el swipe back del navegador sigue funcionando.
+
 ### 2026-08-21 — fix(ui): lightbox — overflow pegado con back button + pinch-to-zoom rompe controles
 - **Descripción**: (1) `ngOnDestroy` en `ProductGalleryComponent` restaura `document.body.style.overflow` si el componente se destruye con el lightbox abierto (back button en mobile). (2) `touch-action: none` en `.lightbox` desactiva pinch-to-zoom del navegador en el overlay, evitando que los controles (close, arrows, counter) se pierdan al hacer zoom.
 - **Archivos**: `product-gallery.component.ts`, `product-gallery.component.scss`

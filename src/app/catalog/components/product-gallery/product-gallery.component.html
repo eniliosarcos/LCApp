@@ -57,6 +57,10 @@
     [src]="currentImage?.url"
     [srcset]="getSrcset(currentImage!)"
     [alt]="currentImage?.alt || 'Imagen del producto'"
+    [style.transform]="'scale(' + zoomScale + ') translate(' + panX + 'px, ' + panY + 'px)'"
+    (touchstart)="onZoomStart($event)"
+    (touchmove)="onZoomMove($event)"
+    (touchend)="onZoomEnd()"
     (click)="$event.stopPropagation()">
   <button
     type="button"
