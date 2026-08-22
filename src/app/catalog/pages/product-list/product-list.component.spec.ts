@@ -1,5 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { Category } from '../../../core/models/category.model';
@@ -7,7 +8,7 @@ import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ProductListComponent } from './product-list.component';
 
-const product: Product = {
+const productA: Product = {
   id: 'p1',
   categoryId: 'c1',
   name: 'Rosa',
@@ -21,6 +22,8 @@ const product: Product = {
   isActive: true,
   createdAt: '2026-01-01T00:00:00.000Z'
 };
+
+const productB: Product = { ...productA, id: 'p2', name: 'Tulipán', slug: 'tulipan' };
 
 const category: Category = { id: 'c1', name: 'Rosas', slug: 'rosas', description: 'Rosas y flores' };
 
@@ -36,10 +39,11 @@ describe('ProductListComponent', () => {
   beforeEach(async () => {
     catalogService = jasmine.createSpyObj('CatalogService', ['getCategoryById', 'getProductsByCategory']);
     catalogService.getCategoryById.and.returnValue(of(category));
-    catalogService.getProductsByCategory.and.returnValue(of([product]));
+    catalogService.getProductsByCategory.and.returnValue(of([productA, productB]));
 
     await TestBed.configureTestingModule({
       declarations: [ProductListComponent],
+      imports: [FormsModule],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CatalogService, useValue: catalogService },
@@ -60,7 +64,7 @@ describe('ProductListComponent', () => {
 
     expect(catalogService.getCategoryById).toHaveBeenCalledWith('c1');
     expect(catalogService.getProductsByCategory).toHaveBeenCalledWith('c1');
-    expect(component.products).toEqual([product]);
+    expect(component.products).toEqual([productA, productB]);
     expect(component.loading).toBeFalse();
     expect(component.error).toBeFalse();
   });
@@ -93,5 +97,43 @@ describe('ProductListComponent', () => {
 
     expect(catalogService.getProductsByCategory).not.toHaveBeenCalled();
     expect(component.loading).toBeFalse();
+  });
+
+  describe('búsqueda', () => {
+    it('filtra productos por nombre', () => {
+      createFixture();
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'Tulipán';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filteredProducts.length).toBe(1);
+      expect(component.filteredProducts[0].name).toBe('Tulipán');
+    });
+
+    it('normaliza tildes al buscar', () => {
+      catalogService.getProductsByCategory.and.returnValue(of([
+        { ...productA, name: 'Maquíllaje Premium' },
+        productB
+      ]));
+      createFixture();
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'maquillaje';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.filteredProducts.length).toBe(1);
+      expect(component.filteredProducts[0].name).toBe('Maquíllaje Premium');
+    });
+
+    it('muestra mensaje cuando la búsqueda no coincide', () => {
+      createFixture();
+      const input = fixture.nativeElement.querySelector('.search-bar input');
+      input.value = 'inexistente';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('No se encontraron productos para "inexistente"');
+    });
   });
 });

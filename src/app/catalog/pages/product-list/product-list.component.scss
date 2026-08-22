@@ -1,22 +1,41 @@
 @use 'styles/variables' as v;
 
 .catalog {
-  padding-top: v.$space-6;
   padding-bottom: v.$space-4;
 }
 
-.back {
-  color: v.$color-text-muted;
-  font-size: 0.95rem;
+.search-bar {
+  position: sticky;
+  top: 5.5rem;
+  z-index: 15;
+  margin-top: 1rem;
+  margin-bottom: v.$space-4;
+
+  input {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    display: block;
+    padding: v.$space-3 v.$space-4;
+    border: 1px solid v.$color-border;
+    border-radius: v.$radius-sm;
+    font-size: 1rem;
+    background: v.$color-surface;
+    transition: outline-color 0.15s ease;
+
+    &::placeholder {
+      color: v.$color-text-muted;
+    }
+
+    &:focus {
+      outline: 2px solid v.$color-primary;
+      outline-offset: 1px;
+    }
+  }
 }
 
-.error,
-.status {
+.error {
   color: v.$color-danger;
-}
-
-.status {
-  color: v.$color-text-muted;
 }
 
 h1 {
@@ -27,5 +46,16 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: v.$space-4;
-  margin-top: v.$space-6;
+  margin-top: v.$space-4;
+}
+
+@media (max-width: 600px) {
+  .search-bar {
+    top: 2.75rem;
+    padding: v.$space-2 0;
+  }
+
+  .catalog {
+    padding-bottom: 3rem;
+  }
 }

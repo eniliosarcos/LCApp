@@ -1,6 +1,10 @@
 <app-category-strip></app-category-strip>
 
 <section class="catalog container">
+  <div class="search-bar" *ngIf="!loading && !error && products.length">
+    <input type="text" placeholder="Buscar producto…" [(ngModel)]="searchTerm">
+  </div>
+
   <h1>{{ category?.name || 'Productos' }}</h1>
 
   <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>
@@ -9,11 +13,15 @@
     <app-loading-spinner label="Cargando productos…"></app-loading-spinner>
   </div>
 
-  <div class="grid" *ngIf="!error && !loading && products.length; else empty">
-    <app-product-card *ngFor="let product of products; trackBy: productTrackBy" [product]="product"></app-product-card>
+  <div class="grid" *ngIf="!error && !loading && filteredProducts.length; else empty">
+    <app-product-card *ngFor="let product of filteredProducts; trackBy: productTrackBy" [product]="product"></app-product-card>
   </div>
 
   <ng-template #empty>
-    <p *ngIf="!error && !loading">No hay productos en esta categoría.</p>
+    <p *ngIf="!error && !loading">
+      {{ searchTerm
+          ? 'No se encontraron productos para "' + searchTerm + '".'
+          : 'No hay productos en esta categoría.' }}
+    </p>
   </ng-template>
 </section>

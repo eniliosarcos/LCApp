@@ -14,8 +14,22 @@ import { CatalogService } from '../../../core/services/catalog.service';
 export class ProductListComponent implements OnInit {
   category?: Category;
   products: Product[] = [];
+  searchTerm = '';
   loading = true;
   error = false;
+
+  get filteredProducts(): Product[] {
+    let result = this.products;
+    if (this.searchTerm.trim()) {
+      const term = this.normalizeText(this.searchTerm);
+      result = result.filter(p => this.normalizeText(p.name).includes(term));
+    }
+    return result;
+  }
+
+  private normalizeText(text: string): string {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
 
   constructor(
     private readonly route: ActivatedRoute,
