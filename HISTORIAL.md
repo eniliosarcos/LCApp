@@ -21,6 +21,10 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-21 — fix(ui): lightbox — overflow pegado con back button + pinch-to-zoom rompe controles
+- **Descripción**: (1) `ngOnDestroy` en `ProductGalleryComponent` restaura `document.body.style.overflow` si el componente se destruye con el lightbox abierto (back button en mobile). (2) `touch-action: none` en `.lightbox` desactiva pinch-to-zoom del navegador en el overlay, evitando que los controles (close, arrows, counter) se pierdan al hacer zoom.
+- **Archivos**: `product-gallery.component.ts`, `product-gallery.component.scss`
+
 ### 2026-08-21 — feat(ui): lightbox fade+scale y cart item slide-out
 - **Descripción**: (1) Lightbox de galería con animación de entrada (fade + scale 0.95→1, 250ms) y salida (fade + scale inverso, 150ms) vía two-phase close con `setTimeout`. (2) Cart item con slide-out a la izquierda + fade al quitar: `removing` flag con delay de 250ms antes de emitir el evento, `overflow: hidden` en `:host` para clip limpio.
 - **Archivos**: `product-gallery.component.ts`, `product-gallery.component.html`, `product-gallery.component.scss`, `cart-item.component.ts`, `cart-item.component.html`, `cart-item.component.scss`

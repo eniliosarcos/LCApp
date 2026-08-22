@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
 import { ProductImage } from '../../../core/models/product.model';
 
 @Component({
@@ -6,7 +6,7 @@ import { ProductImage } from '../../../core/models/product.model';
   templateUrl: './product-gallery.component.html',
   styleUrls: ['./product-gallery.component.scss']
 })
-export class ProductGalleryComponent {
+export class ProductGalleryComponent implements OnDestroy {
   @Input() images: ProductImage[] = [];
 
   currentIndex = 0;
@@ -15,6 +15,12 @@ export class ProductGalleryComponent {
   failedThumbs = new Set<string>();
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
+
+  ngOnDestroy(): void {
+    if (this.lightboxOpen) {
+      document.body.style.overflow = '';
+    }
+  }
 
   get hasImages(): boolean {
     return this.images.length > 0;

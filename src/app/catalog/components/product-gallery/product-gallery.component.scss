@@ -82,6 +82,7 @@
   align-items: center;
   justify-content: center;
   outline: none;
+  touch-action: none;
   animation: lightbox-in a.$duration-normal a.$ease-out both;
 
   &--closing {
