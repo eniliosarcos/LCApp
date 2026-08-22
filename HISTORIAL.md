@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-22 — refactor(ui): category strip extraído a componente compartido + cart auto-clear + fix paramMap
+- **Descripción**: (1) `CategoryStripComponent` extraído a `shared/components/category-strip/` — detecta categoría activa vía `router.url`, chips responsivos, scroll con flechas. (2) `HomeComponent` simplificado: inline strip reemplazado por `<app-category-strip>`. (3) `ProductListComponent`: eliminado breadcrumb, agregado strip, fix crítico `snapshot.paramMap` → `paramMap` observable con `switchMap` + `forkJoin`. (4) Auto-clear del carrito en `AppComponent.ngOnInit`: si hay `orderCode` registrado, consulta status vía `OrderService` y limpia carrito si `confirmed`/`cancelled`. (5) `CartService.getCartSnapshot()` — nuevo método síncrono.
+- **Archivos**: `shared/components/category-strip/` (nuevos: ts, html, scss), `shared/shared.module.ts`, `home/pages/home/home.component.*`, `catalog/pages/product-list/product-list.component.*`, `app.component.ts`, `app.component.spec.ts`, `core/services/cart.service.ts`
+- **Decisión clave**: Category strip detecta categoría activa parseando `router.url` (no ActivatedRoute), permitiendo reutilización en home y product-list sin inyectar ActivatedRoute a nivel de layout.
+
 ### 2026-08-21 — feat(ui): lightbox pinch-to-zoom custom + pan + double-tap
 - **Descripción**: Reemplazado el `touch-action: none` global por un handler custom de zoom: (1) pinch-to-zoom con 2 dedos (1x a 4x), (2) pan con 1 dedo cuando está zoomed, (3) double-tap para toggle 1x/2x, (4) zoom reset al cerrar lightbox o cambiar de imagen. Los controles (X, flechas, counter) no se ven afectados por el zoom porque solo la imagen recibe `transform: scale()`.
 - **Archivos**: `product-gallery.component.ts`, `product-gallery.component.html`, `product-gallery.component.scss`

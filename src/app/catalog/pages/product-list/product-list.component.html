@@ -1,5 +1,6 @@
+<app-category-strip></app-category-strip>
+
 <section class="catalog container">
-  <app-breadcrumbs [items]="breadcrumbItems"></app-breadcrumbs>
   <h1>{{ category?.name || 'Productos' }}</h1>
 
   <p class="error" *ngIf="error">No se pudieron cargar los productos. Intenta de nuevo.</p>

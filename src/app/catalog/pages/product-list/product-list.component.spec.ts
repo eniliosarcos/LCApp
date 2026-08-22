@@ -24,14 +24,16 @@ const product: Product = {
 
 const category: Category = { id: 'c1', name: 'Rosas', slug: 'rosas', description: 'Rosas y flores' };
 
+function mockParamMap(categoryId: string | null) {
+  return { get: (key: string) => (key === 'categoryId' ? categoryId : null) };
+}
+
 describe('ProductListComponent', () => {
   let component: ProductListComponent;
   let fixture: ComponentFixture<ProductListComponent>;
   let catalogService: jasmine.SpyObj<CatalogService>;
-  let routeParamGetter: (key: string) => string | null;
 
   beforeEach(async () => {
-    routeParamGetter = () => 'c1';
     catalogService = jasmine.createSpyObj('CatalogService', ['getCategoryById', 'getProductsByCategory']);
     catalogService.getCategoryById.and.returnValue(of(category));
     catalogService.getProductsByCategory.and.returnValue(of([product]));
@@ -41,7 +43,7 @@ describe('ProductListComponent', () => {
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CatalogService, useValue: catalogService },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: (key: string) => routeParamGetter(key) } } } }
+        { provide: ActivatedRoute, useValue: { paramMap: of(mockParamMap('c1')) } }
       ]
     }).compileComponents();
   });
@@ -86,7 +88,7 @@ describe('ProductListComponent', () => {
   });
 
   it('sin categoryId no carga nada y deja de mostrar el cargador', () => {
-    routeParamGetter = () => null;
+    TestBed.overrideProvider(ActivatedRoute, { useValue: { paramMap: of(mockParamMap(null)) } });
     createFixture();
 
     expect(catalogService.getProductsByCategory).not.toHaveBeenCalled();

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { CategoryStripComponent } from './components/category-strip/category-strip.component';
 import { AppModalComponent } from './components/modal/app-modal.component';
 import { AppConfirmDialogComponent } from './components/confirm-dialog/app-confirm-dialog.component';
 import { AppSnackbarComponent } from './components/snackbar/app-snackbar.component';
@@ -12,8 +13,8 @@ import { ProductImageCarouselComponent } from './components/product-image-carous
 import { ScrollRevealDirective } from './directives/scroll-reveal.directive';
 
 @NgModule({
-  declarations: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective],
+  declarations: [HeaderComponent, BreadcrumbsComponent, CategoryStripComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective],
   imports: [CommonModule, RouterModule],
-  exports: [HeaderComponent, BreadcrumbsComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective]
+  exports: [HeaderComponent, BreadcrumbsComponent, CategoryStripComponent, AppModalComponent, AppConfirmDialogComponent, AppSnackbarComponent, AppLoadingSpinnerComponent, ProductCardComponent, ProductImageCarouselComponent, ScrollRevealDirective]
 })
 export class SharedModule {}

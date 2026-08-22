@@ -3,6 +3,8 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { routeFade } from './animations';
+import { CartService } from './core/services/cart.service';
+import { OrderService } from './core/services/order.service';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +18,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly cartService: CartService,
+    private readonly orderService: OrderService
+  ) {}
 
   ngOnInit(): void {
     this.router.events
@@ -28,6 +34,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.isAdminRoute = this.router.url.startsWith('/admin');
       });
     this.isAdminRoute = this.router.url.startsWith('/admin');
+    this.syncCartWithOrderStatus();
   }
 
   ngOnDestroy(): void {
@@ -37,5 +44,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
   getRouteAnimationData(): string {
     return this.isAdminRoute ? 'admin' : 'client';
+  }
+
+  private syncCartWithOrderStatus(): void {
+    const cart = this.cartService.getCartSnapshot();
+    if (!cart.orderCode) {
+      return;
+    }
+    this.orderService.getOrderStatus(cart.orderCode).subscribe({
+      next: response => {
+        if (response.status === 'confirmed' || response.status === 'cancelled') {
+          this.cartService.clearCart();
+        }
+      },
+      error: () => {}
+    });
   }
 }

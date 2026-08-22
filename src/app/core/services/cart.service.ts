@@ -107,6 +107,10 @@ export class CartService {
     return !!this.cart$.getValue().orderCode;
   }
 
+  getCartSnapshot(): Cart {
+    return { ...this.cart$.getValue(), items: [...this.cart$.getValue().items] };
+  }
+
   hasModifiedOrder(): boolean {
     return !!this.cart$.getValue().orderModified;
   }

@@ -1,0 +1,36 @@
+<div
+  class="category-strip"
+  [class.can-fade-left]="canScrollLeft"
+  [class.can-fade-right]="canScrollRight"
+  role="tablist"
+  aria-label="Filtrar por categoría">
+  <button
+    type="button"
+    class="strip-arrow strip-arrow--left"
+    *ngIf="canScrollLeft"
+    (click)="scrollStrip(-1)"
+    aria-label="Ver categorías anteriores">‹</button>
+  <div #stripScroll class="container category-strip__scroll" (scroll)="onStripScroll()">
+    <button
+      type="button"
+      class="chip"
+      [class.chip--active]="selectedCategoryId === ''"
+      (click)="selectCategory('')"
+      role="tab"
+      [attr.aria-selected]="selectedCategoryId === ''">Todos</button>
+    <button
+      *ngFor="let category of categories; trackBy: categoryTrackBy"
+      type="button"
+      class="chip"
+      [class.chip--active]="selectedCategoryId === category.id"
+      (click)="selectCategory(category.id)"
+      role="tab"
+      [attr.aria-selected]="selectedCategoryId === category.id">{{ category.name }}</button>
+  </div>
+  <button
+    type="button"
+    class="strip-arrow strip-arrow--right"
+    *ngIf="canScrollRight"
+    (click)="scrollStrip(1)"
+    aria-label="Ver más categorías">›</button>
+</div>
