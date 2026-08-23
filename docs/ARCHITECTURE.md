@@ -134,6 +134,8 @@ Reglas derivadas:
 ```
 backend/
   server.js            # express, cors, json, health, monta rutas, conecta Mongo
+  lib/r2.js            # S3Client para Cloudflare R2
+  lib/logger.js        # pino: logging estructurado (JSON prod)
   routes/auth.js       # POST /login → bcrypt.compare + jwt.sign
   routes/categories.js # GET / (público) + POST / y PUT /:id (admin JWT)
   routes/products.js   # GET / (público, solo activos; ?all=true con token incluye inactivos), GET /:id + POST / y PUT /:id (admin JWT) + DELETE /:id (admin JWT, limpia R2)
@@ -150,6 +152,10 @@ backend/
 ### CORS
 
 `CORS_ORIGIN` env var (default `*`); si trae varios orígenes, se separan por comas. Render usa los orígenes de Cloudflare Pages.
+
+### Logging
+
+pino con JSON estructurado en prod (Render stdout), sin transformación en dev. Se loguea: startup/conexión DB, creación/confirmación/cancelación de órdenes, decremento de stock, uploads/eliminación de R2, intentos de login fallidos, token inválido/expirado, errores en rutas. NO se loguea: requests de categorías/productos/config (lecturas frecuentes de solo lectura sin valor diagnóstico). Los errores 500 devuelven mensaje genérico al client; el detalle va al logger. Env var `LOG_LEVEL` controla el nivel (default `info`).
 
 ### Auth (admin)
 
@@ -213,6 +219,7 @@ El contacto **no** vive en environments: se configura desde el admin y persiste 
 | `JWT_SECRET` | Clave para firmar tokens |
 | `JWT_EXPIRES_IN` | Opcional, default `12h` |
 | `ORDER_TTL_HOURS` | Opcional; horas de vida de una orden `pending` antes de auto-cancelarse (TTL perezoso), default `48` |
+| `LOG_LEVEL` | Opcional; nivel de log de pino (default `info`). Valores: `debug`, `info`, `warn`, `error` |
 | `R2_ACCOUNT_ID` | Account ID de Cloudflare R2 (está en la URL del endpoint S3 del bucket) |
 | `R2_ACCESS_KEY_ID` | Access Key ID del API token R2 (solo se muestra al crear el token) |
 | `R2_SECRET_ACCESS_KEY` | Secret Access Key del API token R2 (solo se muestra al crear el token) |
@@ -242,6 +249,7 @@ Nota SPA: Cloudflare Pages usa `public/_redirects` con `/* /index.html 200` para
 - `docs/adr/007` — resumen de ventas por período (ventanas calendario, agregaciones en el backend).
 - `docs/adr/008` — ventas manuales (source manual, descuento de stock al registrar, fecha/price editables).
 - `docs/adr/009` — self-hosting de imágenes en Cloudflare R2 (upload, variantes WebP, limpieza).
+- `docs/adr/010` — logging estructurado con pino (eventos críticos, mensajes genéricos al client).
 - `HISTORIAL.md` — bitácora de cambios del proyecto.
 
 ## Temas conocidos / pendientes

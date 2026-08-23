@@ -72,7 +72,7 @@ ng build --configuration production   # output en dist/
 
 ### Backend — `backend/.env`
 
-Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (`lcapp-images-dev` local / `lcapp-images` producción), `R2_PUBLIC_URL` (URL pública del bucket).
+Variables (ver `.env.example`): `PORT`, `MONGODB_URI`, `CORS_ORIGIN`, `ADMIN_USER`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ORDER_TTL_HOURS` (opcional; horas de vida de una orden `pending` antes de auto-cancelarse, default `48`), `LOG_LEVEL` (opcional; nivel de log de pino, default `info`), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (`lcapp-images-dev` local / `lcapp-images` producción), `R2_PUBLIC_URL` (URL pública del bucket).
 
 **Nunca commitear `backend/.env` ni `src/environments/*` con datos reales.** Los valores reales viven en las env vars de Cloudflare Pages (front, inyectadas por `scripts/cloudflare-build.sh`) y en las env vars de Render (backend).
 
@@ -103,6 +103,7 @@ src/app/
 backend/
   server.js     # Express, CORS, rutas, conexión a Mongo
   lib/r2.js     # S3Client para Cloudflare R2
+  lib/logger.js # pino: logging estructurado (JSON prod)
   routes/       # auth, categories, products, orders, config, images
   models/       # Category, Product, Order, Config (Mongoose)
   middleware/   # auth.js (verify JWT)

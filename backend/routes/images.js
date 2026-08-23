@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const authenticate = require('../middleware/auth');
 const { uploadVariants, deleteImageUrls } = require('../lib/r2');
+const logger = require('../lib/logger');
 
 const SIZES = [400, 800, 1200];
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
@@ -55,6 +56,7 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
     }
 
     const result = await uploadVariants(variants, buildFolder(req.body.slug));
+    logger.info({ folder: buildFolder(req.body.slug), variantCount: result.variants.length }, 'Image uploaded');
     res.status(201).json({ variants: result.variants, primaryUrl: result.primaryUrl });
   } catch (err) {
     if (err instanceof multer.MulterError) {
@@ -62,9 +64,9 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: message });
     }
     if (err && err.mime) {
-      return res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: 'Solo se permiten imágenes (JPEG, PNG, WebP, AVIF o GIF)' });
     }
-    console.error('Error al procesar la imagen:', err);
+    logger.error({ err }, 'Image processing/upload failed');
     res.status(400).json({ error: 'No se pudo procesar la imagen. Verifica que sea un archivo de imagen válido.' });
   }
 });
@@ -79,7 +81,8 @@ router.delete('/', authenticate, async (req, res) => {
     await deleteImageUrls(urls);
     res.json({ deleted: urls.length });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, urlCount: urls?.length }, 'Failed to delete images');
+    res.status(500).json({ error: 'Error al eliminar imágenes' });
   }
 });
 

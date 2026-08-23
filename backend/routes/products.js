@@ -6,6 +6,7 @@ const authenticate = require('../middleware/auth');
 const { authenticateOptional } = require('../middleware/auth');
 const { slugify, uniqueSlug } = require('../utils/slugify');
 const { deleteImageUrls, extractR2Urls } = require('../lib/r2');
+const logger = require('../lib/logger');
 
 function normalizeVariants(variants) {
   if (!Array.isArray(variants)) {
@@ -61,7 +62,8 @@ router.get('/', authenticateOptional, async (req, res) => {
     const products = await Product.find(filter);
     res.json(products);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/products' }, 'Failed to list products');
+    res.status(500).json({ error: 'Error al listar productos' });
   }
 });
 
@@ -74,7 +76,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(product);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/products/:id' }, 'Failed to get product');
+    res.status(500).json({ error: 'Error al obtener el producto' });
   }
 });
 
@@ -137,7 +140,8 @@ router.post('/', authenticate, async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'El slug o el SKU ya existen' });
     }
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'POST /api/products' }, 'Failed to create product');
+    res.status(500).json({ error: 'Error al crear el producto' });
   }
 });
 
@@ -230,7 +234,8 @@ router.put('/:id', authenticate, async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'El slug o el SKU ya existen' });
     }
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PUT /api/products/:id' }, 'Failed to update product');
+    res.status(500).json({ error: 'Error al actualizar el producto' });
   }
 });
 
@@ -248,7 +253,8 @@ router.delete('/:id', authenticate, async (req, res) => {
     }
     res.json({ message: 'Producto eliminado' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'DELETE /api/products/:id' }, 'Failed to delete product');
+    res.status(500).json({ error: 'Error al eliminar el producto' });
   }
 });
 

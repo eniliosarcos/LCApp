@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const authenticate = require('../middleware/auth');
+const logger = require('../lib/logger');
 
 // Genera código con prefijo (CAR- para web, MAN- para ventas manuales)
 function generateCode(prefix = 'CAR-') {
@@ -62,6 +63,7 @@ router.post('/', async (req, res) => {
 
     const stockCheck = await validateStockAvailability(items);
     if (!stockCheck.ok) {
+      logger.warn({ items: items.map(i => i.productId), error: stockCheck.error }, 'Stock validation failed (order creation)');
       return res.status(400).json({ error: stockCheck.error });
     }
 
@@ -77,9 +79,11 @@ router.post('/', async (req, res) => {
       status: 'pending',
     });
 
+    logger.info({ code: order.code, itemCount: items.length, total }, 'Order created');
     res.status(201).json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'POST /api/orders' }, 'Failed to create order');
+    res.status(500).json({ error: 'Error al crear la orden' });
   }
 });
 
@@ -155,11 +159,14 @@ router.post('/manual', authenticate, async (req, res) => {
     // Descontar stock (mismo mecanismo que confirmar una orden web)
     for (const item of orderItems) {
       await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+      logger.info({ code: order.code, product: item.productName, qty: item.quantity }, 'Stock decremented (manual sale)');
     }
 
+    logger.info({ code: order.code, itemCount: orderItems.length, total }, 'Manual order created');
     res.status(201).json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'POST /api/orders/manual' }, 'Failed to create manual order');
+    res.status(500).json({ error: 'Error al registrar la venta' });
   }
 });
 
@@ -189,7 +196,8 @@ router.get('/', authenticate, async (req, res) => {
       totalPages: Math.ceil(total / limit),
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/orders' }, 'Failed to list orders');
+    res.status(500).json({ error: 'Error al listar órdenes' });
   }
 });
 
@@ -213,7 +221,8 @@ router.get('/stats', authenticate, async (req, res) => {
       totalRevenue: totalRevenue[0]?.total || 0,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/orders/stats' }, 'Failed to get order stats');
+    res.status(500).json({ error: 'Error al obtener estadísticas' });
   }
 });
 
@@ -287,7 +296,8 @@ router.get('/summary', authenticate, async (req, res) => {
       byCategory,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/orders/summary' }, 'Failed to get order summary');
+    res.status(500).json({ error: 'Error al obtener resumen' });
   }
 });
 
@@ -299,7 +309,8 @@ router.get('/:code/status', async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     res.json({ code: order.code, status: order.status, confirmedAt: order.confirmedAt });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/orders/:code/status' }, 'Failed to get order status');
+    res.status(500).json({ error: 'Error al consultar estado' });
   }
 });
 
@@ -315,11 +326,13 @@ router.patch('/:code/items', async (req, res) => {
     const order = await Order.findOne({ code: req.params.code });
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     if (order.status !== 'pending') {
+      logger.warn({ code: req.params.code, status: order.status }, 'Attempted to update non-pending order');
       return res.status(400).json({ error: `No se puede actualizar una orden con estado "${order.status}"` });
     }
 
     const stockCheck = await validateStockAvailability(items);
     if (!stockCheck.ok) {
+      logger.warn({ code: req.params.code, error: stockCheck.error }, 'Stock validation failed (order items update)');
       return res.status(400).json({ error: stockCheck.error });
     }
 
@@ -330,7 +343,8 @@ router.patch('/:code/items', async (req, res) => {
 
     res.json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PATCH /api/orders/:code/items' }, 'Failed to update order items');
+    res.status(500).json({ error: 'Error al actualizar la orden' });
   }
 });
 
@@ -341,7 +355,8 @@ router.get('/:code', authenticate, async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     res.json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/orders/:code' }, 'Failed to get order');
+    res.status(500).json({ error: 'Error al buscar la orden' });
   }
 });
 
@@ -351,6 +366,7 @@ router.patch('/:id/confirm', authenticate, async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     if (order.status !== 'pending') {
+      logger.warn({ code: order.code, status: order.status }, 'Attempted to confirm non-pending order');
       return res.status(400).json({ error: `No se puede confirmar una orden con estado "${order.status}"` });
     }
 
@@ -358,6 +374,7 @@ router.patch('/:id/confirm', authenticate, async (req, res) => {
     for (const item of order.items) {
       const product = await Product.findById(item.productId);
       if (!product || product.stock < item.quantity) {
+        logger.warn({ code: order.code, product: item.productName, available: product?.stock || 0, requested: item.quantity }, 'Stock insufficient at confirm time');
         return res.status(400).json({
           error: `Stock insuficiente para "${item.productName}": disponible ${product?.stock || 0}, solicitado ${item.quantity}`,
         });
@@ -367,15 +384,18 @@ router.patch('/:id/confirm', authenticate, async (req, res) => {
     // Descontar stock
     for (const item of order.items) {
       await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+      logger.info({ code: order.code, product: item.productName, qty: item.quantity }, 'Stock decremented (order confirmed)');
     }
 
     order.status = 'confirmed';
     order.confirmedAt = new Date();
     await order.save();
 
+    logger.info({ code: order.code, total: order.total }, 'Order confirmed');
     res.json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PATCH /api/orders/:id/confirm' }, 'Failed to confirm order');
+    res.status(500).json({ error: 'Error al confirmar la orden' });
   }
 });
 
@@ -385,15 +405,18 @@ router.patch('/:id/cancel', authenticate, async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
     if (order.status !== 'pending') {
+      logger.warn({ code: order.code, status: order.status }, 'Attempted to cancel non-pending order');
       return res.status(400).json({ error: `No se puede cancelar una orden con estado "${order.status}"` });
     }
 
     order.status = 'cancelled';
     await order.save();
 
+    logger.info({ code: order.code }, 'Order cancelled');
     res.json(order);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PATCH /api/orders/:id/cancel' }, 'Failed to cancel order');
+    res.status(500).json({ error: 'Error al cancelar la orden' });
   }
 });
 

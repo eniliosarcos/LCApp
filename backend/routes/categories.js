@@ -3,6 +3,7 @@ const router = express.Router();
 const Category = require('../models/Category');
 const authenticate = require('../middleware/auth');
 const { slugify, uniqueSlug } = require('../utils/slugify');
+const logger = require('../lib/logger');
 
 // GET /api/categories
 router.get('/', async (req, res) => {
@@ -10,7 +11,8 @@ router.get('/', async (req, res) => {
     const categories = await Category.find();
     res.json(categories);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/categories' }, 'Failed to list categories');
+    res.status(500).json({ error: 'Error al obtener categorías' });
   }
 });
 
@@ -23,7 +25,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(category);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/categories/:id' }, 'Failed to get category');
+    res.status(500).json({ error: 'Error al obtener la categoría' });
   }
 });
 
@@ -55,7 +58,8 @@ router.post('/', authenticate, async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'El slug ya existe' });
     }
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'POST /api/categories' }, 'Failed to create category');
+    res.status(500).json({ error: 'Error al crear la categoría' });
   }
 });
 
@@ -104,7 +108,8 @@ router.put('/:id', authenticate, async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'El slug ya existe' });
     }
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PUT /api/categories/:id' }, 'Failed to update category');
+    res.status(500).json({ error: 'Error al actualizar la categoría' });
   }
 });
 

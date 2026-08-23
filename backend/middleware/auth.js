@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const logger = require('../lib/logger');
 
 function authenticate(req, res, next) {
   const header = req.headers.authorization || '';
@@ -12,7 +13,8 @@ function authenticate(req, res, next) {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.admin = { username: payload.username };
     next();
-  } catch {
+  } catch (err) {
+    logger.warn({ err, route: req.originalUrl }, 'Invalid/expired token');
     return res.status(401).json({ error: 'Sesión inválida o expirada' });
   }
 }

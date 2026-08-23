@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { S3Client, PutObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+const logger = require('./logger');
 
 const accountId = process.env.R2_ACCOUNT_ID;
 const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -65,8 +66,8 @@ async function cleanup(r2, keys) {
         Delete: { Objects: keys.map(key => ({ Key: key })) },
       })
     );
-  } catch {
-    // Best effort: si la limpieza falla, el objeto huérfano es inofensivo.
+  } catch (err) {
+    logger.error({ err, keyCount: keys.length }, 'R2 cleanup failed (orphaned objects possible)');
   }
 }
 
@@ -90,8 +91,8 @@ async function deleteImageUrls(urls) {
           Delete: { Objects: batch.map(key => ({ Key: key })) },
         })
       );
-    } catch {
-      // Best effort: un error aquí no debe bloquear la operación principal.
+    } catch (err) {
+      logger.error({ err, keyCount: batch.length }, 'R2 batch delete failed');
     }
   }
 }

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const logger = require('./lib/logger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,19 +26,24 @@ app.use('/api/config', require('./routes/config'));
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error({ err, route: req.originalUrl }, 'Unhandled error');
   res.status(500).json({ error: 'Algo salió mal' });
+});
+
+// Unhandled rejections (Express 4 doesn't catch async errors automatically)
+process.on('unhandledRejection', (reason) => {
+  logger.fatal({ err: reason }, 'Unhandled promise rejection');
 });
 
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log('Conectado a MongoDB');
+    logger.info('Connected to MongoDB');
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en puerto ${PORT}`);
+      logger.info({ port: PORT }, 'Server running');
     });
   })
   .catch(err => {
-    console.error('Error conectando a MongoDB:', err.message);
+    logger.fatal({ err }, 'MongoDB connection failed');
     process.exit(1);
   });

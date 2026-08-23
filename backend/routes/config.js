@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Config = require('../models/Config');
 const authenticate = require('../middleware/auth');
+const logger = require('../lib/logger');
 
 const { DEFAULT_CONTACT } = Config;
 const SITE_KEY = 'site';
@@ -27,7 +28,8 @@ router.get('/', async (req, res) => {
       telegram: config.telegram,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'GET /api/config' }, 'Failed to get config');
+    res.status(500).json({ error: 'Error al obtener la configuración' });
   }
 });
 
@@ -64,7 +66,8 @@ router.put('/', authenticate, async (req, res) => {
       telegram: updated.telegram,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err, route: 'PUT /api/config' }, 'Failed to update config');
+    res.status(500).json({ error: 'Error al actualizar la configuración' });
   }
 });
 

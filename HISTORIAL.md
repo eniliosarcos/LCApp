@@ -21,6 +21,12 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-22 — feat(backend): logging estructurado con pino para eventos críticos
+- **Descripción**: (1) `pino` como librería de logging estructurado (JSON en prod). Logs críticos: startup/conexión DB, creación/confirmación/cancelación de órdenes, decremento de stock, uploads/eliminación de imágenes R2, intentos de login fallidos, token inválido, errores en todas las rutas. (2) `logger.warn` en 400s de reglas de negocio (stock insuficiente, transiciones de estado inválidas). (3) Todas las rutas devuelven mensajes genéricos al client; `err.message` ya no se filtra (antes: leak de info interna). (4) `categories.js` y `config.js` refactorizados para usar logger. (5) `unhandledRejection` handler para Express 4. (6) Bug fix en `middleware/auth.js`: `err.message` → `err` para stack trace completo.
+- **Archivos**: `backend/lib/logger.js` (nuevo), `backend/server.js`, `backend/routes/orders.js`, `backend/routes/images.js`, `backend/routes/products.js`, `backend/routes/auth.js`, `backend/routes/categories.js`, `backend/routes/config.js`, `backend/middleware/auth.js`, `backend/lib/r2.js`, `backend/package.json`, `backend/.env.example`
+- **Decisión clave**: Solo logging de eventos críticos (no request logging de categorías/productos). Env var `LOG_LEVEL` para controlar nivel (default: `info`).
+- **ADR**: `docs/adr/010-logging-estructurado.md`
+
 ### 2026-08-22 — refactor(ui): category strip extraído a componente compartido + cart auto-clear + fix paramMap
 - **Descripción**: (1) `CategoryStripComponent` extraído a `shared/components/category-strip/` — detecta categoría activa vía `router.url`, chips responsivos, scroll con flechas. (2) `HomeComponent` simplificado: inline strip reemplazado por `<app-category-strip>`. (3) `ProductListComponent`: eliminado breadcrumb, agregado strip, fix crítico `snapshot.paramMap` → `paramMap` observable con `switchMap` + `forkJoin`. (4) Auto-clear del carrito en `AppComponent.ngOnInit`: si hay `orderCode` registrado, consulta status vía `OrderService` y limpia carrito si `confirmed`/`cancelled`. (5) `CartService.getCartSnapshot()` — nuevo método síncrono.
 - **Archivos**: `shared/components/category-strip/` (nuevos: ts, html, scss), `shared/shared.module.ts`, `home/pages/home/home.component.*`, `catalog/pages/product-list/product-list.component.*`, `app.component.ts`, `app.component.spec.ts`, `core/services/cart.service.ts`
