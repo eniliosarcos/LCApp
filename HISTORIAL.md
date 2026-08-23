@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-22 — feat(backend+ui): SKU auto-generado — el admin ya no necesita entender SKUs
+- **Descripción**: (1) Backend auto-genera SKU al crear producto: prefijo de 3 letras de la categoría + secuencial de 3 dígitos (ej: `MAQ-001`). (2) PUT mantiene SKU existente si el admin no lo toca; auto-genera si el producto no tiene uno (legacy). (3) Índice MongoDB `sparse: true` para no colisionar con nulls. (4) Admin form: campo SKU read-only por defecto con botón "Editar" para override manual. (5) Detalle de producto: `*ngIf` para no mostrar "SKU:" vacío.
+- **Archivos**: `backend/utils/slugify.js` (+`generateSkuPrefix`, +`uniqueSku`), `backend/models/Product.js`, `backend/routes/products.js`, `src/app/admin/pages/products/products.component.ts`, `src/app/admin/pages/products/products.component.html`, `src/app/catalog/pages/product-detail/product-detail.component.html`
+- **Decisión clave**: SKU es 100% transparente para el admin — se genera solo. Si quiere usar su propio sistema de códigos, puede editarlo. Formato: primeras letras de categoría + secuencial.
+
 ### 2026-08-22 — feat(backend): logging estructurado con pino para eventos críticos
 - **Descripción**: (1) `pino` como librería de logging estructurado (JSON en prod). Logs críticos: startup/conexión DB, creación/confirmación/cancelación de órdenes, decremento de stock, uploads/eliminación de imágenes R2, intentos de login fallidos, token inválido, errores en todas las rutas. (2) `logger.warn` en 400s de reglas de negocio (stock insuficiente, transiciones de estado inválidas). (3) Todas las rutas devuelven mensajes genéricos al client; `err.message` ya no se filtra (antes: leak de info interna). (4) `categories.js` y `config.js` refactorizados para usar logger. (5) `unhandledRejection` handler para Express 4. (6) Bug fix en `middleware/auth.js`: `err.message` → `err` para stack trace completo.
 - **Archivos**: `backend/lib/logger.js` (nuevo), `backend/server.js`, `backend/routes/orders.js`, `backend/routes/images.js`, `backend/routes/products.js`, `backend/routes/auth.js`, `backend/routes/categories.js`, `backend/routes/config.js`, `backend/middleware/auth.js`, `backend/lib/r2.js`, `backend/package.json`, `backend/.env.example`

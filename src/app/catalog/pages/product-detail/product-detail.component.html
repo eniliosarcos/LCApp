@@ -59,7 +59,7 @@
             <button type="button" class="sold-out" disabled>Agotado</button>
           </ng-template>
 
-          <p class="sku">SKU: {{ product.sku }}</p>
+          <p *ngIf="product.sku" class="sku">SKU: {{ product.sku }}</p>
         </div>
       </div>
     </ng-container>

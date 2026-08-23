@@ -53,6 +53,7 @@ export class ProductsComponent implements OnInit {
   formSaving = false;
   formError = '';
   uploadingImage = false;
+  editingSku = false;
   editingProduct: Product | null = null;
   form: ProductForm = { ...EMPTY_FORM, images: [] };
   pendingImageUrls: string[] = [];
@@ -164,6 +165,7 @@ export class ProductsComponent implements OnInit {
     this.form = { ...EMPTY_FORM, images: [] };
     this.pendingImageUrls = [];
     this.formError = '';
+    this.editingSku = false;
     this.formOpen = true;
     this.cdr.markForCheck();
   }
@@ -190,6 +192,7 @@ export class ProductsComponent implements OnInit {
     };
     this.pendingImageUrls = [];
     this.formError = '';
+    this.editingSku = false;
     this.formOpen = true;
     this.cdr.markForCheck();
   }
@@ -374,6 +377,8 @@ export class ProductsComponent implements OnInit {
     }
     if (this.form.sku.trim()) {
       payload.sku = this.form.sku.trim();
+    } else if (this.editingSku) {
+      payload.sku = '';
     }
 
     const request = this.editingProduct

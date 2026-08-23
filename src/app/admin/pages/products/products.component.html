@@ -129,7 +129,11 @@
       </label>
       <label>
         SKU
-        <input type="text" name="sku" [(ngModel)]="form.sku">
+        <ng-container *ngIf="!editingSku">
+          <span class="sku-display">{{ form.sku || 'Se genera automáticamente' }}</span>
+          <button type="button" class="btn-link" (click)="editingSku = true">Editar</button>
+        </ng-container>
+        <input *ngIf="editingSku" type="text" name="sku" [(ngModel)]="form.sku" placeholder="Ej: MAQ-001">
       </label>
     </div>
 

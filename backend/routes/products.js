@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const authenticate = require('../middleware/auth');
 const { authenticateOptional } = require('../middleware/auth');
-const { slugify, uniqueSlug } = require('../utils/slugify');
+const { slugify, uniqueSlug, generateSkuPrefix, uniqueSku } = require('../utils/slugify');
 const { deleteImageUrls, extractR2Urls } = require('../lib/r2');
 const logger = require('../lib/logger');
 
@@ -113,11 +113,16 @@ router.post('/', authenticate, async (req, res) => {
     }
     const finalSlug = await uniqueSlug(Product, baseSlug);
 
+    let finalSku;
     if (sku && sku.trim()) {
       const existingSku = await Product.findOne({ sku: sku.trim() });
       if (existingSku) {
         return res.status(400).json({ error: 'El SKU ya existe' });
       }
+      finalSku = sku.trim();
+    } else {
+      const prefix = generateSkuPrefix(categoryExists.name);
+      finalSku = await uniqueSku(Product, prefix);
     }
 
     const product = new Product({
@@ -128,7 +133,7 @@ router.post('/', authenticate, async (req, res) => {
       price: Number(price),
       discountPrice: discountPrice === undefined ? undefined : Number(discountPrice),
       stock: stock === undefined ? 0 : Number(stock),
-      sku: sku && sku.trim() ? sku.trim() : undefined,
+      sku: finalSku,
       tags: Array.isArray(tags) ? tags : [],
       images: normalizeImages(images),
       isActive: isActive === undefined ? true : Boolean(isActive),
@@ -205,8 +210,14 @@ router.put('/:id', authenticate, async (req, res) => {
     if (stock !== undefined) {
       product.stock = Number(stock);
     }
-    if (sku !== undefined) {
-      product.sku = sku.trim() || undefined;
+    if (sku !== undefined && sku.trim()) {
+      product.sku = sku.trim();
+    } else if (!product.sku) {
+      const cat = await Category.findById(product.categoryId);
+      if (cat) {
+        const prefix = generateSkuPrefix(cat.name);
+        product.sku = await uniqueSku(Product, prefix, product._id);
+      }
     }
     if (description !== undefined) {
       product.description = description;

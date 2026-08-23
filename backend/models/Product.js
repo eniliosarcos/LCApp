@@ -20,7 +20,7 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   discountPrice: Number,
   stock: { type: Number, default: 0 },
-  sku: { type: String, unique: true },
+  sku: { type: String, unique: true, sparse: true },
   tags: [String],
   images: [productImageSchema],
   isActive: { type: Boolean, default: true },

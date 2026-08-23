@@ -29,4 +29,27 @@ async function uniqueSlug(Model, baseSlug, excludeId) {
   return `${baseSlug}-${counter}`;
 }
 
-module.exports = { slugify, uniqueSlug };
+function generateSkuPrefix(categoryName) {
+  return String(categoryName)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .trim()
+    .split(/\s+/)
+    .map(w => w.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 3);
+}
+
+async function uniqueSku(Model, prefix, excludeId) {
+  const regex = new RegExp(`^${escapeRegExp(prefix)}\\d{3}$`);
+  const filter = { sku: regex };
+  if (excludeId) filter._id = { $ne: excludeId };
+  const existing = await Model.find(filter).select('sku');
+  const nums = new Set(existing.map(doc => parseInt(doc.sku.slice(-3), 10)));
+  let next = 1;
+  while (nums.has(next)) next += 1;
+  return `${prefix}${String(next).padStart(3, '0')}`;
+}
+
+module.exports = { slugify, uniqueSlug, generateSkuPrefix, uniqueSku };
