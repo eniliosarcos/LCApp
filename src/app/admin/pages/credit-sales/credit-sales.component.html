@@ -1,0 +1,104 @@
+<section class="credit-sales">
+  <h1>Fiados</h1>
+
+  <div class="pending-summary" *ngIf="!loading && totalPending > 0">
+    <span class="pending-label">Pendiente de cobro</span>
+    <span class="pending-amount">{{ totalPending | currency }}</span>
+  </div>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <div class="toolbar">
+    <input
+      type="search"
+      id="credit-search"
+      class="filter search-input"
+      placeholder="Buscar por nombre o c\u00f3digo\u2026"
+      [ngModel]="searchTerm"
+      (ngModelChange)="onSearchInput($event)"
+      [attr.aria-label]="'Buscar fiados por nombre o c\u00f3digo'">
+    <label class="filter-label" for="status-filter">Estado:</label>
+    <select
+      id="status-filter"
+      class="filter"
+      [ngModel]="statusFilter"
+      (ngModelChange)="onFilterChange($event)"
+      [attr.aria-label]="'Filtrar fiados por estado de pago'">
+      <option value="all">Todos</option>
+      <option value="unpaid">Sin pagar</option>
+      <option value="partial">Parcial</option>
+      <option value="paid">Pagados</option>
+    </select>
+  </div>
+
+  <div class="loading-region" *ngIf="loading">
+    <app-loading-spinner label="Cargando fiados\u2026"></app-loading-spinner>
+  </div>
+
+  <div class="table-scroll" *ngIf="!loading && orders.length > 0; else noOrders">
+    <table class="credit-table">
+      <thead>
+        <tr>
+          <th>C\u00f3digo</th>
+          <th>Cliente</th>
+          <th>Tel\u00e9fono</th>
+          <th>Total</th>
+          <th>Pagado</th>
+          <th>Pendiente</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let order of orders; trackBy: orderTrackBy"
+          class="clickable"
+          (click)="goToDetail(order)">
+          <td>
+            <a
+              class="order-link"
+              [routerLink]="['/admin/credit/detail', order.code]"
+              (click)="$event.stopPropagation()">{{ order.code }}</a>
+          </td>
+          <td>{{ order.customerName }}</td>
+          <td>{{ order.customerPhone }}</td>
+          <td>{{ order.total | currency }}</td>
+          <td>{{ order.amountPaid | currency }}</td>
+          <td class="remaining">{{ remaining(order) | currency }}</td>
+          <td>
+            <span class="status" [ngClass]="order.paymentStatus">{{ paymentStatusLabel(order.paymentStatus) }}</span>
+          </td>
+          <td>{{ order.createdAt | date:'dd/MM/yyyy hh:mm a' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #noOrders>
+    <p class="empty" *ngIf="!loading">
+      A\u00fan no hay fiados{{ statusFilter !== 'all' ? ' con ese estado' : '' }}{{ searchTerm ? ' con esos criterios' : '' }}.
+    </p>
+  </ng-template>
+
+  <nav class="pagination" *ngIf="!loading && totalPages > 1" aria-label="Paginaci\u00f3n de fiados">
+    <button
+      type="button"
+      class="page-btn"
+      (click)="previousPage()"
+      [disabled]="page <= 1"
+      [attr.aria-label]="'P\u00e1gina anterior'">&#8249;</button>
+    <button
+      *ngFor="let pageNumber of pageNumbers"
+      type="button"
+      class="page-btn"
+      [class.active]="pageNumber === page"
+      [disabled]="pageNumber === '...'"
+      (click)="goToPage(pageNumber)">{{ pageNumber }}</button>
+    <button
+      type="button"
+      class="page-btn"
+      (click)="nextPage()"
+      [disabled]="page >= totalPages"
+      [attr.aria-label]="'P\u00e1gina siguiente'">&#8250;</button>
+    <span class="range" aria-live="polite">{{ rangeLabel }}</span>
+  </nav>
+</section>

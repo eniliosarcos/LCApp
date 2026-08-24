@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CreateManualOrderRequest, CreateOrderRequest, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange } from '../models/order.model';
+import { AddPaymentRequest, CreateCreditSaleRequest, CreateManualOrderRequest, CreateOrderRequest, CreditSalePage, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -59,6 +59,25 @@ export class OrderService {
 
   cancelOrder(orderId: string): Observable<Order> {
     return this.http.patch<Order>(`${this.apiUrl}/orders/${orderId}/cancel`, {}).pipe(catchError(this.handleError));
+  }
+
+  createCreditSale(request: CreateCreditSaleRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.apiUrl}/orders/credit`, request).pipe(catchError(this.handleError));
+  }
+
+  getCreditSales(page = 1, limit = 10, paymentStatus?: string, q?: string): Observable<CreditSalePage> {
+    let params = new HttpParams().set('page', String(page)).set('limit', String(limit));
+    if (paymentStatus) {
+      params = params.set('paymentStatus', paymentStatus);
+    }
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
+    }
+    return this.http.get<CreditSalePage>(`${this.apiUrl}/orders/credit`, { params }).pipe(catchError(this.handleError));
+  }
+
+  addPayment(orderId: string, request: AddPaymentRequest): Observable<Order> {
+    return this.http.post<Order>(`${this.apiUrl}/orders/${orderId}/payments`, request).pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

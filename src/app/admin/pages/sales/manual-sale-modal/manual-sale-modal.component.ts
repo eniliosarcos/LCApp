@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CreateManualOrderRequest } from '../../../../core/models/order.model';
+import { CreateCreditSaleRequest, CreateManualOrderRequest } from '../../../../core/models/order.model';
 import { Product } from '../../../../core/models/product.model';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { OrderService } from '../../../../core/services/order.service';
@@ -28,6 +28,7 @@ export class ManualSaleModalComponent implements OnInit {
   customerPhone = '';
   saleDate = '';
   lines: ManualSaleLine[] = [{ ...EMPTY_LINE }];
+  isCredit = false;
   formError = '';
   showError = false;
   saving = false;
@@ -148,29 +149,50 @@ export class ManualSaleModalComponent implements OnInit {
     this.showError = false;
     this.cdr.markForCheck();
 
-    const request: CreateManualOrderRequest = {
-      customerName: this.customerName.trim() || undefined,
-      customerPhone: this.customerPhone.trim() || undefined,
-      saleDate: this.saleDate || undefined,
-      items: this.lines.map(line => ({
-        productId: line.productId,
-        quantity: Number(line.quantity),
-        price: line.price === null ? undefined : Number(line.price),
-      })),
-    };
+    const items = this.lines.map(line => ({
+      productId: line.productId,
+      quantity: Number(line.quantity),
+      price: line.price === null ? undefined : Number(line.price),
+    }));
 
-    this.orderService.createManualOrder(request).subscribe({
-      next: order => {
-        this.saving = false;
-        this.snackbar.show(`Venta ${order.code} registrada`, 'success');
-        this.saved.emit();
-        this.cdr.markForCheck();
-      },
-      error: (err: Error) => {
-        this.saving = false;
-        this.showFormError(err.message);
-      }
-    });
+    if (this.isCredit) {
+      const request: CreateCreditSaleRequest = {
+        customerName: this.customerName.trim(),
+        customerPhone: this.customerPhone.trim(),
+        items,
+      };
+      this.orderService.createCreditSale(request).subscribe({
+        next: order => {
+          this.saving = false;
+          this.snackbar.show(`Fiado ${order.code} registrado`, 'success');
+          this.saved.emit();
+          this.cdr.markForCheck();
+        },
+        error: (err: Error) => {
+          this.saving = false;
+          this.showFormError(err.message);
+        }
+      });
+    } else {
+      const request: CreateManualOrderRequest = {
+        customerName: this.customerName.trim() || undefined,
+        customerPhone: this.customerPhone.trim() || undefined,
+        saleDate: this.saleDate || undefined,
+        items,
+      };
+      this.orderService.createManualOrder(request).subscribe({
+        next: order => {
+          this.saving = false;
+          this.snackbar.show(`Venta ${order.code} registrada`, 'success');
+          this.saved.emit();
+          this.cdr.markForCheck();
+        },
+        error: (err: Error) => {
+          this.saving = false;
+          this.showFormError(err.message);
+        }
+      });
+    }
   }
 
   cancelConfirm(): void {
@@ -187,7 +209,9 @@ export class ManualSaleModalComponent implements OnInit {
     const customer = this.customerName.trim() || 'Cliente de mostrador';
     const itemsCount = this.lines.filter(line => line.productId && Number(line.quantity) > 0).length;
     const dateLabel = this.saleDate ? this.formatDate(this.saleDate) : this.formatDate(this.todayString());
-    return `Cliente: ${customer} · ${dateLabel} · ${itemsCount} producto(s) · Total: ${this.formatCurrency(this.total)}. ¿Confirmar la venta? El stock se descontará.`;
+    const type = this.isCredit ? 'fiado' : 'venta';
+    const extra = this.isCredit ? ' · El cliente pagará después' : '';
+    return `Cliente: ${customer} · ${dateLabel} · ${itemsCount} producto(s) · Total: ${this.formatCurrency(this.total)}. ¿Confirmar el ${type}?${extra} El stock se descontará.`;
   }
 
   close(): void {
@@ -203,6 +227,7 @@ export class ManualSaleModalComponent implements OnInit {
     this.customerPhone = '';
     this.saleDate = this.todayString();
     this.lines = [{ ...EMPTY_LINE }];
+    this.isCredit = false;
     this.formError = '';
     this.showError = false;
     this.saving = false;
@@ -217,6 +242,14 @@ export class ManualSaleModalComponent implements OnInit {
   }
 
   private validate(): string {
+    if (this.isCredit) {
+      if (!this.customerName.trim()) {
+        return 'El nombre del cliente es obligatorio para ventas a crédito.';
+      }
+      if (!this.customerPhone.trim()) {
+        return 'El teléfono del cliente es obligatorio para ventas a crédito.';
+      }
+    }
     if (this.lines.length === 0 || !this.lines.some(line => line.productId)) {
       return 'Agregá al menos un producto a la venta.';
     }

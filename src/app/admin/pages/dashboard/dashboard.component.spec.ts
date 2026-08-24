@@ -21,6 +21,9 @@ const pendingOrder: Order = {
   items: [{ productId: 'p1', productName: 'Rosa', quantity: 2, price: 100 }],
   status: 'pending',
   total: 200,
+  paymentStatus: 'not_applicable',
+  amountPaid: 0,
+  payments: [],
   createdAt: '2026-01-01T00:00:00.000Z'
 };
 

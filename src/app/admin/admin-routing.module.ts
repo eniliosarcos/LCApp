@@ -8,6 +8,8 @@ import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { OrderDetailComponent } from './pages/order-detail/order-detail.component';
 import { SalesComponent } from './pages/sales/sales.component';
+import { CreditSalesComponent } from './pages/credit-sales/credit-sales.component';
+import { CreditDetailComponent } from './pages/credit-detail/credit-detail.component';
 
 const routes: Routes = [
   {
@@ -18,6 +20,8 @@ const routes: Routes = [
       { path: 'ventas', component: SalesComponent },
       { path: 'orders', component: OrdersComponent },
       { path: 'orders/detail/:code', component: OrderDetailComponent },
+      { path: 'credit', component: CreditSalesComponent },
+      { path: 'credit/detail/:code', component: CreditDetailComponent },
       { path: 'products', component: ProductsComponent },
       { path: 'categories', component: CategoriesComponent },
       { path: 'contact', component: ContactSettingsComponent }
