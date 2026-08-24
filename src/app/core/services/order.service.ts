@@ -49,7 +49,8 @@ export class OrderService {
   }
 
   getSummary(range: SummaryRange): Observable<OrderSummary> {
-    const params = new HttpParams().set('range', range);
+    const offset = new Date().getTimezoneOffset();
+    const params = new HttpParams().set('range', range).set('offset', String(offset));
     return this.http.get<OrderSummary>(`${this.apiUrl}/orders/summary`, { params }).pipe(catchError(this.handleError));
   }
 

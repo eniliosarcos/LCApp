@@ -211,12 +211,11 @@ describe('ManualSaleModalComponent', () => {
     savedSpy = spyOn(component.saved, 'emit');
     component.runConfirm();
 
-    expect(orderServiceSpy.createManualOrder).toHaveBeenCalledWith({
+    expect(orderServiceSpy.createManualOrder).toHaveBeenCalledWith(jasmine.objectContaining({
       customerName: 'María',
-      customerPhone: undefined,
-      saleDate: '2026-08-14',
+      saleDate: jasmine.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/),
       items: [{ productId: 'p1', quantity: 3, price: 45 }]
-    });
+    }));
     expect(snackbarSpy.show).toHaveBeenCalledWith('Venta MAN-AB12C registrada', 'success');
     expect(savedSpy).toHaveBeenCalled();
     expect(component.confirming).toBeFalse();

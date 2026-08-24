@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-24 — fix(backend+ui): timezone bug — fechas de órdenes manuales corregidas en lista de ventas
+- **Descripción**: Las órdenes manuales se guardaban con fecha date-only (`"2026-08-24"`) → `new Date()` en UTC → medianoche UTC → 8pm del día anterior en Venezuela (UTC-4). Fix: (1) Frontend envía `saleDate` como ISO 8601 con offset de timezone (ej: `"2026-08-24T00:00:00.000-04:00"`). (2) Backend summary acepta param `offset` (minutos desde UTC) para calcular `startOfDay` en la timezone del usuario. (3) Frontend `OrderService.getSummary()` envía `tzOffset` automáticamente.
+- **Archivos**: `backend/routes/orders.js`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.ts`, `src/app/core/services/order.service.ts`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.spec.ts`
+- **Decisión clave**: `offset` como param query (no en body) porque es un GET. El cálculo `startOfDay` se hace ajustando `Date` local del servidor con el offset del cliente. Independiente de horario de verano.
+
 ### 2026-08-22 — feat(backend+ui): SKU auto-generado — el admin ya no necesita entender SKUs
 - **Descripción**: (1) Backend auto-genera SKU al crear producto: prefijo de 3 letras de la categoría + secuencial de 3 dígitos (ej: `MAQ-001`). (2) PUT mantiene SKU existente si el admin no lo toca; auto-genera si el producto no tiene uno (legacy). (3) Índice MongoDB `sparse: true` para no colisionar con nulls. (4) Admin form: campo SKU read-only por defecto con botón "Editar" para override manual. (5) Detalle de producto: `*ngIf` para no mostrar "SKU:" vacío.
 - **Archivos**: `backend/utils/slugify.js` (+`generateSkuPrefix`, +`uniqueSku`), `backend/models/Product.js`, `backend/routes/products.js`, `src/app/admin/pages/products/products.component.ts`, `src/app/admin/pages/products/products.component.html`, `src/app/catalog/pages/product-detail/product-detail.component.html`

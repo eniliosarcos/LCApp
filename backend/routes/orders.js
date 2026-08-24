@@ -231,13 +231,16 @@ router.get('/summary', authenticate, async (req, res) => {
   try {
     await expireStalePendingOrders();
     const range = ['day', 'week', 'month'].includes(req.query.range) ? req.query.range : 'week';
+    const tzOffset = parseInt(req.query.offset, 10) || 0;
     const now = new Date();
 
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(startOfDay);
-    startOfWeek.setDate(startOfWeek.getDate() - ((startOfWeek.getDay() + 6) % 7));
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const from = range === 'day' ? startOfDay : range === 'week' ? startOfWeek : startOfMonth;
+    const userNow = new Date(now.getTime() + tzOffset * 60000);
+    const startOfDay = new Date(userNow.getFullYear(), userNow.getMonth(), userNow.getDate());
+    const fromUTC = new Date(startOfDay.getTime() - tzOffset * 60000);
+    const startOfWeekUTC = new Date(fromUTC);
+    startOfWeekUTC.setDate(startOfWeekUTC.getDate() - ((startOfWeekUTC.getUTCDay() + 6) % 7));
+    const startOfMonthUTC = new Date(Date.UTC(userNow.getFullYear(), userNow.getMonth(), 1));
+    const from = range === 'day' ? fromUTC : range === 'week' ? startOfWeekUTC : startOfMonthUTC;
 
     const [sales, cancelled, pending, totalOrders, totals, topProducts, byCategory] = await Promise.all([
       Order.countDocuments({ status: 'confirmed', createdAt: { $gte: from } }),
