@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="c1" cx="38%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="#ff6b8a"/>
+      <stop offset="100%" stop-color="#b8174b"/>
+    </radialGradient>
+    <radialGradient id="c2" cx="38%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="#ff6b8a"/>
+      <stop offset="100%" stop-color="#b8174b"/>
+    </radialGradient>
+  </defs>
+  <!-- stems -->
+  <path d="M24 30 Q22 16 28 8" stroke="#2d6a4f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M32 30 Q34 18 28 8" stroke="#2d6a4f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- leaf -->
+  <ellipse cx="30" cy="11" rx="5" ry="2.5" fill="#40916c" transform="rotate(-15 30 11)"/>
+  <!-- left cherry -->
+  <circle cx="22" cy="40" r="12" fill="url(#c1)"/>
+  <ellipse cx="18" cy="35" rx="3" ry="2" fill="#ff8fa3" opacity="0.4"/>
+  <!-- right cherry -->
+  <circle cx="34" cy="42" r="11" fill="url(#c2)"/>
+  <ellipse cx="30" cy="38" rx="2.5" ry="1.8" fill="#ff8fa3" opacity="0.4"/>
+  <!-- big sparkle top right ✨ -->
+  <g transform="translate(52 12)">
+    <path d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z" fill="#ffd60a"/>
+    <circle cx="0" cy="0" r="1.5" fill="#fff8b8"/>
+  </g>
+  <!-- small sparkle right -->
+  <g transform="translate(56 30) scale(0.55)">
+    <path d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z" fill="#ffd60a"/>
+  </g>
+  <!-- tiny sparkle bottom -->
+  <g transform="translate(50 44) scale(0.4)">
+    <path d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z" fill="#ffd60a"/>
+  </g>
+</svg>
