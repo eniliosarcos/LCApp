@@ -240,7 +240,8 @@ router.get('/summary', authenticate, async (req, res) => {
     const dayOfWeek = d.getDay();
     const startOfWeekUTC = fromDayUTC - ((dayOfWeek + 6) % 7) * 86400000;
     const startOfMonthUTC = Date.UTC(d.getFullYear(), d.getMonth(), 1) + tzOffset * 60000;
-    const from = range === 'day' ? fromDayUTC : range === 'week' ? startOfWeekUTC : startOfMonthUTC;
+    const fromMs = range === 'day' ? fromDayUTC : range === 'week' ? startOfWeekUTC : startOfMonthUTC;
+    const from = new Date(fromMs);
 
     const [sales, cancelled, pending, totalOrders, totals, topProducts, byCategory] = await Promise.all([
       Order.countDocuments({ status: 'confirmed', createdAt: { $gte: from } }),
