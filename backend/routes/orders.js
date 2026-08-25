@@ -234,13 +234,13 @@ router.get('/summary', authenticate, async (req, res) => {
     const tzOffset = parseInt(req.query.offset, 10) || 0;
     const now = new Date();
 
-    const userNow = new Date(now.getTime() + tzOffset * 60000);
-    const startOfDay = new Date(userNow.getFullYear(), userNow.getMonth(), userNow.getDate());
-    const fromUTC = new Date(startOfDay.getTime() - tzOffset * 60000);
-    const startOfWeekUTC = new Date(fromUTC);
-    startOfWeekUTC.setDate(startOfWeekUTC.getDate() - ((startOfWeekUTC.getUTCDay() + 6) % 7));
-    const startOfMonthUTC = new Date(Date.UTC(userNow.getFullYear(), userNow.getMonth(), 1));
-    const from = range === 'day' ? fromUTC : range === 'week' ? startOfWeekUTC : startOfMonthUTC;
+    const userLocalMs = now.getTime() - tzOffset * 60000;
+    const d = new Date(userLocalMs);
+    const fromDayUTC = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) + tzOffset * 60000;
+    const dayOfWeek = d.getDay();
+    const startOfWeekUTC = fromDayUTC - ((dayOfWeek + 6) % 7) * 86400000;
+    const startOfMonthUTC = Date.UTC(d.getFullYear(), d.getMonth(), 1) + tzOffset * 60000;
+    const from = range === 'day' ? fromDayUTC : range === 'week' ? startOfWeekUTC : startOfMonthUTC;
 
     const [sales, cancelled, pending, totalOrders, totals, topProducts, byCategory] = await Promise.all([
       Order.countDocuments({ status: 'confirmed', createdAt: { $gte: from } }),

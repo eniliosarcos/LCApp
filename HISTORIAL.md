@@ -31,6 +31,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 - **Archivos**: `src/favicon.svg` (nuevo), `src/favicon.ico` (eliminado), `src/index.html`, `angular.json`
 - **Decisión clave**: SVG en vez de .ico — escalable, nítido en todos los tamaños. `angular.json` assets array debe apuntar al nombre de archivo correcto para que Angular CLI lo copie al build output.
 
+### 2026-08-24 — fix(backend): timezone bug en summary — signo invertido + startOfMonth sin offset
+- **Descripción**: El fix anterior tenía dos bugs: (1) `+` en vez de `-` en el cálculo de `userNow` (getTimezoneOffset() es positivo para UTC-4, hay que restar). (2) `startOfMonthUTC` no sumaba el offset, resultando en midnight UTC en vez de midnight local. Rewrite completo de las líneas 237-243 con lógica limpia basada en `Date.UTC()` + offset.
+- **Archivos**: `backend/routes/orders.js`
+- **Decisión clave**: Trabajar todo en UTC: restar offset para obtener "user local" como Date, extraer componentes con getFullYear/Month/Date, construir con Date.UTC(), y sumar offset de vuelta para obtener el timestamp UTC correcto.
+
 ### 2026-08-24 — fix(backend+ui): timezone bug — fechas de órdenes manuales corregidas en lista de ventas
 - **Descripción**: Las órdenes manuales se guardaban con fecha date-only (`"2026-08-24"`) → `new Date()` en UTC → medianoche UTC → 8pm del día anterior en Venezuela (UTC-4). Fix: (1) Frontend envía `saleDate` como ISO 8601 con offset de timezone (ej: `"2026-08-24T00:00:00.000-04:00"`). (2) Backend summary acepta param `offset` (minutos desde UTC) para calcular `startOfDay` en la timezone del usuario. (3) Frontend `OrderService.getSummary()` envía `tzOffset` automáticamente.
 - **Archivos**: `backend/routes/orders.js`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.ts`, `src/app/core/services/order.service.ts`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.spec.ts`
