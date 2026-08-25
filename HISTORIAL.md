@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-24 — feat(ui): logo personalizado en header con zoom
+- **Descripción**: Reemplazado texto "LC" por imagen logo.png en el header. Logo configurado con transform scale(7) para efecto zoom visual, margin-left 27px en brand.
+- **Archivos**: `src/app/shared/components/header/header.component.html`, `src/app/shared/components/header/header.component.scss`, `src/assets/images/logo.png`
+- **Decisión clave**: Logo usa CSS scale(7) sobre un contenedor pequeño (7x22px) para crear efecto de zoom enfocado en el centro de la imagen.
+
 ### 2026-08-24 — feat(ui): favicon personalizado 🍒✨
 - **Descripción**: Reemplazado favicon de Angular por SVG custom con cereza y estrellas. Eliminado `favicon.ico` legacy. Fix: `angular.json` no copiaba el SVG al `dist/` porque seguía apuntando a `favicon.ico`.
 - **Archivos**: `src/favicon.svg` (nuevo), `src/favicon.ico` (eliminado), `src/index.html`, `angular.json`
