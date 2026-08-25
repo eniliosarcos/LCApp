@@ -22,9 +22,9 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 ## Historial
 
 ### 2026-08-24 — feat(ui): favicon personalizado 🍒✨
-- **Descripción**: Reemplazado favicon de Angular por SVG custom con cereza y estrellas. Eliminado `favicon.ico` legacy.
-- **Archivos**: `src/favicon.svg` (nuevo), `src/favicon.ico` (eliminado), `src/index.html`
-- **Decisión clave**: SVG en vez de .ico — escalable, nítido en todos los tamaños, soportado por todos los browsers modernos.
+- **Descripción**: Reemplazado favicon de Angular por SVG custom con cereza y estrellas. Eliminado `favicon.ico` legacy. Fix: `angular.json` no copiaba el SVG al `dist/` porque seguía apuntando a `favicon.ico`.
+- **Archivos**: `src/favicon.svg` (nuevo), `src/favicon.ico` (eliminado), `src/index.html`, `angular.json`
+- **Decisión clave**: SVG en vez de .ico — escalable, nítido en todos los tamaños. `angular.json` assets array debe apuntar al nombre de archivo correcto para que Angular CLI lo copie al build output.
 
 ### 2026-08-24 — fix(backend+ui): timezone bug — fechas de órdenes manuales corregidas en lista de ventas
 - **Descripción**: Las órdenes manuales se guardaban con fecha date-only (`"2026-08-24"`) → `new Date()` en UTC → medianoche UTC → 8pm del día anterior en Venezuela (UTC-4). Fix: (1) Frontend envía `saleDate` como ISO 8601 con offset de timezone (ej: `"2026-08-24T00:00:00.000-04:00"`). (2) Backend summary acepta param `offset` (minutos desde UTC) para calcular `startOfDay` en la timezone del usuario. (3) Frontend `OrderService.getSummary()` envía `tzOffset` automáticamente.
