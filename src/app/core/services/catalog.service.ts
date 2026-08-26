@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Category } from '../models/category.model';
 import { Product, ProductPayload } from '../models/product.model';
@@ -21,7 +21,10 @@ export class CatalogService {
   constructor(private readonly http: HttpClient) {}
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.apiUrl}/categories`).pipe(catchError(this.handleError));
+    return this.http.get<Category[]>(`${this.apiUrl}/categories`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
   }
 
   getCategoryById(categoryId: string): Observable<Category | undefined> {
@@ -37,7 +40,10 @@ export class CatalogService {
   }
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.apiUrl}/products`).pipe(catchError(this.handleError));
+    return this.http.get<Product[]>(`${this.apiUrl}/products`).pipe(
+      catchError(this.handleError),
+      shareReplay(1)
+    );
   }
 
   getProductById(productId: string): Observable<Product | undefined> {
