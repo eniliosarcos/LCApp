@@ -27,7 +27,6 @@
   position: sticky;
   top: 5.5rem;
   z-index: 15;
-  margin-top: 1rem;
   margin-bottom: v.$space-4;
 
   input {
@@ -87,6 +86,7 @@
 }
 
 .home-content {
+  padding-top: 1rem;
   padding-bottom: v.$space-6;
 }
 
