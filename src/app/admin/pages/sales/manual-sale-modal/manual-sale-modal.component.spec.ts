@@ -48,7 +48,7 @@ describe('ManualSaleModalComponent', () => {
 
   beforeEach(async () => {
     catalogServiceSpy = jasmine.createSpyObj('CatalogService', ['getAllProducts']);
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createManualOrder']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['createManualOrder', 'createCreditSale']);
     snackbarSpy = jasmine.createSpyObj('SnackbarService', ['show']);
 
     await TestBed.configureTestingModule({
@@ -271,5 +271,77 @@ describe('ManualSaleModalComponent', () => {
     component.saving = false;
     component.close();
     expect(closedSpy).toHaveBeenCalled();
+  });
+
+  it('modo crédito: exige nombre y teléfono del cliente antes de confirmar', () => {
+    catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1')]));
+    createComponent();
+    component.isCredit = true;
+
+    component.onProductChange(0, 'p1');
+    component.onSubmit();
+    expect(component.formError).toContain('nombre del cliente es obligatorio');
+    expect(orderServiceSpy.createCreditSale).not.toHaveBeenCalled();
+
+    component.customerName = 'María';
+    component.onSubmit();
+    expect(component.formError).toContain('teléfono del cliente es obligatorio');
+    expect(orderServiceSpy.createCreditSale).not.toHaveBeenCalled();
+  });
+
+  it('modo crédito: registra el fiado al confirmar con nombre y teléfono', () => {
+    catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', { price: 50 })]));
+    orderServiceSpy.createCreditSale.and.returnValue(of({ code: 'FIA-AB12C' } as Order));
+    createComponent();
+
+    component.isCredit = true;
+    component.customerName = '  María  ';
+    component.customerPhone = ' 12345678 ';
+    component.onProductChange(0, 'p1');
+    component.lines[0].price = 45;
+    component.lines[0].quantity = 3;
+    component.onSubmit();
+
+    const savedSpy = spyOn(component.saved, 'emit');
+    component.runConfirm();
+
+    expect(orderServiceSpy.createCreditSale).toHaveBeenCalledWith({
+      customerName: 'María',
+      customerPhone: '12345678',
+      items: [{ productId: 'p1', quantity: 3, price: 45 }]
+    });
+    expect(snackbarSpy.show).toHaveBeenCalledWith('Fiado FIA-AB12C registrado', 'success');
+    expect(savedSpy).toHaveBeenCalled();
+    expect(component.saving).toBeFalse();
+  });
+
+  it('modo crédito: muestra el error del servicio en un diálogo', () => {
+    catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1')]));
+    orderServiceSpy.createCreditSale.and.returnValue(throwError(() => new Error('El teléfono es inválido')));
+    createComponent();
+
+    component.isCredit = true;
+    component.customerName = 'María';
+    component.customerPhone = '123';
+    component.onProductChange(0, 'p1');
+    component.runConfirm();
+
+    expect(component.saving).toBeFalse();
+    expect(component.formError).toBe('El teléfono es inválido');
+    expect(component.showError).toBeTrue();
+  });
+
+  it('modo crédito: el mensaje de confirmación menciona fiado y pago posterior', () => {
+    catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', { price: 50 })]));
+    createComponent();
+
+    component.isCredit = true;
+    component.customerName = 'María';
+    component.onProductChange(0, 'p1');
+    component.lines[0].quantity = 2;
+
+    const message = component.confirmMessage();
+    expect(message).toContain('fiado');
+    expect(message).toContain('El cliente pagará después');
   });
 });
