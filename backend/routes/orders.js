@@ -201,6 +201,158 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/orders/credit — Registrar venta a crédito (fiado), descuenta stock
+router.post('/credit', authenticate, async (req, res) => {
+  try {
+    const { customerName, customerPhone, items } = req.body;
+
+    if (!customerName || !customerName.trim()) {
+      return res.status(400).json({ error: 'El nombre del cliente es obligatorio' });
+    }
+    if (!customerPhone || !customerPhone.trim()) {
+      return res.status(400).json({ error: 'El teléfono del cliente es obligatorio' });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Faltan datos: items son requeridos' });
+    }
+
+    const orderItems = [];
+    const quantityByProduct = new Map();
+    for (const item of items) {
+      const product = await Product.findById(item.productId);
+      if (!product || !product.isActive) {
+        return res.status(400).json({ error: `Producto no disponible: "${item.productId}"` });
+      }
+      const quantity = Math.floor(Number(item.quantity));
+      if (!Number.isFinite(quantity) || quantity < 1) {
+        return res.status(400).json({ error: `Cantidad inválida para "${product.name}"` });
+      }
+      const totalQuantity = (quantityByProduct.get(product._id.toString())?.quantity || 0) + quantity;
+      quantityByProduct.set(product._id.toString(), {
+        name: product.name,
+        stock: product.stock,
+        quantity: totalQuantity,
+      });
+      const unitPrice = item.price !== undefined && item.price !== null
+        ? Number(item.price)
+        : (product.discountPrice ?? product.price);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        return res.status(400).json({ error: `Precio inválido para "${product.name}"` });
+      }
+      orderItems.push({ productId: product._id, productName: product.name, quantity, price: unitPrice });
+    }
+
+    for (const { name, stock, quantity } of quantityByProduct.values()) {
+      if (stock < quantity) {
+        return res.status(400).json({
+          error: `Stock insuficiente para "${name}": disponible ${stock}, solicitado ${quantity}`,
+        });
+      }
+    }
+
+    const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const order = await Order.create({
+      code: generateCode('FIA-'),
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      items: orderItems,
+      status: 'confirmed',
+      source: 'fiado',
+      total,
+      paymentStatus: 'unpaid',
+      amountPaid: 0,
+      confirmedAt: new Date(),
+    });
+
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+      logger.info({ code: order.code, product: item.productName, qty: item.quantity }, 'Stock decremented (credit sale)');
+    }
+
+    logger.info({ code: order.code, customer: order.customerName, total }, 'Credit sale created');
+    res.status(201).json(order);
+  } catch (err) {
+    logger.error({ err, route: 'POST /api/orders/credit' }, 'Failed to create credit sale');
+    res.status(500).json({ error: 'Error al registrar el fiado' });
+  }
+});
+
+// GET /api/orders/credit — Listar fiados paginados (admin)
+router.get('/credit', authenticate, async (req, res) => {
+  try {
+    const { paymentStatus, q } = req.query;
+    const filter = { source: 'fiado' };
+    if (paymentStatus && paymentStatus !== 'all') filter.paymentStatus = paymentStatus;
+    if (q && q.trim()) {
+      const regex = { $regex: escapeRegExp(q.trim()), $options: 'i' };
+      filter.$or = [{ customerName: regex }, { code: regex }];
+    }
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPending = await Order.aggregate([
+      { $match: { source: 'fiado', paymentStatus: { $in: ['unpaid', 'partial'] } } },
+      { $group: { _id: null, total: { $sum: { $subtract: ['$total', '$amountPaid'] } } } },
+    ]);
+
+    res.json({
+      orders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      totalPending: totalPending[0]?.total || 0,
+    });
+  } catch (err) {
+    logger.error({ err, route: 'GET /api/orders/credit' }, 'Failed to list credit sales');
+    res.status(500).json({ error: 'Error al listar fiados' });
+  }
+});
+
+// POST /api/orders/:id/payments — Registrar abono a un fiado
+router.post('/:id/payments', authenticate, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (order.source !== 'fiado') {
+      return res.status(400).json({ error: 'Esta orden no es un fiado' });
+    }
+    if (order.paymentStatus === 'paid') {
+      return res.status(400).json({ error: 'Este fiado ya está completamente pagado' });
+    }
+
+    const { amount, note } = req.body;
+    const numAmount = Number(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ error: 'El monto debe ser mayor a 0' });
+    }
+
+    const remaining = order.total - order.amountPaid;
+    if (numAmount > remaining + 0.001) {
+      return res.status(400).json({ error: `El monto excede el saldo pendiente de $${remaining.toFixed(2)}` });
+    }
+
+    order.payments.push({ amount: numAmount, date: new Date(), note: note || undefined });
+    order.amountPaid = Math.round((order.amountPaid + numAmount) * 100) / 100;
+    order.paymentStatus = order.amountPaid >= order.total ? 'paid' : 'partial';
+    await order.save();
+
+    logger.info({ code: order.code, amount: numAmount, remaining: order.total - order.amountPaid }, 'Payment recorded');
+    res.json(order);
+  } catch (err) {
+    logger.error({ err, route: 'POST /api/orders/:id/payments' }, 'Failed to record payment');
+    res.status(500).json({ error: 'Error al registrar el abono' });
+  }
+});
+
 // GET /api/orders/stats — Resumen de ventas (admin)
 router.get('/stats', authenticate, async (req, res) => {
   try {

@@ -5,26 +5,38 @@
   [dismissible]="!confirming && !saving"
   (close)="close()">
   <form class="entity-form manual-sale-form" (ngSubmit)="onSubmit()">
+
+    <div class="sale-type-toggle">
+      <label class="toggle-option" [class.active]="!isCredit">
+        <input type="radio" name="saleType" [value]="false" [(ngModel)]="isCredit">
+        Venta de mostrador
+      </label>
+      <label class="toggle-option" [class.active]="isCredit">
+        <input type="radio" name="saleType" [value]="true" [(ngModel)]="isCredit">
+        Venta a crédito (fiado)
+      </label>
+    </div>
+
     <div class="form-row">
       <label>Cliente
         <input
           type="text"
           name="customerName"
           [(ngModel)]="customerName"
-          placeholder="Cliente de mostrador"
-          [attr.aria-label]="'Nombre del cliente (opcional)'">
+          [placeholder]="isCredit ? 'Nombre del cliente (obligatorio)' : 'Cliente de mostrador'"
+          [attr.aria-label]="'Nombre del cliente'">
       </label>
       <label>Teléfono
         <input
           type="tel"
           name="customerPhone"
           [(ngModel)]="customerPhone"
-          placeholder="Opcional"
-          [attr.aria-label]="'Teléfono del cliente (opcional)'">
+          [placeholder]="isCredit ? 'Teléfono (obligatorio)' : 'Opcional'"
+          [attr.aria-label]="'Teléfono del cliente'">
       </label>
     </div>
 
-    <label>Fecha de la venta
+    <label *ngIf="!isCredit">Fecha de la venta
       <input
         type="date"
         name="saleDate"
@@ -98,7 +110,7 @@
       <button
         type="submit"
         class="btn-primary"
-        [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : 'Registrar venta' }}</button>
+        [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : (isCredit ? 'Registrar fiado' : 'Registrar venta') }}</button>
     </div>
   </form>
 
@@ -115,9 +127,9 @@
 
   <app-confirm-dialog
     [open]="confirming"
-    [title]="'Registrar venta'"
+    [title]="isCredit ? 'Registrar fiado' : 'Registrar venta'"
     [message]="confirmMessage()"
-    [confirmLabel]="'Sí, registrar'"
+    [confirmLabel]="isCredit ? 'Sí, registrar fiado' : 'Sí, registrar'"
     [cancelLabel]="'Revisar'"
     [variant]="'confirm'"
     (confirmed)="runConfirm()"

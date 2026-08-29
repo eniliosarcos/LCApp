@@ -5,6 +5,14 @@ export interface OrderItem {
   price: number;
 }
 
+export interface Payment {
+  amount: number;
+  date: string;
+  note?: string;
+}
+
+export type PaymentStatus = 'not_applicable' | 'unpaid' | 'partial' | 'paid';
+
 export interface Order {
   id: string;
   code: string;
@@ -12,8 +20,11 @@ export interface Order {
   customerPhone?: string;
   items: OrderItem[];
   status: 'pending' | 'confirmed' | 'cancelled';
-  source?: 'web' | 'manual';
+  source?: 'web' | 'manual' | 'fiado';
   total: number;
+  paymentStatus: PaymentStatus;
+  amountPaid: number;
+  payments: Payment[];
   createdAt: string;
   confirmedAt?: string;
 }
@@ -35,6 +46,26 @@ export interface CreateManualOrderRequest {
   customerPhone?: string;
   saleDate?: string;
   items: ManualSaleItem[];
+}
+
+export interface CreateCreditSaleRequest {
+  customerName: string;
+  customerPhone: string;
+  items: ManualSaleItem[];
+}
+
+export interface CreditSalePage {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalPending: number;
+}
+
+export interface AddPaymentRequest {
+  amount: number;
+  note?: string;
 }
 
 export interface OrderStats {

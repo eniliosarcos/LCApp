@@ -144,7 +144,7 @@ describe('CartSummaryComponent', () => {
     expect(anchorClickSpy).not.toHaveBeenCalled();
     expect(component.redirecting).toBeTrue();
 
-    pending.next({ id: 'o1', code: 'CAR-ABC12', customerName: 'Cliente web', items: [], status: 'pending', total: 200, createdAt: '2026-01-01T00:00:00.000Z' });
+    pending.next({ id: 'o1', code: 'CAR-ABC12', customerName: 'Cliente web', items: [], status: 'pending', total: 200, paymentStatus: 'not_applicable', amountPaid: 0, payments: [], createdAt: '2026-01-01T00:00:00.000Z' });
     pending.complete();
     fixture.detectChanges();
 
@@ -219,7 +219,7 @@ describe('CartSummaryComponent', () => {
     expect(anchorClickSpy).not.toHaveBeenCalled();
     expect(component.redirecting).toBeTrue();
 
-    pending.next({ id: 'o1', code: 'CAR-ABC12', customerName: 'Cliente web', items: [], status: 'pending', total: 200, createdAt: '2026-01-01T00:00:00.000Z' });
+    pending.next({ id: 'o1', code: 'CAR-ABC12', customerName: 'Cliente web', items: [], status: 'pending', total: 200, paymentStatus: 'not_applicable', amountPaid: 0, payments: [], createdAt: '2026-01-01T00:00:00.000Z' });
     pending.complete();
     fixture.detectChanges();
 

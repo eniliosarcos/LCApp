@@ -2,6 +2,7 @@
 
 .products-table,
 .orders-table,
+.credit-table,
 .items-table {
   width: 100%;
   min-width: 640px;
@@ -22,6 +23,24 @@
 
   th {
     background: v.$color-surface-muted;
+  }
+
+  tr.clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: v.$color-surface-muted;
+    }
+  }
+
+  .order-link {
+    color: v.$color-primary;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -55,6 +74,21 @@
   &.cancelled {
     background: #f8d7da;
     color: #721c24;
+  }
+
+  &.unpaid {
+    background: v.$color-danger-border;
+    color: v.$color-danger;
+  }
+
+  &.partial {
+    background: v.$color-warning-border;
+    color: v.$color-warning;
+  }
+
+  &.paid {
+    background: v.$color-success-border;
+    color: v.$color-success;
   }
 }
 

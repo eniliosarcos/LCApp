@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const paymentSchema = new mongoose.Schema({
+  amount: { type: Number, required: true },
+  date: { type: Date, default: Date.now },
+  note: String,
+}, { _id: false });
+
 const orderItemSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
   productName: { type: String, required: true },
@@ -13,8 +19,11 @@ const orderSchema = new mongoose.Schema({
   customerPhone: String,
   items: [orderItemSchema],
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
-  source: { type: String, enum: ['web', 'manual'], default: 'web' },
+  source: { type: String, enum: ['web', 'manual', 'fiado'], default: 'web' },
   total: { type: Number, required: true },
+  paymentStatus: { type: String, enum: ['not_applicable', 'unpaid', 'partial', 'paid'], default: 'not_applicable' },
+  amountPaid: { type: Number, default: 0 },
+  payments: [paymentSchema],
   createdAt: { type: Date, default: Date.now },
   confirmedAt: Date,
 }, {
