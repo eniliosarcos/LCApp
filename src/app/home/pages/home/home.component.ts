@@ -1,4 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { BreadcrumbItem } from '../../../core/models/breadcrumb.model';
+import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
 
@@ -9,19 +14,25 @@ import { CatalogService } from '../../../core/services/catalog.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit {
+  category?: Category;
   products: Product[] = [];
   searchTerm = '';
   loading = true;
   error = false;
-  categoriesError = false;
 
-  constructor(
-    private readonly catalogService: CatalogService,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+  get isCatalogView(): boolean {
+    return !!this.category;
+  }
 
   get selectedCategoryName(): string {
-    return 'Todos los productos';
+    return this.category?.name || 'Todos los productos';
+  }
+
+  get breadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: 'Inicio', link: '/' },
+      { label: this.category?.name || 'Productos' }
+    ];
   }
 
   get filteredProducts(): Product[] {
@@ -37,9 +48,31 @@ export class HomeComponent implements OnInit {
     return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly catalogService: CatalogService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
-    this.catalogService.getProducts().subscribe({
-      next: products => {
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const categoryId = params.get('categoryId');
+        this.searchTerm = '';
+        this.error = false;
+        if (!categoryId) {
+          return this.catalogService.getProducts().pipe(
+            switchMap(products => of({ category: undefined as Category | undefined, products }))
+          );
+        }
+        return forkJoin({
+          category: this.catalogService.getCategoryById(categoryId),
+          products: this.catalogService.getProductsByCategory(categoryId)
+        });
+      })
+    ).subscribe({
+      next: ({ category, products }) => {
+        this.category = category;
         this.products = products;
         this.loading = false;
         this.cdr.markForCheck();

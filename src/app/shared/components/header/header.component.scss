@@ -20,12 +20,15 @@
     display: flex;
     align-items: center;
     gap: v.$space-2;
+    margin-left: 27px;
 
-    .brand-mark {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: v.$color-primary;
-      line-height: 1;
+    .brand-logo {
+      height: 4px;
+      width: 12px;
+      object-fit: cover;
+      border-radius: 999px;
+      flex-shrink: 0;
+      transform: scale(10);
     }
 
     .brand-name {

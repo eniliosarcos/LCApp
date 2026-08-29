@@ -1,5 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { Product } from '../../../core/models/product.model';
@@ -29,14 +30,19 @@ describe('HomeComponent', () => {
   let catalogService: jasmine.SpyObj<CatalogService>;
 
   beforeEach(async () => {
-    catalogService = jasmine.createSpyObj('CatalogService', ['getProducts']);
+    catalogService = jasmine.createSpyObj('CatalogService', ['getProducts', 'getCategoryById', 'getProductsByCategory']);
     catalogService.getProducts.and.returnValue(of([productA, productB]));
+    catalogService.getCategoryById.and.returnValue(of(undefined));
+    catalogService.getProductsByCategory.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       declarations: [HomeComponent],
       imports: [FormsModule],
       schemas: [NO_ERRORS_SCHEMA],
-      providers: [{ provide: CatalogService, useValue: catalogService }]
+      providers: [
+        { provide: CatalogService, useValue: catalogService },
+        { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);

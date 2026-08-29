@@ -21,6 +21,36 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-08-26 — refactor(ui): unificación home+catalog — sin flash al cambiar categoría
+- **Descripción**: HomeModule y CatalogModule eran módulos lazy separados. Navegar entre `/` y `/catalog/:id` destruía y recreaba todos los componentes (banner, strip, productos), causando flash visual. Fix: (1) `ComponentReuseStrategy` que reutiliza componentes por tipo de clase. (2) Ambas rutas (`/` y `/catalog/:id`) ahora cargan HomeModule/HomeComponent. (3) HomeComponent lee `ActivatedRoute.paramMap` para filtrar por categoría dinámicamente. (4) Rutas reordenadas: producto detail (`:categoryId/product/:productId`) va antes de category para evitar matcheo incorrecto. (5) `shareReplay(1)` en `getCategories()` y `getProducts()` para cache de HTTP calls. (6) Breadcrumbs condicionales solo en vista `/catalog/:id`. (7) Eliminado `ProductListComponent` (código muerto).
+- **Archivos**: `src/app/core/strategies/component-reuse.strategy.ts` (nuevo), `src/app/app-routing.module.ts`, `src/app/home/home-routing.module.ts`, `src/app/catalog/catalog-routing.module.ts`, `src/app/catalog/catalog.module.ts`, `src/app/home/pages/home/home.component.ts`, `src/app/home/pages/home/home.component.html`, `src/app/home/pages/home/home.component.spec.ts`, `src/app/core/services/catalog.service.ts`, `src/app/catalog/pages/product-list/` (eliminado)
+- **Decisión clave**: `ComponentReuseStrategy` compara `future.routeConfig.component === current.routeConfig.component`. Si ambos usan HomeComponent, Angular reutiliza la instancia → sin `:enter` animation → sin flash. Ruta de producto detail mantiene CatalogModule por separado (página completamente diferente).
+
+### 2026-08-24 — feat(ui): logo personalizado en header con zoom
+- **Descripción**: Reemplazado texto "LC" por imagen logo.png en el header. Logo configurado con transform scale(7) para efecto zoom visual, margin-left 27px en brand.
+- **Archivos**: `src/app/shared/components/header/header.component.html`, `src/app/shared/components/header/header.component.scss`, `src/assets/images/logo.png`
+- **Decisión clave**: Logo usa CSS scale(7) sobre un contenedor pequeño (7x22px) para crear efecto de zoom enfocado en el centro de la imagen.
+
+### 2026-08-24 — feat(ui): favicon personalizado 🍒✨
+- **Descripción**: Reemplazado favicon de Angular por SVG custom con cereza y estrellas. Eliminado `favicon.ico` legacy. Fix: `angular.json` no copiaba el SVG al `dist/` porque seguía apuntando a `favicon.ico`.
+- **Archivos**: `src/favicon.svg` (nuevo), `src/favicon.ico` (eliminado), `src/index.html`, `angular.json`
+- **Decisión clave**: SVG en vez de .ico — escalable, nítido en todos los tamaños. `angular.json` assets array debe apuntar al nombre de archivo correcto para que Angular CLI lo copie al build output.
+
+### 2026-08-24 — fix(backend): from.toISOString crash — Date.UTC devuelve number, no Date
+- **Descripción**: `Date.UTC()` retorna un número (epoch ms), no un Date. La línea 290 hacía `from.toISOString()` → `TypeError: from.toISOString is not a function`. Fix: envolver el resultado en `new Date(fromMs)` antes de usarlo en la respuesta JSON.
+- **Archivos**: `backend/routes/orders.js`
+- **Decisión clave**: Separar cálculo numérico (`fromMs`) de la construcción del Date (`new Date(fromMs)`). Esto permite usar el número para comparaciones MongoDB (`$gte: fromMs`) y el Date para serialización JSON (`.toISOString()`).
+
+### 2026-08-24 — fix(backend): timezone bug en summary — signo invertido + startOfMonth sin offset
+- **Descripción**: El fix anterior tenía dos bugs: (1) `+` en vez de `-` en el cálculo de `userNow` (getTimezoneOffset() es positivo para UTC-4, hay que restar). (2) `startOfMonthUTC` no sumaba el offset, resultando en midnight UTC en vez de midnight local. Rewrite completo de las líneas 237-243 con lógica limpia basada en `Date.UTC()` + offset.
+- **Archivos**: `backend/routes/orders.js`
+- **Decisión clave**: Trabajar todo en UTC: restar offset para obtener "user local" como Date, extraer componentes con getFullYear/Month/Date, construir con Date.UTC(), y sumar offset de vuelta para obtener el timestamp UTC correcto.
+
+### 2026-08-24 — fix(backend+ui): timezone bug — fechas de órdenes manuales corregidas en lista de ventas
+- **Descripción**: Las órdenes manuales se guardaban con fecha date-only (`"2026-08-24"`) → `new Date()` en UTC → medianoche UTC → 8pm del día anterior en Venezuela (UTC-4). Fix: (1) Frontend envía `saleDate` como ISO 8601 con offset de timezone (ej: `"2026-08-24T00:00:00.000-04:00"`). (2) Backend summary acepta param `offset` (minutos desde UTC) para calcular `startOfDay` en la timezone del usuario. (3) Frontend `OrderService.getSummary()` envía `tzOffset` automáticamente.
+- **Archivos**: `backend/routes/orders.js`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.ts`, `src/app/core/services/order.service.ts`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.spec.ts`
+- **Decisión clave**: `offset` como param query (no en body) porque es un GET. El cálculo `startOfDay` se hace ajustando `Date` local del servidor con el offset del cliente. Independiente de horario de verano.
+
 ### 2026-08-29 — test(frontend+backend): cobertura de pruebas para el flujo de crédito (fiado)
 - **Descripción**: Agregada cobertura de tests para proteger la funcionalidad de crédito contra regresiones. (1) Frontend (`+42` tests, suite pasa de 239 a 281): tests de `OrderService` para `createCreditSale`/`getCreditSales`/`addPayment`; branch `isCredit` del modal de venta (validación nombre/teléfono, registro, mensaje de confirmación); specs nuevos de `CreditDetailComponent` (carga, 404 vs error genérico, saldo pendiente con redondeo, validación de abono, transición a paid) y `CreditSalesComponent` (filtros, búsqueda, validaciones de paginación `pageNumbers` con elipsis, `rangeLabel`, recorte de página fuera de rango, navegación a detalle). (2) Backend: primera suite de tests (`node --test`, 18 tests) con mocks de `Order`/`Product`/`auth`/`logger` — valida todos los 400s de `POST /credit` (nombre, teléfono, items, producto inactivo, cantidad, stock sumado por duplicados, precio), descuento de stock, filtros/listado/`totalPending` de `GET /credit`, y validaciones + transiciones (partial/paid) de `POST /:id/payments`.
 - **Archivos**: `backend/test/helpers.js` (nuevo), `backend/test/orders.credit.test.js` (nuevo), `backend/package.json` (script `test`), `src/app/core/services/order.service.spec.ts`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.spec.ts`, `src/app/admin/pages/credit-detail/credit-detail.component.spec.ts` (nuevo), `src/app/admin/pages/credit-sales/credit-sales.component.spec.ts` (nuevo)

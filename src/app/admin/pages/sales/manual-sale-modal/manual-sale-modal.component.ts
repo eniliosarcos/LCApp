@@ -177,7 +177,7 @@ export class ManualSaleModalComponent implements OnInit {
       const request: CreateManualOrderRequest = {
         customerName: this.customerName.trim() || undefined,
         customerPhone: this.customerPhone.trim() || undefined,
-        saleDate: this.saleDate || undefined,
+        saleDate: this.saleDate ? this.toISOWithOffset(this.saleDate) : undefined,
         items,
       };
       this.orderService.createManualOrder(request).subscribe({
@@ -292,6 +292,17 @@ export class ManualSaleModalComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private toISOWithOffset(dateStr: string): string {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day, 0, 0, 0);
+    const offset = -d.getTimezoneOffset();
+    const sign = offset >= 0 ? '+' : '-';
+    const absOffset = Math.abs(offset);
+    const hh = String(Math.floor(absOffset / 60)).padStart(2, '0');
+    const mm = String(absOffset % 60).padStart(2, '0');
+    return `${dateStr}T00:00:00.000${sign}${hh}:${mm}`;
   }
 
   private formatDate(date: string): string {
