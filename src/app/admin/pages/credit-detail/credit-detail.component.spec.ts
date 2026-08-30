@@ -50,7 +50,7 @@ describe('CreditDetailComponent', () => {
     }).compileComponents();
   });
 
-  it('carga el fiado por código y muestra sus datos', () => {
+  it('carga el crédito por código y muestra sus datos', () => {
     orderServiceSpy.getOrderByCode.and.returnValue(of(order));
     createComponent();
 
@@ -64,14 +64,14 @@ describe('CreditDetailComponent', () => {
     expect(text).toContain('Abono');
   });
 
-  it('muestra "Fiado no encontrado." si el endpoint devuelve 404', () => {
-    const notFound = new Error('Fiado no encontrado') as Error & { status?: number };
+  it('muestra "Crédito no encontrado." si el endpoint devuelve 404', () => {
+    const notFound = new Error('Crédito no encontrado') as Error & { status?: number };
     notFound.status = 404;
     orderServiceSpy.getOrderByCode.and.returnValue(throwError(() => notFound));
     createComponent();
 
-    expect(component.errorMessage).toBe('Fiado no encontrado.');
-    expect(fixture.nativeElement.textContent).toContain('Fiado no encontrado.');
+    expect(component.errorMessage).toBe('Crédito no encontrado.');
+    expect(fixture.nativeElement.textContent).toContain('Crédito no encontrado.');
   });
 
   it('muestra el mensaje del error genérico si la carga falla', () => {
@@ -89,7 +89,7 @@ describe('CreditDetailComponent', () => {
     expect(component.maxPayment).toBe(0.05);
   });
 
-  it('oculta el formulario de abono cuando el fiado está pagado', () => {
+  it('oculta el formulario de abono cuando el crédito está pagado', () => {
     orderServiceSpy.getOrderByCode.and.returnValue(of({ ...order, paymentStatus: 'paid', amountPaid: 100 }));
     createComponent();
 
@@ -161,7 +161,7 @@ describe('CreditDetailComponent', () => {
     expect(backLink.getAttribute('href')).toContain('/admin/credit');
 
     const breadcrumb = fixture.nativeElement.querySelector('.breadcrumb');
-    expect(breadcrumb.textContent).toContain('Fiados');
+    expect(breadcrumb.textContent).toContain('Créditos');
     expect(breadcrumb.textContent).toContain('FIA-AB12C');
   });
 });

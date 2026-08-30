@@ -91,7 +91,7 @@ export class CreditSalesComponent implements OnInit {
 
   get rangeLabel(): string {
     if (this.total === 0) {
-      return '0 fiados';
+      return '0 créditos';
     }
     const from = (this.page - 1) * this.pageSize + 1;
     const to = Math.min(this.page * this.pageSize, this.total);

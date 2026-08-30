@@ -1,6 +1,6 @@
 <section class="credit-detail">
   <nav class="breadcrumb" aria-label="Ruta de navegacion">
-    <a routerLink="/admin/credit">Fiados</a>
+    <a routerLink="/admin/credit">Créditos</a>
     <span class="sep" aria-hidden="true">&#8250;</span>
     <span class="current" aria-current="page">{{ order ? order.code : 'Detalle' }}</span>
   </nav>
@@ -9,11 +9,11 @@
     <a
       routerLink="/admin/credit"
       class="back-btn"
-      [attr.aria-label]="'Volver a la lista de fiados'">
-      <span aria-hidden="true">&#8249;</span> Volver a Fiados
+      [attr.aria-label]="'Volver a la lista de créditos'">
+      <span aria-hidden="true">&#8249;</span> Volver a Créditos
     </a>
     <h1>
-      Fiado <span class="code">{{ orderCode }}</span>
+      Crédito <span class="code">{{ orderCode }}</span>
       <span class="status" *ngIf="order" [ngClass]="order.paymentStatus">{{ paymentStatusLabel(order.paymentStatus) }}</span>
     </h1>
   </div>
@@ -21,7 +21,7 @@
   <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <p class="error" *ngIf="actionError">{{ actionError }}</p>
   <div class="loading-region" *ngIf="loading">
-    <app-loading-spinner label="Cargando fiado\u2026"></app-loading-spinner>
+    <app-loading-spinner label="Cargando crédito…"></app-loading-spinner>
   </div>
 
   <ng-container *ngIf="order && !loading">

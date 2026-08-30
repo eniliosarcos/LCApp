@@ -106,7 +106,7 @@ export class CreditDetailComponent implements OnInit {
       error: (err: Error) => {
         this.loading = false;
         const status = (err as Error & { status?: number }).status;
-        this.errorMessage = status === 404 ? 'Fiado no encontrado.' : err.message;
+        this.errorMessage = status === 404 ? 'Crédito no encontrado.' : err.message;
         this.cdr.markForCheck();
       }
     });

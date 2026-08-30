@@ -114,7 +114,7 @@ describe('CreditSalesComponent', () => {
     expect(orderServiceSpy.getCreditSales).toHaveBeenCalled();
   });
 
-  it('navega al detalle del fiado', () => {
+  it('navega al detalle del crédito', () => {
     const router = TestBed.inject(Router);
     const navigateSpy = spyOn(router, 'navigate');
     orderServiceSpy.getCreditSales.and.returnValue(of(pageResult([order], 1, 1)));
@@ -157,12 +157,12 @@ describe('CreditSalesComponent', () => {
     expect(component.pageNumbers).toEqual([1, '...', 9, 10]);
   });
 
-  it('rangeLabel devuelve "0 fiados" si no hay filas', () => {
+  it('rangeLabel devuelve "0 créditos" si no hay filas', () => {
     orderServiceSpy.getCreditSales.and.returnValue(of(pageResult([], 0, 0)));
     createComponent();
     component.total = 0;
     component.page = 1;
-    expect(component.rangeLabel).toBe('0 fiados');
+    expect(component.rangeLabel).toBe('0 créditos');
   });
 
   it('rangeLabel muestra el rango visible', () => {

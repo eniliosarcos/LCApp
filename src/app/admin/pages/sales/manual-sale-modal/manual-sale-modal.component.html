@@ -13,7 +13,7 @@
       </label>
       <label class="toggle-option" [class.active]="isCredit">
         <input type="radio" name="saleType" [value]="true" [(ngModel)]="isCredit">
-        Venta a crédito (fiado)
+        Venta a crédito
       </label>
     </div>
 
@@ -110,7 +110,7 @@
       <button
         type="submit"
         class="btn-primary"
-        [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : (isCredit ? 'Registrar fiado' : 'Registrar venta') }}</button>
+        [disabled]="saving || confirming || !hasCompleteLines">{{ saving ? 'Guardando…' : (isCredit ? 'Registrar crédito' : 'Registrar venta') }}</button>
     </div>
   </form>
 
@@ -127,9 +127,9 @@
 
   <app-confirm-dialog
     [open]="confirming"
-    [title]="isCredit ? 'Registrar fiado' : 'Registrar venta'"
+    [title]="isCredit ? 'Registrar crédito' : 'Registrar venta'"
     [message]="confirmMessage()"
-    [confirmLabel]="isCredit ? 'Sí, registrar fiado' : 'Sí, registrar'"
+    [confirmLabel]="isCredit ? 'Sí, registrar crédito' : 'Sí, registrar'"
     [cancelLabel]="'Revisar'"
     [variant]="'confirm'"
     (confirmed)="runConfirm()"

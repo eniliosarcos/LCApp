@@ -1,5 +1,5 @@
 <section class="credit-sales">
-  <h1>Fiados</h1>
+  <h1>Créditos</h1>
 
   <div class="pending-summary" *ngIf="!loading && totalPending > 0">
     <span class="pending-label">Pendiente de cobro</span>
@@ -13,17 +13,17 @@
       type="search"
       id="credit-search"
       class="filter search-input"
-      placeholder="Buscar por nombre o c\u00f3digo\u2026"
+      placeholder="Buscar por nombre o código…"
       [ngModel]="searchTerm"
       (ngModelChange)="onSearchInput($event)"
-      [attr.aria-label]="'Buscar fiados por nombre o c\u00f3digo'">
+      [attr.aria-label]="'Buscar créditos por nombre o código'">
     <label class="filter-label" for="status-filter">Estado:</label>
     <select
       id="status-filter"
       class="filter"
       [ngModel]="statusFilter"
       (ngModelChange)="onFilterChange($event)"
-      [attr.aria-label]="'Filtrar fiados por estado de pago'">
+      [attr.aria-label]="'Filtrar créditos por estado de pago'">
       <option value="all">Todos</option>
       <option value="unpaid">Sin pagar</option>
       <option value="partial">Parcial</option>
@@ -32,16 +32,16 @@
   </div>
 
   <div class="loading-region" *ngIf="loading">
-    <app-loading-spinner label="Cargando fiados\u2026"></app-loading-spinner>
+    <app-loading-spinner label="Cargando créditos…"></app-loading-spinner>
   </div>
 
   <div class="table-scroll" *ngIf="!loading && orders.length > 0; else noOrders">
     <table class="credit-table">
       <thead>
         <tr>
-          <th>C\u00f3digo</th>
+          <th>Código</th>
           <th>Cliente</th>
-          <th>Tel\u00e9fono</th>
+          <th>Teléfono</th>
           <th>Total</th>
           <th>Pagado</th>
           <th>Pendiente</th>
@@ -75,17 +75,17 @@
   </div>
   <ng-template #noOrders>
     <p class="empty" *ngIf="!loading">
-      A\u00fan no hay fiados{{ statusFilter !== 'all' ? ' con ese estado' : '' }}{{ searchTerm ? ' con esos criterios' : '' }}.
+      Aún no hay créditos{{ statusFilter !== 'all' ? ' con ese estado' : '' }}{{ searchTerm ? ' con esos criterios' : '' }}.
     </p>
   </ng-template>
 
-  <nav class="pagination" *ngIf="!loading && totalPages > 1" aria-label="Paginaci\u00f3n de fiados">
+  <nav class="pagination" *ngIf="!loading && totalPages > 1" aria-label="Paginación de créditos">
     <button
       type="button"
       class="page-btn"
       (click)="previousPage()"
       [disabled]="page <= 1"
-      [attr.aria-label]="'P\u00e1gina anterior'">&#8249;</button>
+      [attr.aria-label]="'Página anterior'">&#8249;</button>
     <button
       *ngFor="let pageNumber of pageNumbers"
       type="button"
@@ -98,7 +98,7 @@
       class="page-btn"
       (click)="nextPage()"
       [disabled]="page >= totalPages"
-      [attr.aria-label]="'P\u00e1gina siguiente'">&#8250;</button>
+      [attr.aria-label]="'Página siguiente'">&#8250;</button>
     <span class="range" aria-live="polite">{{ rangeLabel }}</span>
   </nav>
 </section>

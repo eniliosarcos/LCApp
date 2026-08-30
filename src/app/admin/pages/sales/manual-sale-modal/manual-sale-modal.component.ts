@@ -164,7 +164,7 @@ export class ManualSaleModalComponent implements OnInit {
       this.orderService.createCreditSale(request).subscribe({
         next: order => {
           this.saving = false;
-          this.snackbar.show(`Fiado ${order.code} registrado`, 'success');
+          this.snackbar.show(`Crédito ${order.code} registrado`, 'success');
           this.saved.emit();
           this.cdr.markForCheck();
         },
@@ -209,7 +209,7 @@ export class ManualSaleModalComponent implements OnInit {
     const customer = this.customerName.trim() || 'Cliente de mostrador';
     const itemsCount = this.lines.filter(line => line.productId && Number(line.quantity) > 0).length;
     const dateLabel = this.saleDate ? this.formatDate(this.saleDate) : this.formatDate(this.todayString());
-    const type = this.isCredit ? 'fiado' : 'venta';
+    const type = this.isCredit ? 'crédito' : 'venta';
     const extra = this.isCredit ? ' · El cliente pagará después' : '';
     return `Cliente: ${customer} · ${dateLabel} · ${itemsCount} producto(s) · Total: ${this.formatCurrency(this.total)}. ¿Confirmar el ${type}?${extra} El stock se descontará.`;
   }

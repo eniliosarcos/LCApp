@@ -288,7 +288,7 @@ describe('ManualSaleModalComponent', () => {
     expect(orderServiceSpy.createCreditSale).not.toHaveBeenCalled();
   });
 
-  it('modo crédito: registra el fiado al confirmar con nombre y teléfono', () => {
+  it('modo crédito: registra el crédito al confirmar con nombre y teléfono', () => {
     catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', { price: 50 })]));
     orderServiceSpy.createCreditSale.and.returnValue(of({ code: 'FIA-AB12C' } as Order));
     createComponent();
@@ -309,7 +309,7 @@ describe('ManualSaleModalComponent', () => {
       customerPhone: '12345678',
       items: [{ productId: 'p1', quantity: 3, price: 45 }]
     });
-    expect(snackbarSpy.show).toHaveBeenCalledWith('Fiado FIA-AB12C registrado', 'success');
+    expect(snackbarSpy.show).toHaveBeenCalledWith('Crédito FIA-AB12C registrado', 'success');
     expect(savedSpy).toHaveBeenCalled();
     expect(component.saving).toBeFalse();
   });
@@ -330,7 +330,7 @@ describe('ManualSaleModalComponent', () => {
     expect(component.showError).toBeTrue();
   });
 
-  it('modo crédito: el mensaje de confirmación menciona fiado y pago posterior', () => {
+  it('modo crédito: el mensaje de confirmación menciona crédito y pago posterior', () => {
     catalogServiceSpy.getAllProducts.and.returnValue(of([product('p1', { price: 50 })]));
     createComponent();
 
@@ -340,7 +340,7 @@ describe('ManualSaleModalComponent', () => {
     component.lines[0].quantity = 2;
 
     const message = component.confirmMessage();
-    expect(message).toContain('fiado');
+    expect(message).toContain('crédito');
     expect(message).toContain('El cliente pagará después');
   });
 });
