@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-09-01 — feat(ui): scroll al inicio al seleccionar categoría en la cinta
+- **Descripción**: Al hacer click en cualquier chip de la cinta de categorías (`app-category-strip`), la página ahora hace scroll suave al inicio (`window.scrollTo({ top: 0, behavior: 'smooth' })`). Aplica también cuando se selecciona la categoría ya activa (antes no hacía nada). Si el usuario tiene `prefers-reduced-motion`, el scroll es instantáneo (patrón accesible ya usado en el proyecto). El scroll se dispara antes de `router.navigate`, por lo que funciona con la navegación home/catalog reutilizada por `ComponentReuseStrategy`. Flechas laterales de la cinta (`scrollStrip`) no se ven afectadas (solo scroll horizontal del strip).
+- **Archivos**: `src/app/shared/components/category-strip/category-strip.component.ts`, `src/app/shared/components/category-strip/category-strip.component.spec.ts` (nuevo, 3 tests)
+- **Decisión clave**: El scroll ocurre en el componente que provoca la navegación (antes del early-return de categoría ya activa), respetando el estado de reutilización de `ComponentReuseStrategy` — no se necesita scroll restoration global. `behavior` dinámico según `prefers-reduced-motion`. Verificado con `ng test` 276 SUCCESS y `ng build` OK.
+
 ### 2026-08-30 — style(ui): textos de la sección de créditos corregidos y terminología unificada
 - **Descripción**: (1) Fix de escapes Unicode crudos (`\u00f3`, `\u00e9`, `\u00fan`, `\u2026`) que se mostraban literalmente en la interfaz de fiados por caracteres UTF-8 reales — en `credit-sales.component.html` (placeholder del buscador, cabeceras de tabla, empty state, paginación, spinner) y `credit-detail.component.html` (spinner). (2) Renombrado de la terminología visible al usuario de "fiado(s)" a "crédito(s)": sidebar "Créditos", h1, breadcrumbs, botones "Registrar crédito", snackbar "Crédito X registrado", mensaje de error "Crédito no encontrado.", "0 créditos", placeholders y aria-labels.
 - **Archivos**: `src/app/admin/layout/admin-layout.component.html`, `src/app/admin/pages/credit-sales/credit-sales.component.{html,ts,spec.ts}`, `src/app/admin/pages/credit-detail/credit-detail.component.{html,ts,spec.ts}`, `src/app/admin/pages/sales/manual-sale-modal/manual-sale-modal.component.{html,ts,spec.ts}`

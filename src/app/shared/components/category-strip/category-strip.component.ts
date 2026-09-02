@@ -72,12 +72,18 @@ export class CategoryStripComponent implements OnInit, AfterViewChecked, OnDestr
   }
 
   selectCategory(categoryId: string): void {
+    this.scrollToPageTop();
     if (this.selectedCategoryId === categoryId) {
       return;
     }
     this.selectedCategoryId = categoryId;
     this.scrollToActive();
     this.router.navigate(categoryId ? ['/catalog', categoryId] : ['/']);
+  }
+
+  private scrollToPageTop(): void {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
   }
 
   categoryTrackBy(_index: number, category: Category): string {
