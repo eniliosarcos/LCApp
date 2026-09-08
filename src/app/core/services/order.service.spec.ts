@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AddPaymentRequest, CreateCreditSaleRequest, CreateManualOrderRequest, CreditSalePage, Order, OrderSummary } from '../models/order.model';
+import { AddPaymentRequest, CreateCreditSaleRequest, CreateManualOrderRequest, CreditSalePage, Order, OrderSummary, UpdateCreditTotalRequest } from '../models/order.model';
 import { OrderService } from './order.service';
 
 describe('OrderService', () => {
@@ -126,5 +126,18 @@ describe('OrderService', () => {
     req.flush({ id: 'o1', amountPaid: 25, paymentStatus: 'partial' } as Order);
 
     expect(result).toEqual({ id: 'o1', amountPaid: 25, paymentStatus: 'partial' } as Order);
+  });
+
+  it('updateCreditTotal() hace PATCH /api/orders/:id/total con el payload', () => {
+    const request: UpdateCreditTotalRequest = { total: 20 };
+
+    let result!: Order;
+    service.updateCreditTotal('o1', request).subscribe(value => (result = value));
+
+    const req = httpMock.expectOne(r => r.method === 'PATCH' && r.url.endsWith('/api/orders/o1/total'));
+    expect(req.request.body).toEqual(request);
+    req.flush({ id: 'o1', total: 20, amountPaid: 0, paymentStatus: 'unpaid' } as Order);
+
+    expect(result).toEqual({ id: 'o1', total: 20, amountPaid: 0, paymentStatus: 'unpaid' } as Order);
   });
 });

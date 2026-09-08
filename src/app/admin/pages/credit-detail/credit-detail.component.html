@@ -85,6 +85,55 @@
       </div>
     </div>
 
+    <div class="card total-edit" *ngIf="canEditTotal">
+      <h2>Corregir total</h2>
+      <ng-container *ngIf="!totalEditorOpen; else totalEditor">
+        <p class="total-current">
+          Registrado: <strong>{{ order.total | currency }}</strong> ·
+          Pendiente: <strong>{{ remaining | currency }}</strong>
+        </p>
+        <button
+          type="button"
+          class="action outline"
+          (click)="openTotalEditor()"
+          [attr.aria-label]="'Corregir el total del crédito'">
+          Corregir total
+        </button>
+      </ng-container>
+      <ng-template #totalEditor>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="total-edit">Nuevo total (mínimo: {{ order.amountPaid | currency }} ya abonado)</label>
+            <input
+              type="number"
+              id="total-edit"
+              class="form-input"
+              [(ngModel)]="editedTotal"
+              [min]="order.amountPaid"
+              [step]="0.01"
+              placeholder="0.00"
+              [attr.aria-label]="'Nuevo total del crédito'">
+          </div>
+          <button
+            type="button"
+            class="action confirm"
+            (click)="submitTotalEdit()"
+            [disabled]="!editedTotal || editedTotal <= 0 || editedTotal < order.amountPaid || savingTotal"
+            [attr.aria-label]="'Guardar el nuevo total'">
+            {{ savingTotal ? 'Guardando\u2026' : 'Guardar total' }}
+          </button>
+          <button
+            type="button"
+            class="action cancel"
+            (click)="closeTotalEditor()"
+            [disabled]="savingTotal"
+            [attr.aria-label]="'Cancelar la corrección del total'">
+            Cancelar
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
     <div class="card payments" *ngIf="order.payments.length > 0">
       <h2>Historial de pagos</h2>
       <div class="table-scroll">

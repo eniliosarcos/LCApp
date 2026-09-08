@@ -137,67 +137,105 @@
   }
 }
 
+.total-edit {
+  h2 {
+    margin: 0 0 v.$space-3;
+    font-size: 1.1rem;
+  }
+
+  .total-current {
+    margin: 0 0 v.$space-3;
+    font-size: 0.95rem;
+
+    strong {
+      color: v.$color-warning;
+    }
+  }
+}
+
 .payment-form {
   h2 {
     margin: 0 0 v.$space-4;
     font-size: 1.1rem;
   }
+}
 
-  .form-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: v.$space-3;
-  }
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: v.$space-3;
+}
 
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: v.$space-1;
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-1;
 
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: v.$color-text-muted;
-    }
-  }
-
-  .form-input {
-    padding: v.$space-2 v.$space-3;
-    border: 1px solid v.$color-border;
-    border-radius: v.$radius-sm;
-    font-family: inherit;
-    font-size: 0.95rem;
-    min-width: 160px;
-
-    &:focus {
-      outline: 2px solid v.$color-primary;
-      outline-offset: 1px;
-    }
-  }
-
-  .action {
-    padding: v.$space-2 v.$space-5;
-    border: none;
-    border-radius: v.$radius-sm;
-    font-family: inherit;
-    font-size: 0.95rem;
+  label {
+    font-size: 0.85rem;
     font-weight: 600;
-    cursor: pointer;
+    color: v.$color-text-muted;
+  }
+}
 
-    &.confirm {
-      background: v.$color-success;
+.form-input {
+  padding: v.$space-2 v.$space-3;
+  border: 1px solid v.$color-border;
+  border-radius: v.$radius-sm;
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-width: 160px;
+
+  &:focus {
+    outline: 2px solid v.$color-primary;
+    outline-offset: 1px;
+  }
+}
+
+.action {
+  padding: v.$space-2 v.$space-5;
+  border: none;
+  border-radius: v.$radius-sm;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.confirm {
+    background: v.$color-success;
+    color: v.$color-surface;
+
+    &:hover:not(:disabled) {
+      background: v.$color-success-hover;
+    }
+  }
+
+  &.outline {
+    background: v.$color-surface;
+    color: v.$color-primary;
+    border: 1px solid v.$color-primary;
+
+    &:hover:not(:disabled) {
+      background: v.$color-primary;
       color: v.$color-surface;
-
-      &:hover:not(:disabled) {
-        background: v.$color-success-hover;
-      }
     }
+  }
 
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
+  &.cancel {
+    background: v.$color-surface;
+    color: v.$color-text;
+    border: 1px solid v.$color-border;
+
+    &:hover:not(:disabled) {
+      border-color: v.$color-danger;
+      color: v.$color-danger;
     }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }
 

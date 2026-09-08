@@ -38,7 +38,7 @@ describe('CreditDetailComponent', () => {
   }
 
   beforeEach(async () => {
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderByCode', 'addPayment']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderByCode', 'addPayment', 'updateCreditTotal']);
 
     await TestBed.configureTestingModule({
       declarations: [CreditDetailComponent, AppLoadingSpinnerComponent],
@@ -163,5 +163,88 @@ describe('CreditDetailComponent', () => {
     const breadcrumb = fixture.nativeElement.querySelector('.breadcrumb');
     expect(breadcrumb.textContent).toContain('Créditos');
     expect(breadcrumb.textContent).toContain('FIA-AB12C');
+  });
+
+  it('oculta el editor de corrección de total cuando el crédito está pagado', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of({ ...order, paymentStatus: 'paid', amountPaid: 100 }));
+    createComponent();
+
+    expect(component.canEditTotal).toBeFalse();
+    expect(fixture.nativeElement.querySelector('.total-edit')).toBeNull();
+  });
+
+  it('abre el editor de total con el total actual precargado', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    createComponent();
+
+    component.openTotalEditor();
+
+    expect(component.totalEditorOpen).toBeTrue();
+    expect(component.editedTotal).toBe(100);
+  });
+
+  it('corrige el total, actualiza la orden y cierra el editor', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    orderServiceSpy.updateCreditTotal.and.returnValue(of({ ...order, total: 60, paymentStatus: 'partial' }));
+    createComponent();
+
+    component.editedTotal = 60;
+    component.submitTotalEdit();
+
+    expect(orderServiceSpy.updateCreditTotal).toHaveBeenCalledWith('o1', { total: 60 });
+    expect(component.order?.total).toBe(60);
+    expect(component.order?.paymentStatus).toBe('partial');
+    expect(component.totalEditorOpen).toBeFalse();
+    expect(component.savingTotal).toBeFalse();
+  });
+
+  it('corrige de 27 a 20 el total de un crédito sin abonos y recalcula el pendiente', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of({ ...order, total: 27, amountPaid: 0, paymentStatus: 'unpaid' }));
+    orderServiceSpy.updateCreditTotal.and.returnValue(of({ ...order, total: 20, amountPaid: 0, paymentStatus: 'unpaid' }));
+    createComponent();
+
+    component.editedTotal = 20;
+    component.submitTotalEdit();
+
+    expect(orderServiceSpy.updateCreditTotal).toHaveBeenCalledWith('o1', { total: 20 });
+    expect(component.remaining).toBe(20);
+  });
+
+  it('rechaza guardar un total menor a lo ya abonado', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order)); // amountPaid 30
+    createComponent();
+
+    component.editedTotal = 20;
+    component.submitTotalEdit();
+
+    expect(orderServiceSpy.updateCreditTotal).not.toHaveBeenCalled();
+    expect(component.actionError).toContain('no puede ser menor a lo ya abonado');
+  });
+
+  it('ignora el submit si el total no es válido', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    createComponent();
+
+    component.editedTotal = null;
+    component.submitTotalEdit();
+    expect(orderServiceSpy.updateCreditTotal).not.toHaveBeenCalled();
+
+    component.editedTotal = 0;
+    component.submitTotalEdit();
+    expect(orderServiceSpy.updateCreditTotal).not.toHaveBeenCalled();
+  });
+
+  it('muestra el error del backend al corregir el total', () => {
+    orderServiceSpy.getOrderByCode.and.returnValue(of(order));
+    orderServiceSpy.updateCreditTotal.and.returnValue(throwError(() => new Error('boom total')));
+    createComponent();
+
+    component.editedTotal = 60;
+    component.submitTotalEdit();
+    fixture.detectChanges();
+
+    expect(component.actionError).toBe('boom total');
+    expect(component.savingTotal).toBeFalse();
+    expect(fixture.nativeElement.textContent).toContain('boom total');
   });
 });

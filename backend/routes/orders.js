@@ -353,6 +353,40 @@ router.post('/:id/payments', authenticate, async (req, res) => {
   }
 });
 
+// PATCH /api/orders/:id/total — Corregir el total de un fiado (no toca items ni stock)
+router.patch('/:id/total', authenticate, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (order.source !== 'fiado') {
+      return res.status(400).json({ error: 'Esta orden no es un fiado' });
+    }
+
+    const numTotal = Number(req.body?.total);
+    if (!Number.isFinite(numTotal) || numTotal <= 0) {
+      return res.status(400).json({ error: 'El total debe ser un número mayor a 0' });
+    }
+    if (numTotal + 0.001 < order.amountPaid) {
+      return res.status(400).json({
+        error: `El total no puede ser menor a lo ya abonado de $${order.amountPaid.toFixed(2)}`,
+      });
+    }
+
+    order.total = Math.round(numTotal * 100) / 100;
+    order.paymentStatus = order.total <= order.amountPaid + 0.001 ? 'paid' : order.amountPaid > 0 ? 'partial' : 'unpaid';
+    await order.save();
+
+    logger.info(
+      { code: order.code, total: order.total, remaining: order.total - order.amountPaid },
+      'Credit total corrected'
+    );
+    res.json(order);
+  } catch (err) {
+    logger.error({ err, route: 'PATCH /api/orders/:id/total' }, 'Failed to correct credit total');
+    res.status(500).json({ error: 'Error al corregir el total del fiado' });
+  }
+});
+
 // GET /api/orders/stats — Resumen de ventas (admin)
 router.get('/stats', authenticate, async (req, res) => {
   try {

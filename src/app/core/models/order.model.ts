@@ -68,6 +68,10 @@ export interface AddPaymentRequest {
   note?: string;
 }
 
+export interface UpdateCreditTotalRequest {
+  total: number;
+}
+
 export interface OrderStats {
   totalOrders: number;
   pendingOrders: number;

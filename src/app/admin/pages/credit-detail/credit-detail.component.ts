@@ -17,6 +17,9 @@ export class CreditDetailComponent implements OnInit {
   paymentAmount: number | null = null;
   paymentNote = '';
   submitting = false;
+  totalEditorOpen = false;
+  editedTotal: number | null = null;
+  savingTotal = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -45,6 +48,10 @@ export class CreditDetailComponent implements OnInit {
   }
 
   get canPay(): boolean {
+    return !!this.order && this.order.paymentStatus !== 'paid';
+  }
+
+  get canEditTotal(): boolean {
     return !!this.order && this.order.paymentStatus !== 'paid';
   }
 
@@ -89,6 +96,46 @@ export class CreditDetailComponent implements OnInit {
       error: (err: Error) => {
         this.actionError = err.message;
         this.submitting = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  openTotalEditor(): void {
+    this.totalEditorOpen = true;
+    this.editedTotal = this.order ? this.order.total : null;
+    this.actionError = '';
+    this.cdr.markForCheck();
+  }
+
+  closeTotalEditor(): void {
+    this.totalEditorOpen = false;
+    this.editedTotal = null;
+    this.actionError = '';
+    this.cdr.markForCheck();
+  }
+
+  submitTotalEdit(): void {
+    if (!this.order || this.editedTotal === null || !Number.isFinite(this.editedTotal) || this.editedTotal <= 0) {
+      return;
+    }
+    if (this.editedTotal < this.order.amountPaid) {
+      this.actionError = `El total no puede ser menor a lo ya abonado de $${this.order.amountPaid.toFixed(2)}`;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.savingTotal = true;
+    this.actionError = '';
+    this.orderService.updateCreditTotal(this.order.id, { total: this.editedTotal }).subscribe({
+      next: (updated) => {
+        this.order = updated;
+        this.savingTotal = false;
+        this.closeTotalEditor();
+        this.cdr.markForCheck();
+      },
+      error: (err: Error) => {
+        this.actionError = err.message;
+        this.savingTotal = false;
         this.cdr.markForCheck();
       }
     });

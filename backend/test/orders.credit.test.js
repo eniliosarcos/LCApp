@@ -303,3 +303,102 @@ test('POST /:id/payments rechaza un fiado ya pagado', async () => {
   assert.equal(res.status, 400);
   assert.match(res.body.error, /ya está completamente pagado/i);
 });
+
+test('PATCH /:id/total corrige el total de un fiado sin abonos', async () => {
+  const order = orderDoc({ total: 27 }); // amountPaid 0, unpaid
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 20 } });
+
+  assert.equal(res.status, 200);
+  assert.equal(order.total, 20);
+  assert.equal(order.paymentStatus, 'unpaid');
+});
+
+test('PATCH /:id/total mantiene partial cuando el total corregido supera lo abonado', async () => {
+  const order = orderDoc({ total: 100, amountPaid: 30, paymentStatus: 'partial' });
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 60 } });
+
+  assert.equal(res.status, 200);
+  assert.equal(order.total, 60);
+  assert.equal(order.paymentStatus, 'partial');
+});
+
+test('PATCH /:id/total pasa a paid si el total queda igual a lo ya abonado', async () => {
+  const order = orderDoc({ total: 100, amountPaid: 30, paymentStatus: 'partial' });
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 30 } });
+
+  assert.equal(res.status, 200);
+  assert.equal(order.total, 30);
+  assert.equal(order.paymentStatus, 'paid');
+});
+
+test('PATCH /:id/total rechaza si la orden no es fiado', async () => {
+  const order = { ...orderDoc(), source: 'web' };
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 20 } });
+
+  assert.equal(res.status, 400);
+  assert.match(res.body.error, /no es un fiado/i);
+});
+
+test('PATCH /:id/total rechaza una orden inexistente con 404', async () => {
+  const Order = { findById: async () => null };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o999/total', { body: { total: 20 } });
+
+  assert.equal(res.status, 404);
+  assert.match(res.body.error, /no encontrada/i);
+});
+
+test('PATCH /:id/total rechaza un total menor a lo ya abonado', async () => {
+  const order = orderDoc({ total: 100, amountPaid: 30, paymentStatus: 'partial' });
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+  const res = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 20 } });
+
+  assert.equal(res.status, 400);
+  assert.match(res.body.error, /no puede ser menor a lo ya abonado/i);
+  assert.match(res.body.error, /30\.00/);
+});
+
+test('PATCH /:id/total rechaza un total inválido (0, negativo o no numérico)', async () => {
+  const order = orderDoc();
+  order.save = async function () {
+    return this;
+  };
+  const Order = { findById: async () => order };
+  const router = loadOrdersRouter({ Order, Product: {} });
+
+  const zero = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 0 } });
+  assert.equal(zero.status, 400);
+  assert.match(zero.body.error, /mayor a 0/i);
+
+  const negative = await callRoute(router, 'PATCH', '/o1/total', { body: { total: -5 } });
+  assert.equal(negative.status, 400);
+  assert.match(negative.body.error, /mayor a 0/i);
+
+  const nan = await callRoute(router, 'PATCH', '/o1/total', { body: { total: 'abc' } });
+  assert.equal(nan.status, 400);
+  assert.match(nan.body.error, /mayor a 0/i);
+});

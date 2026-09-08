@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { AddPaymentRequest, CreateCreditSaleRequest, CreateManualOrderRequest, CreateOrderRequest, CreditSalePage, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange } from '../models/order.model';
+import { AddPaymentRequest, CreateCreditSaleRequest, CreateManualOrderRequest, CreateOrderRequest, CreditSalePage, Order, OrderItem, OrderPage, OrderStats, OrderStatusResponse, OrderSummary, SummaryRange, UpdateCreditTotalRequest } from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -79,6 +79,12 @@ export class OrderService {
 
   addPayment(orderId: string, request: AddPaymentRequest): Observable<Order> {
     return this.http.post<Order>(`${this.apiUrl}/orders/${orderId}/payments`, request).pipe(catchError(this.handleError));
+  }
+
+  updateCreditTotal(orderId: string, request: UpdateCreditTotalRequest): Observable<Order> {
+    return this.http
+      .patch<Order>(`${this.apiUrl}/orders/${orderId}/total`, request)
+      .pipe(catchError(this.handleError));
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
