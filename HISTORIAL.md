@@ -21,6 +21,11 @@ Este archivo es el historial oficial del proyecto. Todo cambio que se realice so
 
 ## Historial
 
+### 2026-09-15 — fix(ui): quitar fila "Envío: Gratis" del resumen del carrito
+- **Descripción**: Se elimina la fila "Envío → Gratis" del resumen del pedido (`CartSummaryComponent`): el envío es gratis y la fila solo generaba ruido visual. Quedan "Productos (N)" y "Total". También se elimina la regla SCSS `.free` que quedaba huérfana (usaba un color hardcodeado #2e7d32, fuera de paleta).
+- **Archivos**: `src/app/cart/components/cart-summary/cart-summary.component.{html,scss}`
+- **Decisión clave**: El envío gratis ya se refleja en el total (Total = Subtotal); la fila era redundante. Verificado: `ng test` 296/296 SUCCESS y `ng build` OK (solo warning de budget preexistente).
+
 ### 2026-09-15 — feat(contact): mensaje de WhatsApp más claro con link al producto
 - **Descripción**: El mensaje prefilled del botón "Consultar por WhatsApp" pasa de una sola línea a un mensaje multilínea más amigable y ordenado: saludo, nombre del producto, precio de venta y **link al producto** para que el admin vea de un vistazo cuál es. El formato lo centraliza el nuevo helper `buildProductWhatsAppMessage({ name, price, url })` de `core/utils/whatsapp.ts` (junto a `format` del precio: `$X.XX`). En el detalle el link es `window.location.href` (la URL actual ya es la del producto); en las tarjetas se arma con `window.location.origin + productLink()`, así el enlace apunta al sitio donde navega el cliente (prod `lessencerise.pages.dev` o local).
 - **Archivos**: `src/app/core/utils/whatsapp.ts` (+`buildProductWhatsAppMessage`, +3 tests), `src/app/catalog/pages/product-detail/product-detail.component.ts` (specs actualizados para verificar nombre+precio+link), `src/app/shared/components/product-card/product-card.component.ts` (spec actualizado), `docs/ARCHITECTURE.md`
