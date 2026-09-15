@@ -78,12 +78,15 @@ describe('ProductDetailComponent', () => {
     expect(currentSnackbar()?.message).toBe('Rosa agregado al carrito.');
   });
 
-  it('muestra el enlace de WhatsApp con el nombre y el precio del producto', () => {
+  it('muestra el enlace de WhatsApp con el nombre, el precio y el link al producto', () => {
     const link = fixture.nativeElement.querySelector('.whatsapp-link') as HTMLAnchorElement;
 
     expect(link).not.toBeNull();
-    const expectedText = encodeURIComponent('Hola! Me interesa el producto: Rosa - $100.00');
-    expect(link.getAttribute('href')).toBe(`https://wa.me/521234567890?text=${expectedText}`);
+    const href = link.getAttribute('href') as string;
+    expect(href).toContain('https://wa.me/521234567890?text=');
+    expect(href).toContain(encodeURIComponent('Producto: Rosa'));
+    expect(href).toContain(encodeURIComponent('Precio: $100.00'));
+    expect(href).toContain(encodeURIComponent(window.location.href));
   });
 
   it('usa el precio con descuento en el mensaje si existe', () => {
@@ -91,7 +94,7 @@ describe('ProductDetailComponent', () => {
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector('.whatsapp-link') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toContain(encodeURIComponent('Rosa - $80.00'));
+    expect(link.getAttribute('href')).toContain(encodeURIComponent('Precio: $80.00'));
   });
 
   it('oculta el enlace de WhatsApp sin número configurado', () => {

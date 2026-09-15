@@ -125,15 +125,18 @@ describe('ProductCardComponent', () => {
     expect(component.isTruncated).toBeFalse();
   });
 
-  it('muestra el enlace de WhatsApp con el nombre y el precio del producto', () => {
+  it('muestra el enlace de WhatsApp con el nombre, el precio y el link del producto', () => {
     createFixture();
     component.whatsapp = '521234567890';
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector('.whatsapp-btn') as HTMLAnchorElement;
     expect(link).not.toBeNull();
-    const expectedText = encodeURIComponent('Hola! Me interesa el producto: Rosa - $100.00');
-    expect(link.getAttribute('href')).toBe(`https://wa.me/521234567890?text=${expectedText}`);
+    const href = link.getAttribute('href') as string;
+    expect(href).toContain('https://wa.me/521234567890?text=');
+    expect(href).toContain(encodeURIComponent('Producto: Rosa'));
+    expect(href).toContain(encodeURIComponent('Precio: $100.00'));
+    expect(href).toContain(encodeURIComponent(window.location.origin + '/catalog/c1/product/p1'));
     expect(link.getAttribute('aria-label')).toBe('Consultar Rosa por WhatsApp');
   });
 

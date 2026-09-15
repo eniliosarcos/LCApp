@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, E
 import { LOW_STOCK_THRESHOLD, Product, ProductImage } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
-import { buildWhatsAppHref } from '../../../core/utils/whatsapp';
+import { buildProductWhatsAppMessage, buildWhatsAppHref } from '../../../core/utils/whatsapp';
 
 @Component({
   selector: 'app-product-card',
@@ -74,7 +74,8 @@ export class ProductCardComponent implements AfterViewInit, OnDestroy {
 
   getWhatsAppHref(): string {
     const price = this.getDisplayPrice();
-    const message = `Hola! Me interesa el producto: ${this.product.name} - $${price.toFixed(2)}`;
+    const url = window.location.origin + this.productLink();
+    const message = buildProductWhatsAppMessage({ name: this.product.name, price, url });
     return buildWhatsAppHref(this.whatsapp ?? '', message);
   }
 

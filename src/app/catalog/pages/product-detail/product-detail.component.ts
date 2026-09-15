@@ -7,7 +7,7 @@ import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ContactService } from '../../../core/services/contact.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
-import { buildWhatsAppHref } from '../../../core/utils/whatsapp';
+import { buildProductWhatsAppMessage, buildWhatsAppHref } from '../../../core/utils/whatsapp';
 
 @Component({
   selector: 'app-product-detail',
@@ -75,7 +75,11 @@ export class ProductDetailComponent implements OnInit {
 
   getWhatsAppHref(): string {
     const price = this.getDisplayPrice();
-    const message = `Hola! Me interesa el producto: ${this.product?.name ?? 'Producto'} - $${price.toFixed(2)}`;
+    const message = buildProductWhatsAppMessage({
+      name: this.product?.name ?? 'Producto',
+      price,
+      url: window.location.href
+    });
     return buildWhatsAppHref(this.whatsapp, message);
   }
 
