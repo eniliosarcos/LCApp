@@ -23,7 +23,7 @@
     </div>
 
     <div class="grid" *ngIf="!error && !loading && filteredProducts.length; else empty">
-      <app-product-card *ngFor="let product of filteredProducts; trackBy: productTrackBy" [product]="product"></app-product-card>
+      <app-product-card *ngFor="let product of filteredProducts; trackBy: productTrackBy" [product]="product" [whatsapp]="whatsapp"></app-product-card>
     </div>
 
     <ng-template #empty>

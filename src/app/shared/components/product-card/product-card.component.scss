@@ -138,9 +138,11 @@
 
   .card-actions {
     padding: 0 v.$space-5 v.$space-5;
+    display: flex;
+    gap: v.$space-2;
 
     button {
-      width: 100%;
+      flex: 1;
       padding: v.$space-2 v.$space-4;
       border: none;
       border-radius: v.$radius-full;
@@ -164,6 +166,23 @@
         &:hover {
           background: v.$color-text-subtle;
         }
+      }
+    }
+
+    .whatsapp-btn {
+      flex-shrink: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: v.$radius-full;
+      background: v.$color-whatsapp;
+      color: v.$color-surface;
+      transition: background 0.3s ease;
+
+      &:hover {
+        background: v.$color-whatsapp-hover;
       }
     }
   }

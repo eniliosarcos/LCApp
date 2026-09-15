@@ -5,7 +5,9 @@ import { Category } from '../../../core/models/category.model';
 import { LOW_STOCK_THRESHOLD, Product } from '../../../core/models/product.model';
 import { CartService } from '../../../core/services/cart.service';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ContactService } from '../../../core/services/contact.service';
 import { SnackbarService } from '../../../core/services/snackbar.service';
+import { buildWhatsAppHref } from '../../../core/utils/whatsapp';
 
 @Component({
   selector: 'app-product-detail',
@@ -19,6 +21,7 @@ export class ProductDetailComponent implements OnInit {
   loadError = false;
   quantity = 1;
   addedToCart = false;
+  whatsapp = '';
   breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Inicio', link: '/' },
     { label: 'Producto', link: '' }
@@ -28,10 +31,14 @@ export class ProductDetailComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly catalogService: CatalogService,
     private readonly cartService: CartService,
-    private readonly snackbarService: SnackbarService
+    private readonly snackbarService: SnackbarService,
+    private readonly contactService: ContactService
   ) {}
 
   ngOnInit(): void {
+    this.contactService.getContact().subscribe(config => {
+      this.whatsapp = config.whatsapp;
+    });
     const productId = this.route.snapshot.paramMap.get('productId');
     const categoryId = this.route.snapshot.paramMap.get('categoryId');
     if (productId) {
@@ -57,6 +64,19 @@ export class ProductDetailComponent implements OnInit {
       return 'low-stock';
     }
     return 'out-of-stock';
+  }
+
+  getDisplayPrice(): number {
+    if (!this.product) {
+      return 0;
+    }
+    return this.product.discountPrice ?? this.product.price;
+  }
+
+  getWhatsAppHref(): string {
+    const price = this.getDisplayPrice();
+    const message = `Hola! Me interesa el producto: ${this.product?.name ?? 'Producto'} - $${price.toFixed(2)}`;
+    return buildWhatsAppHref(this.whatsapp, message);
   }
 
   addToCart(): void {
