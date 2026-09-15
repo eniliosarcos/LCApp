@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ContactService } from '../../../core/services/contact.service';
 import { HomeComponent } from './home.component';
 
 const productA: Product = {
@@ -28,12 +29,15 @@ describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
   let catalogService: jasmine.SpyObj<CatalogService>;
+  let contactService: jasmine.SpyObj<ContactService>;
 
   beforeEach(async () => {
     catalogService = jasmine.createSpyObj('CatalogService', ['getProducts', 'getCategoryById', 'getProductsByCategory']);
     catalogService.getProducts.and.returnValue(of([productA, productB]));
     catalogService.getCategoryById.and.returnValue(of(undefined));
     catalogService.getProductsByCategory.and.returnValue(of([]));
+    contactService = jasmine.createSpyObj('ContactService', ['getContact']);
+    contactService.getContact.and.returnValue(of({ whatsapp: '', whatsappDisplay: '', instagram: '', telegram: '' }));
 
     await TestBed.configureTestingModule({
       declarations: [HomeComponent],
@@ -41,6 +45,7 @@ describe('HomeComponent', () => {
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: CatalogService, useValue: catalogService },
+        { provide: ContactService, useValue: contactService },
         { provide: ActivatedRoute, useValue: { paramMap: of({ get: () => null }) } }
       ]
     }).compileComponents();
@@ -53,6 +58,17 @@ describe('HomeComponent', () => {
   it('carga todos los productos al iniciar', () => {
     expect(catalogService.getProducts).toHaveBeenCalled();
     expect(component.products).toEqual([productA, productB]);
+  });
+
+  it('expone el whatsapp de la config de contacto para las tarjetas', () => {
+    expect(component.whatsapp).toBeUndefined();
+
+    contactService.getContact.and.returnValue(of({ whatsapp: '521234567890', whatsappDisplay: '', instagram: '', telegram: '' }));
+    fixture = TestBed.createComponent(HomeComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.whatsapp).toBe('521234567890');
   });
 
   it('muestra un mensaje cuando no hay productos', () => {

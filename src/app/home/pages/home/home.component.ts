@@ -6,6 +6,7 @@ import { BreadcrumbItem } from '../../../core/models/breadcrumb.model';
 import { Category } from '../../../core/models/category.model';
 import { Product } from '../../../core/models/product.model';
 import { CatalogService } from '../../../core/services/catalog.service';
+import { ContactService } from '../../../core/services/contact.service';
 
 @Component({
   selector: 'app-home',
@@ -19,6 +20,7 @@ export class HomeComponent implements OnInit {
   searchTerm = '';
   loading = true;
   error = false;
+  whatsapp?: string;
 
   get isCatalogView(): boolean {
     return !!this.category;
@@ -51,10 +53,15 @@ export class HomeComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly catalogService: CatalogService,
+    private readonly contactService: ContactService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.contactService.getContact().subscribe(config => {
+      this.whatsapp = config.whatsapp || undefined;
+      this.cdr.markForCheck();
+    });
     this.route.paramMap.pipe(
       switchMap(params => {
         const categoryId = params.get('categoryId');

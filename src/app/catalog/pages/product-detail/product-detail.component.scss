@@ -169,6 +169,26 @@
     opacity: 0.6;
   }
 
+  .whatsapp-link {
+    @extend .full-button;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: v.$space-3;
+    text-decoration: none;
+    background: v.$color-whatsapp;
+    color: v.$color-surface;
+    transition: background a.$duration-fast a.$ease-out, transform a.$duration-fast a.$ease-out;
+
+    &:hover {
+      background: v.$color-whatsapp-hover;
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
   .feedback {
     color: v.$color-success;
     font-weight: 600;

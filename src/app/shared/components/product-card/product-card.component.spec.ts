@@ -124,4 +124,33 @@ describe('ProductCardComponent', () => {
     createFixture({ description: 'Corta' });
     expect(component.isTruncated).toBeFalse();
   });
+
+  it('muestra el enlace de WhatsApp con el nombre, el precio y el link del producto', () => {
+    createFixture();
+    component.whatsapp = '521234567890';
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector('.whatsapp-btn') as HTMLAnchorElement;
+    expect(link).not.toBeNull();
+    const href = link.getAttribute('href') as string;
+    expect(href).toContain('https://wa.me/521234567890?text=');
+    expect(href).toContain(encodeURIComponent('Producto: Rosa'));
+    expect(href).toContain(encodeURIComponent('Precio: $100.00'));
+    expect(href).toContain(encodeURIComponent(window.location.origin + '/catalog/c1/product/p1'));
+    expect(link.getAttribute('aria-label')).toBe('Consultar Rosa por WhatsApp');
+  });
+
+  it('oculta el enlace de WhatsApp sin número configurado', () => {
+    createFixture();
+
+    expect(fixture.nativeElement.querySelector('.whatsapp-btn')).toBeNull();
+  });
+
+  it('muestra el enlace de WhatsApp aunque el producto esté agotado', () => {
+    createFixture({ stock: 0 });
+    component.whatsapp = '521234567890';
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.whatsapp-btn')).not.toBeNull();
+  });
 });
