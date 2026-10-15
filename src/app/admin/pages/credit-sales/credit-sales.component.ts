@@ -2,6 +2,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { Router } from '@angular/router';
 import { Order, CreditSalePage, PaymentStatus } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
+import {
+  orderTrackBy as adminOrderTrackBy,
+  paymentStatusLabel as adminPaymentStatusLabel,
+  remainingOf
+} from '../../shared/admin-utils';
 
 const PAGE_SIZE = 10;
 
@@ -33,9 +38,7 @@ export class CreditSalesComponent implements OnInit {
     this.loadCreditSales();
   }
 
-  orderTrackBy(_index: number, order: Order): string {
-    return order.id;
-  }
+  readonly orderTrackBy = adminOrderTrackBy;
 
   goToDetail(order: Order): void {
     this.router.navigate(['/admin/credit/detail', order.code]);
@@ -98,18 +101,9 @@ export class CreditSalesComponent implements OnInit {
     return `${from}\u2013${to} de ${this.total}`;
   }
 
-  remaining(order: Order): number {
-    return Math.round((order.total - order.amountPaid) * 100) / 100;
-  }
+  readonly remaining = remainingOf;
 
-  paymentStatusLabel(status: PaymentStatus): string {
-    switch (status) {
-      case 'unpaid': return 'Sin pagar';
-      case 'partial': return 'Parcial';
-      case 'paid': return 'Pagado';
-      default: return status;
-    }
-  }
+  readonly paymentStatusLabel = adminPaymentStatusLabel;
 
   private loadCreditSales(): void {
     this.loading = true;

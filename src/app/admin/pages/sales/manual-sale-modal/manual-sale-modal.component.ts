@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, LOCALE_ID, OnInit, Output } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { CreateCreditSaleRequest, CreateManualOrderRequest } from '../../../../core/models/order.model';
 import { Product } from '../../../../core/models/product.model';
 import { CatalogService } from '../../../../core/services/catalog.service';
@@ -47,12 +48,17 @@ export class ManualSaleModalComponent implements OnInit {
     return this.wasOpen;
   }
 
+  private readonly currencyPipe: CurrencyPipe;
+
   constructor(
     private readonly catalogService: CatalogService,
     private readonly orderService: OrderService,
     private readonly snackbar: SnackbarService,
+    @Inject(LOCALE_ID) localeId: string,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.currencyPipe = new CurrencyPipe(localeId);
+  }
 
   ngOnInit(): void {
     this.loadProducts();
@@ -211,7 +217,7 @@ export class ManualSaleModalComponent implements OnInit {
     const dateLabel = this.saleDate ? this.formatDate(this.saleDate) : this.formatDate(this.todayString());
     const type = this.isCredit ? 'crédito' : 'venta';
     const extra = this.isCredit ? ' · El cliente pagará después' : '';
-    return `Cliente: ${customer} · ${dateLabel} · ${itemsCount} producto(s) · Total: ${this.formatCurrency(this.total)}. ¿Confirmar el ${type}?${extra} El stock se descontará.`;
+    return `Cliente: ${customer} · ${dateLabel} · ${itemsCount} producto(s) · Total: ${this.currencyPipe.transform(this.total) ?? ''}. ¿Confirmar el ${type}?${extra} El stock se descontará.`;
   }
 
   close(): void {
@@ -308,9 +314,5 @@ export class ManualSaleModalComponent implements OnInit {
   private formatDate(date: string): string {
     const [year, month, day] = date.split('-');
     return `${day}/${month}/${year}`;
-  }
-
-  private formatCurrency(value: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   }
 }

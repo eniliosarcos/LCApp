@@ -1,7 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Order, PaymentStatus } from '../../../core/models/order.model';
+import { Order } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
+import {
+  itemSubtotal as adminItemSubtotal,
+  itemTrackBy as adminItemTrackBy,
+  paymentStatusLabel as adminPaymentStatusLabel,
+  remainingOf
+} from '../../shared/admin-utils';
 
 @Component({
   selector: 'app-credit-detail',
@@ -40,7 +46,7 @@ export class CreditDetailComponent implements OnInit {
 
   get remaining(): number {
     if (!this.order) return 0;
-    return Math.round((this.order.total - this.order.amountPaid) * 100) / 100;
+    return remainingOf(this.order);
   }
 
   get maxPayment(): number {
@@ -55,26 +61,14 @@ export class CreditDetailComponent implements OnInit {
     return !!this.order && this.order.paymentStatus !== 'paid';
   }
 
-  itemSubtotal(item: { price: number; quantity: number }): number {
-    return item.price * item.quantity;
-  }
-
-  itemTrackBy(_index: number, item: { productId: string }): string {
-    return item.productId;
-  }
+  readonly itemSubtotal = adminItemSubtotal;
+  readonly itemTrackBy = adminItemTrackBy;
 
   paymentTrackBy(_index: number, payment: { date: string }): string {
     return payment.date;
   }
 
-  paymentStatusLabel(status: PaymentStatus): string {
-    switch (status) {
-      case 'unpaid': return 'Sin pagar';
-      case 'partial': return 'Parcial';
-      case 'paid': return 'Pagado';
-      default: return status;
-    }
-  }
+  readonly paymentStatusLabel = adminPaymentStatusLabel;
 
   submitPayment(): void {
     if (!this.order || !this.paymentAmount || this.paymentAmount <= 0) {

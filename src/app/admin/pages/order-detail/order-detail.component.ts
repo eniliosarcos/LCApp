@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { ActivatedRoute } from '@angular/router';
 import { Order } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
+import { itemSubtotal as adminItemSubtotal, itemTrackBy as adminItemTrackBy } from '../../shared/admin-utils';
 
 @Component({
   selector: 'app-order-detail',
@@ -33,13 +34,8 @@ export class OrderDetailComponent implements OnInit {
     return this.order?.code ?? '';
   }
 
-  itemSubtotal(item: { price: number; quantity: number }): number {
-    return item.price * item.quantity;
-  }
-
-  itemTrackBy(_index: number, item: { productId: string }): string {
-    return item.productId;
-  }
+  readonly itemSubtotal = adminItemSubtotal;
+  readonly itemTrackBy = adminItemTrackBy;
 
   confirmOrder(): void {
     if (!this.order) {

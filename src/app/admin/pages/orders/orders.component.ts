@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Order, OrderPage, OrderStatus } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
+import { itemTrackBy as adminItemTrackBy, orderTrackBy as adminOrderTrackBy } from '../../shared/admin-utils';
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -44,13 +45,8 @@ export class OrdersComponent implements OnInit {
     this.loadOrders();
   }
 
-  orderTrackBy(_index: number, order: Order): string {
-    return order.id;
-  }
-
-  itemTrackBy(_index: number, item: { productId: string }): string {
-    return item.productId;
-  }
+  readonly orderTrackBy = adminOrderTrackBy;
+  readonly itemTrackBy = adminItemTrackBy;
 
   goToDetail(order: Order): void {
     this.router.navigate(['/admin/orders/detail', order.code]);

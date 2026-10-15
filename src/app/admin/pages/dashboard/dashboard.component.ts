@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Order, OrderStats } from '../../../core/models/order.model';
 import { OrderService } from '../../../core/services/order.service';
+import { orderTrackBy as adminOrderTrackBy } from '../../shared/admin-utils';
 
 const RECENT_PENDING_LIMIT = 5;
 
@@ -48,13 +49,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  orderTrackBy(_index: number, order: Order): string {
-    return order.id;
-  }
-
-  itemTrackBy(_index: number, item: { productId: string }): string {
-    return item.productId;
-  }
+  readonly orderTrackBy = adminOrderTrackBy;
 
   confirmOrder(order: Order): void {
     this.actionError = '';
