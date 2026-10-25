@@ -26,11 +26,15 @@
 
     <p class="status loading" *ngIf="checkingOrder">Verificando tu pedido…</p>
 
-    <div class="contact-options" *ngIf="!contacting && !redirecting && !checkingOrder">
-      <button type="button" class="btn whatsapp" (click)="openContact('whatsapp')">WhatsApp</button>
-      <button type="button" class="btn instagram" (click)="openContact('instagram')">Instagram</button>
-      <button type="button" class="btn telegram" (click)="openContact('telegram')">Telegram</button>
+    <div class="contact-options" *ngIf="!contacting && !redirecting && !checkingOrder && hasAnyChannel(); else noChannels">
+      <button type="button" class="btn whatsapp" *ngIf="hasChannel('whatsapp')" (click)="openContact('whatsapp')">WhatsApp</button>
+      <button type="button" class="btn instagram" *ngIf="hasChannel('instagram')" (click)="openContact('instagram')">Instagram</button>
+      <button type="button" class="btn telegram" *ngIf="hasChannel('telegram')" (click)="openContact('telegram')">Telegram</button>
     </div>
+
+    <ng-template #noChannels>
+      <p class="status loading" *ngIf="!contacting && !redirecting && !checkingOrder">No hay canales de contacto disponibles en este momento.</p>
+    </ng-template>
 
     <p class="status loading" *ngIf="contacting && !redirecting">Registrando tu pedido…</p>
   </ng-container>

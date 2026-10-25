@@ -12,12 +12,14 @@ import { SnackbarService } from '../../../core/services/snackbar.service';
 import { AppModalComponent } from '../../../shared/components/modal/app-modal.component';
 import { CartSummaryComponent } from './cart-summary.component';
 
-const contactStub: ContactConfig = {
+const baseContactStub: ContactConfig = {
   whatsapp: '521234567890',
   whatsappDisplay: '+52 123 456 7890',
   instagram: '@tu_usuario',
   telegram: '@tu_usuario'
 };
+
+let contactStub: ContactConfig;
 
 const product: Product = {
   id: 'p1',
@@ -75,6 +77,7 @@ describe('CartSummaryComponent', () => {
   }
 
   beforeEach(async () => {
+    contactStub = { ...baseContactStub };
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder', 'getOrderStatus', 'updateOrderItems']);
     cartServiceSpy = jasmine.createSpyObj('CartService', [
       'hasRegisteredOrder',
@@ -456,4 +459,36 @@ describe('CartSummaryComponent', () => {
     expect(component.orderConfirmed).toBeFalse();
     expect(component.orderNotice).toBe('');
   }));
+
+  it('muestra solo los botones de los canales configurados', () => {
+    contactStub = { ...baseContactStub, telegram: '' };
+    createComponent();
+
+    const buttons: HTMLButtonElement[] = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.contact-options .btn')
+    );
+    const labels = buttons.map(button => button.textContent?.trim());
+
+    expect(labels).toEqual(['WhatsApp', 'Instagram']);
+  });
+
+  it('no registra el pedido si el canal no tiene destino configurado', () => {
+    contactStub = { ...baseContactStub, telegram: '' };
+    createComponent();
+
+    component.openContact('telegram');
+    fixture.detectChanges();
+
+    expect(orderServiceSpy.createOrder).not.toHaveBeenCalled();
+    expect(component.redirecting).toBeFalse();
+    expect(component.contacting).toBeFalse();
+  });
+
+  it('avisa cuando no hay ningún canal configurado', () => {
+    contactStub = { whatsapp: '', whatsappDisplay: '', instagram: '', telegram: '' };
+    createComponent();
+
+    expect(fixture.nativeElement.querySelector('.contact-options')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('No hay canales de contacto disponibles');
+  });
 });

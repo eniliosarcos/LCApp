@@ -40,6 +40,9 @@ Sistema de 3 piezas: una SPA pública, una API y una base de datos, desplegadas 
  2. Agrega al carrito:  CartService  →  persistencia en localStorage (entidad Cart). El catálogo muestra el estado de stock (badge "En stock" / "¡Últimas X unidades!" / "Agotado") y bloquea el agregado de productos agotados; `CartService` además **topea la cantidad al stock disponible** (defensa en profundidad: la API también valida).
  3. Abre el resumen:  CartSummaryComponent (subtotal, envío gratis, código del carrito)
  4. Toca un canal de contacto (WhatsApp/Instagram/Telegram):
+     Solo se muestran los canales con valor configurado; un canal vacío no
+     renderiza botón y `openContact()` no registra el pedido (defensa contra
+     órdenes huérfanas si el canal se vacía desde la API).
      a. Si no hay orden registrada: OrderService.postOrder()  →  POST /api/orders  (público)
      b. Backend genera código CAR-XXXXX, guarda la orden como 'pending'
      c. El frontend guarda el código real y abre el canal con mensaje prefabricado
