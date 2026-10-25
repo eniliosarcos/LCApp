@@ -19,8 +19,8 @@
       <input type="text" name="instagram" [(ngModel)]="form.instagram" required>
     </label>
     <label>
-      Telegram (ej. @tu_usuario)
-      <input type="text" name="telegram" [(ngModel)]="form.telegram" required>
+      Telegram (opcional — si lo dejas vacío, no se muestra en el sitio)
+      <input type="text" name="telegram" [(ngModel)]="form.telegram">
     </label>
 
     <p class="success" *ngIf="saved">Configuración guardada. Los cambios ya se reflejan en el sitio.</p>

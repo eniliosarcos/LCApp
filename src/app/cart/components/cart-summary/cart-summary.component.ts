@@ -84,8 +84,17 @@ export class CartSummaryComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Un canal sin destino configurado no se ofrece: su botón no se renderiza. */
+  hasChannel(channel: ContactChannel): boolean {
+    return Boolean(this.contact?.[channel]?.trim());
+  }
+
+  hasAnyChannel(): boolean {
+    return this.hasChannel('whatsapp') || this.hasChannel('instagram') || this.hasChannel('telegram');
+  }
+
   openContact(channel: ContactChannel): void {
-    if (this.contacting || this.redirecting || this.checkingOrder) {
+    if (this.contacting || this.redirecting || this.checkingOrder || !this.hasChannel(channel)) {
       return;
     }
 

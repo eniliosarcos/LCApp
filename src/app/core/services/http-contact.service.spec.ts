@@ -42,6 +42,24 @@ describe('HttpContactService', () => {
     expect(result).toEqual(config);
   });
 
+  it('getContact() recorta espacios y trata un canal con solo espacios como vacío', () => {
+    let result!: ContactConfig;
+    service.getContact().subscribe(value => (result = value));
+    httpMock.expectOne('http://localhost:3000/api/config').flush({
+      whatsapp: ' 521234567890 ',
+      whatsappDisplay: ' +52 123 456 7890 ',
+      instagram: ' @tu_usuario ',
+      telegram: '   '
+    });
+
+    expect(result).toEqual({
+      whatsapp: '521234567890',
+      whatsappDisplay: '+52 123 456 7890',
+      instagram: '@tu_usuario',
+      telegram: ''
+    });
+  });
+
   it('getContact() cachea: un solo GET para múltiples suscriptores', () => {
     service.getContact().subscribe();
     service.getContact().subscribe();
@@ -75,6 +93,30 @@ describe('HttpContactService', () => {
     req.flush(config);
 
     expect(result).toEqual(config);
+  });
+
+  it('updateContact() envía y emite los valores recortados', () => {
+    let result!: ContactConfig;
+    service
+      .updateContact({ whatsapp: ' 5491198765432 ', whatsappDisplay: ' +54 9 11 ', instagram: ' @nuevo ', telegram: '   ' })
+      .subscribe(value => (result = value));
+
+    const req = httpMock.expectOne('http://localhost:3000/api/config');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({
+      whatsapp: '5491198765432',
+      whatsappDisplay: '+54 9 11',
+      instagram: '@nuevo',
+      telegram: ''
+    });
+    req.flush({ whatsapp: ' 5491198765432 ', whatsappDisplay: ' +54 9 11 ', instagram: ' @nuevo ', telegram: '   ' });
+
+    expect(result).toEqual({
+      whatsapp: '5491198765432',
+      whatsappDisplay: '+54 9 11',
+      instagram: '@nuevo',
+      telegram: ''
+    });
   });
 
   it('updateContact() propaga error legible si el PUT falla', () => {
